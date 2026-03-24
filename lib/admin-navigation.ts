@@ -3,25 +3,49 @@ export const adminSections = [
     key: "overview",
     href: "/admin",
     label: "Dashboard",
-    summary: "Admin panel overview and operational status"
-  },
-  {
-    key: "users",
-    href: "/admin/users",
-    label: "Users",
-    summary: "Customer and lead records"
+    summary: "Overview and daily activity"
   },
   {
     key: "products",
     href: "/admin/products",
     label: "Products",
-    summary: "SKU, stock, price, and multilingual content"
+    summary: "Catalog inventory and SKU content"
   },
   {
     key: "categories",
     href: "/admin/categories",
     label: "Categories",
-    summary: "Catalog taxonomy and grouping"
+    summary: "Taxonomy and catalog grouping"
+  },
+  {
+    key: "orders",
+    href: "/admin/orders",
+    label: "Orders",
+    summary: "Checkout and fulfillment flow"
+  },
+  {
+    key: "users",
+    href: "/admin/users",
+    label: "Users",
+    summary: "Customers and CRM records"
+  },
+  {
+    key: "analytics",
+    href: "/admin/analytics",
+    label: "Analytics",
+    summary: "Performance and business reporting"
+  },
+  {
+    key: "settings",
+    href: "/admin/settings",
+    label: "Settings",
+    summary: "System and content configuration"
+  },
+  {
+    key: "shop",
+    href: "/admin/shop",
+    label: "Shop",
+    summary: "Storefront management shortcuts"
   }
 ] as const;
 

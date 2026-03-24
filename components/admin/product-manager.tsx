@@ -119,13 +119,8 @@ export function ProductManager() {
       return;
     }
 
-    setError(null);
-    setMessage(null);
-
     try {
-      await requestJson(`/api/products/${id}`, {
-        method: "DELETE"
-      });
+      await requestJson(`/api/products/${id}`, { method: "DELETE" });
 
       if (editingId === id) {
         setEditingId(null);
@@ -143,14 +138,14 @@ export function ProductManager() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
-      <form onSubmit={handleSubmit} className="glass rounded-[2rem] p-6">
+    <div className="grid gap-6 xl:grid-cols-[540px_1fr]">
+      <form onSubmit={handleSubmit} className="admin-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-3xl text-ink">{editingId ? "Edit product" : "Create product"}</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Edit product" : "Create product"}</h3>
           {editingId ? (
             <button
               type="button"
-              className="text-sm font-semibold text-clay"
+              className="text-sm font-semibold text-slate-500"
               onClick={() => {
                 setEditingId(null);
                 setForm({
@@ -165,21 +160,21 @@ export function ProductManager() {
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 md:col-span-2" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
-          <textarea className="min-h-24 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Short description UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
-          <textarea className="min-h-24 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Short description RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
-          <textarea className="min-h-24 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 md:col-span-2" placeholder="Short description EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
-          <textarea className="min-h-28 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
-          <textarea className="min-h-28 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
-          <textarea className="min-h-28 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 md:col-span-2" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
-          <select className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
+          <input className="admin-input" placeholder="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
+          <input className="admin-input" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+          <input className="admin-input" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+          <input className="admin-input" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+          <input className="admin-input md:col-span-2" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
+          <textarea className="admin-textarea" placeholder="Short description UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
+          <textarea className="admin-textarea" placeholder="Short description RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
+          <textarea className="admin-textarea md:col-span-2" placeholder="Short description EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
+          <textarea className="admin-textarea min-h-28" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+          <textarea className="admin-textarea min-h-28" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+          <textarea className="admin-textarea min-h-28 md:col-span-2" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          <input className="admin-input" placeholder="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
+          <input className="admin-input" placeholder="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
+          <input className="admin-input" placeholder="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
+          <select className="admin-select" value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
             <option value="">Select category</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -187,48 +182,48 @@ export function ProductManager() {
               </option>
             ))}
           </select>
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Color from" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
-          <input className="rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Color to" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
-          <label className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white/80 px-4 py-3 text-sm font-semibold text-stone-700">
+          <input className="admin-input" placeholder="Color from" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
+          <input className="admin-input" placeholder="Color to" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
+          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
             <input type="checkbox" checked={form.active} onChange={(event) => setForm((current) => ({ ...current, active: event.target.checked }))} />
             Active product
           </label>
         </div>
 
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
-        {message ? <p className="mt-4 text-sm font-semibold text-moss">{message}</p> : null}
+        {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
-        <button type="submit" className="cta-primary mt-6 w-full">
+        <button type="submit" className="admin-button-primary mt-6 w-full">
           {editingId ? "Update product" : "Create product"}
         </button>
       </form>
 
-      <div className="glass rounded-[2rem] p-6">
+      <div className="admin-panel p-6">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="font-display text-3xl text-ink">Products</h3>
-          <span className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-stone-600">{products.length}</span>
+          <h3 className="text-2xl font-semibold text-slate-950">Products</h3>
+          <span className="admin-badge">{products.length}</span>
         </div>
 
         <div className="mt-5 space-y-4">
-          {loading ? <p className="text-sm text-stone-500">Loading products...</p> : null}
-          {!loading && products.length === 0 ? <p className="text-sm text-stone-500">No products yet.</p> : null}
+          {loading ? <p className="text-sm text-slate-500">Loading products...</p> : null}
+          {!loading && products.length === 0 ? <p className="text-sm text-slate-500">No products yet.</p> : null}
           {products.map((product) => (
-            <article key={product.id} className="rounded-[1.5rem] border border-stone-200 bg-white/70 p-5">
+            <article key={product.id} className="admin-panel-muted p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
-                    {product.sku} · {product.slug}
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                    {product.sku} | {product.slug}
                   </p>
-                  <h4 className="mt-2 text-lg font-semibold text-ink">{product.nameEn}</h4>
-                  <p className="mt-1 text-sm text-stone-600">{product.category?.nameEn || "Uncategorized"}</p>
-                  <p className="mt-2 text-sm leading-6 text-stone-600">
-                    ${product.price} · Stock {product.stock} · {product.active ? "Active" : "Draft"}
+                  <h4 className="mt-2 text-lg font-semibold text-slate-950">{product.nameEn}</h4>
+                  <p className="mt-1 text-sm text-slate-600">{product.category?.nameEn || "Uncategorized"}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    ${product.price} | Stock {product.stock} | {product.active ? "Active" : "Draft"}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-sand"
+                    className="admin-button-secondary"
                     onClick={() => {
                       setEditingId(product.id);
                       setForm({
@@ -255,7 +250,7 @@ export function ProductManager() {
                   >
                     Edit
                   </button>
-                  <button type="button" className="rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-600" onClick={() => handleDelete(product.id)}>
+                  <button type="button" className="admin-button-danger" onClick={() => handleDelete(product.id)}>
                     Delete
                   </button>
                 </div>

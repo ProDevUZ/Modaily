@@ -35,8 +35,7 @@ export function CategoryManager() {
   async function loadCategories() {
     setLoading(true);
     try {
-      const payload = await requestJson<AdminCategory[]>("/api/categories");
-      setCategories(payload);
+      setCategories(await requestJson<AdminCategory[]>("/api/categories"));
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Could not load categories.");
     } finally {
@@ -62,8 +61,8 @@ export function CategoryManager() {
         body: JSON.stringify(form)
       });
 
-      setForm(emptyForm);
       setEditingId(null);
+      setForm(emptyForm);
       setMessage(editingId ? "Category updated." : "Category created.");
       await loadCategories();
     } catch (submitError) {
@@ -76,19 +75,12 @@ export function CategoryManager() {
       return;
     }
 
-    setError(null);
-    setMessage(null);
-
     try {
-      await requestJson(`/api/categories/${id}`, {
-        method: "DELETE"
-      });
-
+      await requestJson(`/api/categories/${id}`, { method: "DELETE" });
       if (editingId === id) {
         setEditingId(null);
         setForm(emptyForm);
       }
-
       setMessage("Category deleted.");
       await loadCategories();
     } catch (deleteError) {
@@ -97,14 +89,14 @@ export function CategoryManager() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[460px_1fr]">
-      <form onSubmit={handleSubmit} className="glass rounded-[2rem] p-6">
+    <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
+      <form onSubmit={handleSubmit} className="admin-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-3xl text-ink">{editingId ? "Edit category" : "Create category"}</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Edit category" : "Create category"}</h3>
           {editingId ? (
             <button
               type="button"
-              className="text-sm font-semibold text-clay"
+              className="text-sm font-semibold text-slate-500"
               onClick={() => {
                 setEditingId(null);
                 setForm(emptyForm);
@@ -116,49 +108,47 @@ export function CategoryManager() {
         </div>
 
         <div className="mt-5 space-y-4">
-          <input className="w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
-          <input className="w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
-          <input className="w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
-          <input className="w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
-          <textarea className="min-h-24 w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
-          <textarea className="min-h-24 w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
-          <textarea className="min-h-24 w-full rounded-2xl border border-stone-200 bg-white/80 px-4 py-3" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          <input className="admin-input" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+          <input className="admin-input" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+          <input className="admin-input" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+          <input className="admin-input" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
+          <textarea className="admin-textarea" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+          <textarea className="admin-textarea" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+          <textarea className="admin-textarea" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
         </div>
 
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
-        {message ? <p className="mt-4 text-sm font-semibold text-moss">{message}</p> : null}
+        {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
-        <button type="submit" className="cta-primary mt-6 w-full">
+        <button type="submit" className="admin-button-primary mt-6 w-full">
           {editingId ? "Update category" : "Create category"}
         </button>
       </form>
 
-      <div className="glass rounded-[2rem] p-6">
+      <div className="admin-panel p-6">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="font-display text-3xl text-ink">Categories</h3>
-          <span className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-stone-600">{categories.length}</span>
+          <h3 className="text-2xl font-semibold text-slate-950">Categories</h3>
+          <span className="admin-badge">{categories.length}</span>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {loading ? <p className="text-sm text-stone-500">Loading categories...</p> : null}
-          {!loading && categories.length === 0 ? <p className="text-sm text-stone-500">No categories yet.</p> : null}
+          {loading ? <p className="text-sm text-slate-500">Loading categories...</p> : null}
+          {!loading && categories.length === 0 ? <p className="text-sm text-slate-500">No categories yet.</p> : null}
           {categories.map((category) => (
-            <article key={category.id} className="rounded-[1.5rem] border border-stone-200 bg-white/70 p-5">
+            <article key={category.id} className="admin-panel-muted p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">{category.slug}</p>
-                  <h4 className="mt-2 text-lg font-semibold text-ink">{category.nameEn}</h4>
-                  <p className="mt-1 text-sm text-stone-600">{category.nameUz}</p>
-                  <p className="text-sm text-stone-600">{category.nameRu}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{category.slug}</p>
+                  <h4 className="mt-2 text-lg font-semibold text-slate-950">{category.nameEn}</h4>
+                  <p className="mt-1 text-sm text-slate-600">{category.nameUz}</p>
+                  <p className="text-sm text-slate-600">{category.nameRu}</p>
                 </div>
-                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-600">
-                  {category._count?.products || 0} products
-                </span>
+                <span className="admin-badge">{category._count?.products || 0} products</span>
               </div>
               <div className="mt-4 flex gap-2">
                 <button
                   type="button"
-                  className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-sand"
+                  className="admin-button-secondary"
                   onClick={() => {
                     setEditingId(category.id);
                     setForm({
@@ -174,7 +164,7 @@ export function CategoryManager() {
                 >
                   Edit
                 </button>
-                <button type="button" className="rounded-full bg-red-50 px-4 py-2 text-sm font-semibold text-red-600" onClick={() => handleDelete(category.id)}>
+                <button type="button" className="admin-button-danger" onClick={() => handleDelete(category.id)}>
                   Delete
                 </button>
               </div>
