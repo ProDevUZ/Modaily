@@ -21,7 +21,6 @@ export function SiteFooter({ locale, dictionary }: SiteFooterProps) {
               <Link href={`/${locale}`}>{dictionary.nav.home}</Link>
               <Link href={`/${locale}/catalog`}>{dictionary.nav.catalog}</Link>
               <Link href={`/${locale}/cart`}>{dictionary.nav.cart}</Link>
-              <Link href="/admin">{dictionary.nav.admin}</Link>
             </div>
           </div>
         </div>

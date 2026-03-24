@@ -69,9 +69,6 @@ export function SiteHeader({ locale, dictionary }: SiteHeaderProps) {
             <Link href={`/${locale}/cart`} className="rounded-full border border-stone-200 bg-white/75 px-4 py-3 text-sm font-semibold text-ink">
               {dictionary.nav.cart} ({count})
             </Link>
-            <Link href="/admin" className="rounded-full border border-ink bg-ink px-4 py-3 text-sm font-semibold text-sand">
-              {dictionary.nav.admin}
-            </Link>
           </div>
 
           <button
@@ -92,9 +89,6 @@ export function SiteHeader({ locale, dictionary }: SiteHeaderProps) {
             ))}
             <Link href={`/${locale}/cart`} className="text-sm font-semibold text-ink" onClick={() => setIsOpen(false)}>
               {dictionary.nav.cart} ({count})
-            </Link>
-            <Link href="/admin" className="text-sm font-semibold text-clay" onClick={() => setIsOpen(false)}>
-              {dictionary.nav.admin}
             </Link>
             <div className="flex gap-2 pt-2">
               {locales.map((entry) => (

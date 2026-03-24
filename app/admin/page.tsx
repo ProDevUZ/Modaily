@@ -1,6 +1,9 @@
 import Link from "next/link";
 
+import { AdminSectionCard } from "@/components/admin/admin-section-card";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { AdminStatCard } from "@/components/admin/admin-stat-card";
+import { adminSections } from "@/lib/admin-navigation";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -54,15 +57,11 @@ export default async function AdminOverviewPage() {
     <AdminShell
       current="overview"
       title="Dashboard"
-      description="Store operatsiyalari uchun bitta alohida boshqaruv markazi. Quyida umumiy statistika, tezkor kirish nuqtalari va e’tibor talab qiladigan yozuvlar ko‘rsatiladi."
+      description="Store operatsiyalari uchun bitta alohida boshqaruv markazi. Quyida umumiy statistika, tezkor kirish nuqtalari va etibor talab qiladigan yozuvlar korsatiladi."
     >
       <div className="grid gap-5 md:grid-cols-3">
         {stats.map((item) => (
-          <article key={item.label} className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">{item.label}</p>
-            <p className="mt-4 font-display text-5xl text-white">{item.value}</p>
-            <p className="mt-4 text-sm leading-7 text-slate-300">{item.copy}</p>
-          </article>
+          <AdminStatCard key={item.label} label={item.label} value={item.value} copy={item.copy} />
         ))}
       </div>
 
@@ -75,20 +74,11 @@ export default async function AdminOverviewPage() {
             </div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {[
-              { title: "Users", href: "/admin/users", copy: "Mijoz va lead yozuvlari" },
-              { title: "Products", href: "/admin/products", copy: "SKU, stock, narx va kontent" },
-              { title: "Categories", href: "/admin/categories", copy: "Taxonomy va katalog strukturasi" }
-            ].map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                className="rounded-[1.4rem] border border-white/10 bg-slate-950/40 p-5 transition hover:-translate-y-1 hover:border-cyan-400/40"
-              >
-                <p className="text-lg font-semibold text-white">{item.title}</p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{item.copy}</p>
-              </Link>
-            ))}
+            {adminSections
+              .filter((section) => section.key !== "overview")
+              .map((item) => (
+                <AdminSectionCard key={item.key} title={item.label} href={item.href} copy={item.summary} />
+              ))}
           </div>
         </div>
 
@@ -112,7 +102,10 @@ export default async function AdminOverviewPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200">Attention needed</p>
             <h3 className="mt-3 font-display text-3xl text-white">Low stock products</h3>
           </div>
-          <Link href="/admin/products" className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white">
+          <Link
+            href="/admin/products"
+            className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white"
+          >
             Open products
           </Link>
         </div>
@@ -120,7 +113,7 @@ export default async function AdminOverviewPage() {
           {lowStockProducts.map((product) => (
             <article key={product.id} className="rounded-[1.4rem] border border-white/10 bg-slate-950/40 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">
-                {product.sku} · {product.category.nameEn}
+                {product.sku} | {product.category.nameEn}
               </p>
               <h4 className="mt-2 text-lg font-semibold text-white">{product.nameEn}</h4>
               <p className="mt-3 text-sm text-slate-300">Remaining stock: {product.stock}</p>
