@@ -1,0 +1,17 @@
+services:
+  modaily:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: modaily-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:./dev.db
+      PORT: 3000
+    volumes:
+      - modaily_prisma:/app/prisma
+
+volumes:
+  modaily_prisma:

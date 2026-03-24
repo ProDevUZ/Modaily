@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  fullName  String
+  email     String   @unique
+  phone     String?
+  city      String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  nameUz        String
+  nameRu        String
+  nameEn        String
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+}
+
+model Product {
+  id                 String   @id @default(cuid())
+  sku                String   @unique
+  slug               String   @unique
+  nameUz             String
+  nameRu             String
+  nameEn             String
+  shortDescriptionUz String?
+  shortDescriptionRu String?
+  shortDescriptionEn String?
+  descriptionUz      String?
+  descriptionRu      String?
+  descriptionEn      String?
+  size               String?
+  price              Int
+  stock              Int      @default(0)
+  active             Boolean  @default(true)
+  colorFrom          String?
+  colorTo            String?
+  categoryId         String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+}
