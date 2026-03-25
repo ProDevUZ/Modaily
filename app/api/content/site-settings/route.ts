@@ -19,8 +19,13 @@ async function getSiteSettings() {
 }
 
 export async function GET() {
-  const settings = await getSiteSettings();
-  return NextResponse.json(settings);
+  try {
+    const settings = await getSiteSettings();
+    return NextResponse.json(settings);
+  } catch (error) {
+    console.error("site settings fallback", error);
+    return NextResponse.json(defaultSiteSettings);
+  }
 }
 
 export async function PATCH(request: Request) {

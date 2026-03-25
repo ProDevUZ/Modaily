@@ -4,11 +4,16 @@ import { validateGalleryItemPayload } from "@/lib/admin-validators";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const items = await prisma.galleryItem.findMany({
-    orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
-  });
+  try {
+    const items = await prisma.galleryItem.findMany({
+      orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
+    });
 
-  return NextResponse.json(items);
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error("gallery items fallback", error);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: Request) {

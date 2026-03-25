@@ -4,11 +4,16 @@ import { validateHomePromoCardPayload } from "@/lib/admin-validators";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const cards = await prisma.homePromoCard.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
-  });
+  try {
+    const cards = await prisma.homePromoCard.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    });
 
-  return NextResponse.json(cards);
+    return NextResponse.json(cards);
+  } catch (error) {
+    console.error("promo cards fallback", error);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: Request) {

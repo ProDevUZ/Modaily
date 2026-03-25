@@ -19,8 +19,13 @@ async function getHomeAbout() {
 }
 
 export async function GET() {
-  const about = await getHomeAbout();
-  return NextResponse.json(about);
+  try {
+    const about = await getHomeAbout();
+    return NextResponse.json(about);
+  } catch (error) {
+    console.error("home about fallback", error);
+    return NextResponse.json(defaultHomeAbout);
+  }
 }
 
 export async function PATCH(request: Request) {

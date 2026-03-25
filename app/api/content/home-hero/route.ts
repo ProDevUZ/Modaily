@@ -19,8 +19,13 @@ async function getHomeHero() {
 }
 
 export async function GET() {
-  const hero = await getHomeHero();
-  return NextResponse.json(hero);
+  try {
+    const hero = await getHomeHero();
+    return NextResponse.json(hero);
+  } catch (error) {
+    console.error("home hero fallback", error);
+    return NextResponse.json(defaultHomeHero);
+  }
 }
 
 export async function PATCH(request: Request) {

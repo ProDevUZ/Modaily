@@ -4,11 +4,16 @@ import { validateTestimonialPayload } from "@/lib/admin-validators";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const testimonials = await prisma.testimonial.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
-  });
+  try {
+    const testimonials = await prisma.testimonial.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    });
 
-  return NextResponse.json(testimonials);
+    return NextResponse.json(testimonials);
+  } catch (error) {
+    console.error("testimonials fallback", error);
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: Request) {
