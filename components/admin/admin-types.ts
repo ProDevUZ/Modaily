@@ -42,12 +42,140 @@ export type AdminProduct = {
   price: number;
   stock: number;
   active: boolean;
+  isBestseller: boolean;
+  homeSortOrder: number;
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;
   createdAt: string;
   updatedAt: string;
   category?: AdminCategory;
+};
+
+export type AdminSiteSettings = {
+  id: string;
+  brandName: string;
+  announcementTextUz: string | null;
+  announcementTextRu: string | null;
+  announcementTextEn: string | null;
+  announcementLinkLabelUz: string | null;
+  announcementLinkLabelRu: string | null;
+  announcementLinkLabelEn: string | null;
+  announcementLink: string | null;
+  footerPhone: string | null;
+  footerEmail: string | null;
+  footerTelegram: string | null;
+  footerInstagram: string | null;
+  footerAddressUz: string | null;
+  footerAddressRu: string | null;
+  footerAddressEn: string | null;
+  newsletterTitleUz: string | null;
+  newsletterTitleRu: string | null;
+  newsletterTitleEn: string | null;
+  newsletterPlaceholderUz: string | null;
+  newsletterPlaceholderRu: string | null;
+  newsletterPlaceholderEn: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminHomeHero = {
+  id: string;
+  badgeUz: string | null;
+  badgeRu: string | null;
+  badgeEn: string | null;
+  titleUz: string;
+  titleRu: string;
+  titleEn: string;
+  descriptionUz: string | null;
+  descriptionRu: string | null;
+  descriptionEn: string | null;
+  primaryCtaUz: string | null;
+  primaryCtaRu: string | null;
+  primaryCtaEn: string | null;
+  primaryCtaLink: string | null;
+  secondaryCtaUz: string | null;
+  secondaryCtaRu: string | null;
+  secondaryCtaEn: string | null;
+  secondaryCtaLink: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminHomePromoCard = {
+  id: string;
+  titleUz: string;
+  titleRu: string;
+  titleEn: string;
+  descriptionUz: string | null;
+  descriptionRu: string | null;
+  descriptionEn: string | null;
+  buttonLabelUz: string | null;
+  buttonLabelRu: string | null;
+  buttonLabelEn: string | null;
+  buttonLink: string | null;
+  imageUrl: string | null;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminHomeAbout = {
+  id: string;
+  titleUz: string;
+  titleRu: string;
+  titleEn: string;
+  descriptionUz: string | null;
+  descriptionRu: string | null;
+  descriptionEn: string | null;
+  secondaryTitleUz: string | null;
+  secondaryTitleRu: string | null;
+  secondaryTitleEn: string | null;
+  secondaryDescriptionUz: string | null;
+  secondaryDescriptionRu: string | null;
+  secondaryDescriptionEn: string | null;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminGalleryItem = {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  titleUz: string | null;
+  titleRu: string | null;
+  titleEn: string | null;
+  descriptionUz: string | null;
+  descriptionRu: string | null;
+  descriptionEn: string | null;
+  imageUrl: string;
+  videoUrl: string | null;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminTestimonial = {
+  id: string;
+  authorName: string;
+  authorRoleUz: string | null;
+  authorRoleRu: string | null;
+  authorRoleEn: string | null;
+  productNameUz: string | null;
+  productNameRu: string | null;
+  productNameEn: string | null;
+  bodyUz: string;
+  bodyRu: string;
+  bodyEn: string;
+  avatarUrl: string | null;
+  rating: number;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {

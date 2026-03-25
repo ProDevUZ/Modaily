@@ -24,6 +24,8 @@ type ProductFormState = {
   price: string;
   stock: string;
   active: boolean;
+  isBestseller: boolean;
+  homeSortOrder: string;
   colorFrom: string;
   colorTo: string;
   categoryId: string;
@@ -45,6 +47,8 @@ const emptyForm: ProductFormState = {
   price: "0",
   stock: "0",
   active: true,
+  isBestseller: false,
+  homeSortOrder: "0",
   colorFrom: "",
   colorTo: "",
   categoryId: ""
@@ -98,7 +102,8 @@ export function ProductManager() {
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
-          stock: Number(form.stock)
+          stock: Number(form.stock),
+          homeSortOrder: Number(form.homeSortOrder)
         })
       });
 
@@ -174,6 +179,7 @@ export function ProductManager() {
           <input className="admin-input" placeholder="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
           <input className="admin-input" placeholder="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
           <input className="admin-input" placeholder="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
+          <input className="admin-input" placeholder="Home sort order" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
           <select className="admin-select" value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
             <option value="">Select category</option>
             {categories.map((category) => (
@@ -187,6 +193,14 @@ export function ProductManager() {
           <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
             <input type="checkbox" checked={form.active} onChange={(event) => setForm((current) => ({ ...current, active: event.target.checked }))} />
             Active product
+          </label>
+          <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.isBestseller}
+              onChange={(event) => setForm((current) => ({ ...current, isBestseller: event.target.checked }))}
+            />
+            Show in bestseller section
           </label>
         </div>
 
@@ -217,7 +231,8 @@ export function ProductManager() {
                   <h4 className="mt-2 text-lg font-semibold text-slate-950">{product.nameEn}</h4>
                   <p className="mt-1 text-sm text-slate-600">{product.category?.nameEn || "Uncategorized"}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    ${product.price} | Stock {product.stock} | {product.active ? "Active" : "Draft"}
+                    ${product.price} | Stock {product.stock} | {product.active ? "Active" : "Draft"} | Bestseller{" "}
+                    {product.isBestseller ? `Yes (#${product.homeSortOrder})` : "No"}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -242,6 +257,8 @@ export function ProductManager() {
                         price: String(product.price),
                         stock: String(product.stock),
                         active: product.active,
+                        isBestseller: product.isBestseller,
+                        homeSortOrder: String(product.homeSortOrder),
                         colorFrom: product.colorFrom || "",
                         colorTo: product.colorTo || "",
                         categoryId: product.categoryId

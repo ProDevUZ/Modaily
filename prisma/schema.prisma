@@ -49,10 +49,143 @@ model Product {
   price              Int
   stock              Int      @default(0)
   active             Boolean  @default(true)
+  isBestseller       Boolean  @default(false)
+  homeSortOrder      Int      @default(0)
   colorFrom          String?
   colorTo            String?
   categoryId         String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+}
+
+enum GalleryItemType {
+  IMAGE
+  VIDEO
+}
+
+model SiteSettings {
+  id                     String   @id @default(cuid())
+  brandName              String   @default("Modaily")
+  announcementTextUz     String?
+  announcementTextRu     String?
+  announcementTextEn     String?
+  announcementLinkLabelUz String?
+  announcementLinkLabelRu String?
+  announcementLinkLabelEn String?
+  announcementLink       String?
+  footerPhone            String?
+  footerEmail            String?
+  footerTelegram         String?
+  footerInstagram        String?
+  footerAddressUz        String?
+  footerAddressRu        String?
+  footerAddressEn        String?
+  newsletterTitleUz      String?
+  newsletterTitleRu      String?
+  newsletterTitleEn      String?
+  newsletterPlaceholderUz String?
+  newsletterPlaceholderRu String?
+  newsletterPlaceholderEn String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model HomeHero {
+  id               String   @id @default(cuid())
+  badgeUz          String?
+  badgeRu          String?
+  badgeEn          String?
+  titleUz          String
+  titleRu          String
+  titleEn          String
+  descriptionUz    String?
+  descriptionRu    String?
+  descriptionEn    String?
+  primaryCtaUz     String?
+  primaryCtaRu     String?
+  primaryCtaEn     String?
+  primaryCtaLink   String?
+  secondaryCtaUz   String?
+  secondaryCtaRu   String?
+  secondaryCtaEn   String?
+  secondaryCtaLink String?
+  imageUrl         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model HomePromoCard {
+  id             String   @id @default(cuid())
+  titleUz        String
+  titleRu        String
+  titleEn        String
+  descriptionUz  String?
+  descriptionRu  String?
+  descriptionEn  String?
+  buttonLabelUz  String?
+  buttonLabelRu  String?
+  buttonLabelEn  String?
+  buttonLink     String?
+  imageUrl       String?
+  sortOrder      Int      @default(0)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model HomeAboutSection {
+  id                  String   @id @default(cuid())
+  titleUz             String
+  titleRu             String
+  titleEn             String
+  descriptionUz       String?
+  descriptionRu       String?
+  descriptionEn       String?
+  secondaryTitleUz    String?
+  secondaryTitleRu    String?
+  secondaryTitleEn    String?
+  secondaryDescriptionUz String?
+  secondaryDescriptionRu String?
+  secondaryDescriptionEn String?
+  imageUrl            String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model GalleryItem {
+  id             String          @id @default(cuid())
+  type           GalleryItemType
+  titleUz        String?
+  titleRu        String?
+  titleEn        String?
+  descriptionUz  String?
+  descriptionRu  String?
+  descriptionEn  String?
+  imageUrl       String
+  videoUrl       String?
+  sortOrder      Int             @default(0)
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Testimonial {
+  id               String   @id @default(cuid())
+  authorName       String
+  authorRoleUz     String?
+  authorRoleRu     String?
+  authorRoleEn     String?
+  productNameUz    String?
+  productNameRu    String?
+  productNameEn    String?
+  bodyUz           String
+  bodyRu           String
+  bodyEn           String
+  avatarUrl        String?
+  rating           Int      @default(5)
+  sortOrder        Int      @default(0)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

@@ -30,6 +30,12 @@ export const adminSections = [
     summary: "Customers and CRM records"
   },
   {
+    key: "content",
+    href: "/admin/content",
+    label: "Content",
+    summary: "Homepage CMS and editorial blocks"
+  },
+  {
     key: "analytics",
     href: "/admin/analytics",
     label: "Analytics",

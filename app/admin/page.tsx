@@ -31,10 +31,13 @@ function buildChartPath() {
 }
 
 export default async function AdminOverviewPage() {
-  const [userCount, productCount, categoryCount] = await Promise.all([
+  const [userCount, productCount, categoryCount, testimonialCount, galleryCount, promoCount] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
-    prisma.category.count()
+    prisma.category.count(),
+    prisma.testimonial.count(),
+    prisma.galleryItem.count(),
+    prisma.homePromoCard.count()
   ]);
 
   const catalogValue = await prisma.product.aggregate({
@@ -161,11 +164,12 @@ export default async function AdminOverviewPage() {
 
           <div className="admin-panel p-6">
             <h2 className="text-3xl font-semibold text-slate-950">Structure status</h2>
-            <p className="mt-2 text-base text-slate-500">Admin shell, CRUD pages, placeholder modules and routing are ready.</p>
+            <p className="mt-2 text-base text-slate-500">Admin shell, CRUD pages and storefront CMS structure are ready.</p>
             <div className="mt-6 space-y-4">
               {[
                 "Dashboard layout and top navigation",
                 "Products, Categories, Users CRUD",
+                `Content CMS: ${promoCount} promo, ${galleryCount} gallery, ${testimonialCount} testimonials`,
                 "Orders, Analytics, Settings, Shop placeholders"
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">

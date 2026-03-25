@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
+import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "../lib/content-defaults";
 import { products } from "../lib/products";
 
 const prisma = new PrismaClient();
@@ -11,15 +12,10 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-async function main() {
-  const [userCount, categoryCount, productCount] = await Promise.all([
-    prisma.user.count(),
-    prisma.category.count(),
-    prisma.product.count()
-  ]);
+async function seedCatalog() {
+  const [categoryCount, productCount] = await Promise.all([prisma.category.count(), prisma.product.count()]);
 
-  if (userCount > 0 || categoryCount > 0 || productCount > 0) {
-    console.log("Database already contains data. Skipping seed.");
+  if (categoryCount > 0 || productCount > 0) {
     return;
   }
 
@@ -28,21 +24,23 @@ async function main() {
   for (const product of products) {
     const slug = slugify(product.category.en);
 
-    if (!categoryMap.has(slug)) {
-      const category = await prisma.category.create({
-        data: {
-          slug,
-          nameUz: product.category.uz,
-          nameRu: product.category.ru,
-          nameEn: product.category.en,
-          descriptionUz: `${product.category.uz} uchun Modaily assortimenti`,
-          descriptionRu: `Ассортимент Modaily для категории ${product.category.ru}`,
-          descriptionEn: `Modaily assortment for ${product.category.en}`
-        }
-      });
-
-      categoryMap.set(slug, category.id);
+    if (categoryMap.has(slug)) {
+      continue;
     }
+
+    const category = await prisma.category.create({
+      data: {
+        slug,
+        nameUz: product.category.uz,
+        nameRu: product.category.ru,
+        nameEn: product.category.en,
+        descriptionUz: `${product.category.uz} uchun Modaily assortimenti`,
+        descriptionRu: `РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ Modaily РґР»СЏ РєР°С‚РµРіРѕСЂРёРё ${product.category.ru}`,
+        descriptionEn: `Modaily assortment for ${product.category.en}`
+      }
+    });
+
+    categoryMap.set(slug, category.id);
   }
 
   for (const [index, product] of products.entries()) {
@@ -69,11 +67,21 @@ async function main() {
         price: product.price,
         stock: 25,
         active: true,
+        isBestseller: index < 4,
+        homeSortOrder: index < 4 ? index + 1 : 0,
         colorFrom: product.colors[0],
         colorTo: product.colors[1],
         categoryId
       }
     });
+  }
+}
+
+async function seedUsers() {
+  const userCount = await prisma.user.count();
+
+  if (userCount > 0) {
+    return;
   }
 
   await prisma.user.createMany({
@@ -101,6 +109,135 @@ async function main() {
       }
     ]
   });
+}
+
+async function seedContent() {
+  const [siteSettingsCount, heroCount, aboutCount, promoCount, galleryCount, testimonialCount, bestsellerCount] = await Promise.all([
+    prisma.siteSettings.count(),
+    prisma.homeHero.count(),
+    prisma.homeAboutSection.count(),
+    prisma.homePromoCard.count(),
+    prisma.galleryItem.count(),
+    prisma.testimonial.count(),
+    prisma.product.count({ where: { isBestseller: true } })
+  ]);
+
+  if (siteSettingsCount === 0) {
+    await prisma.siteSettings.create({ data: defaultSiteSettings });
+  }
+
+  if (heroCount === 0) {
+    await prisma.homeHero.create({ data: defaultHomeHero });
+  }
+
+  if (aboutCount === 0) {
+    await prisma.homeAboutSection.create({ data: defaultHomeAbout });
+  }
+
+  if (promoCount === 0) {
+    await prisma.homePromoCard.createMany({
+      data: [
+        {
+          titleUz: "Kun oxirida teringizga bir necha daqiqa ajrating",
+          titleRu: "В конце дня уделите себе несколько минут...",
+          titleEn: "Take a few calm minutes at the end of the day",
+          descriptionUz: "Editorial karta uchun demo kontent.",
+          descriptionRu: "Тонер глубоко увлажняет кожу и поддерживает мягкость.",
+          descriptionEn: "Sample editorial copy for the first promo card.",
+          buttonLabelUz: "Batafsil",
+          buttonLabelRu: "Узнать подробнее",
+          buttonLabelEn: "Learn more",
+          buttonLink: "/ru/catalog",
+          imageUrl: "/images/home/promo-1.jpg",
+          sortOrder: 1,
+          active: true
+        },
+        {
+          titleUz: "Collagen cream bilan kundalik glow",
+          titleRu: "SLIN LIFTING COLLAGEN CREAM",
+          titleEn: "Collagen cream daily ritual",
+          descriptionUz: "Ikkinchi editorial karta uchun demo kontent.",
+          descriptionRu: "Помогает коже выглядеть более упругой и гладкой.",
+          descriptionEn: "Sample editorial copy for the second promo card.",
+          buttonLabelUz: "Batafsil",
+          buttonLabelRu: "Узнать подробнее",
+          buttonLabelEn: "Learn more",
+          buttonLink: "/ru/catalog",
+          imageUrl: "/images/home/promo-2.jpg",
+          sortOrder: 2,
+          active: true
+        }
+      ]
+    });
+  }
+
+  if (galleryCount === 0) {
+    await prisma.galleryItem.createMany({
+      data: [
+        { type: "IMAGE", titleRu: "Gallery 1", imageUrl: "/images/home/gallery-1.jpg", sortOrder: 1, active: true },
+        { type: "IMAGE", titleRu: "Gallery 2", imageUrl: "/images/home/gallery-2.jpg", sortOrder: 2, active: true },
+        { type: "IMAGE", titleRu: "Gallery 3", imageUrl: "/images/home/gallery-3.jpg", sortOrder: 3, active: true },
+        { type: "IMAGE", titleRu: "Gallery 4", imageUrl: "/images/home/gallery-4.jpg", sortOrder: 4, active: true },
+        { type: "VIDEO", titleRu: "Video 1", imageUrl: "/images/home/video-1.jpg", videoUrl: "https://example.com/video-1", sortOrder: 1, active: true },
+        { type: "VIDEO", titleRu: "Video 2", imageUrl: "/images/home/video-2.jpg", videoUrl: "https://example.com/video-2", sortOrder: 2, active: true },
+        { type: "VIDEO", titleRu: "Video 3", imageUrl: "/images/home/video-3.jpg", videoUrl: "https://example.com/video-3", sortOrder: 3, active: true }
+      ]
+    });
+  }
+
+  if (testimonialCount === 0) {
+    await prisma.testimonial.createMany({
+      data: [
+        {
+          authorName: "Aziza",
+          authorRoleRu: "Крем для рук Silk Touch Modaily",
+          bodyUz: "Har kuni ishlatishga qulay, terida yengil turadi.",
+          bodyRu: "Использую после очищающей пены MODAILY — мягко очищает и не сушит кожу.",
+          bodyEn: "Comfortable for everyday use and feels light on the skin.",
+          avatarUrl: "/images/home/avatar-1.jpg",
+          rating: 5,
+          sortOrder: 1,
+          active: true
+        },
+        {
+          authorName: "Kamola",
+          authorRoleRu: "Крем для рук Silk Touch Modaily",
+          bodyUz: "Qadoq dizayni ham, natija ham yoqdi.",
+          bodyRu: "Очень понравился дизайн упаковки и качество продукта.",
+          bodyEn: "I liked both the packaging design and the product quality.",
+          avatarUrl: "/images/home/avatar-2.jpg",
+          rating: 5,
+          sortOrder: 2,
+          active: true
+        }
+      ]
+    });
+  }
+
+  if (bestsellerCount === 0) {
+    const productRows = await prisma.product.findMany({
+      orderBy: { createdAt: "asc" },
+      take: 4
+    });
+
+    await Promise.all(
+      productRows.map((product, index) =>
+        prisma.product.update({
+          where: { id: product.id },
+          data: {
+            isBestseller: true,
+            homeSortOrder: index + 1
+          }
+        })
+      )
+    );
+  }
+}
+
+async function main() {
+  await seedCatalog();
+  await seedUsers();
+  await seedContent();
 }
 
 main()
