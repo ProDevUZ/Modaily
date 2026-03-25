@@ -44,6 +44,7 @@ export type AdminProduct = {
   active: boolean;
   isBestseller: boolean;
   homeSortOrder: number;
+  imageUrl: string | null;
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;

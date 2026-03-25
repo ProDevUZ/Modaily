@@ -26,6 +26,7 @@ type ProductFormState = {
   active: boolean;
   isBestseller: boolean;
   homeSortOrder: string;
+  imageUrl: string;
   colorFrom: string;
   colorTo: string;
   categoryId: string;
@@ -49,6 +50,7 @@ const emptyForm: ProductFormState = {
   active: true,
   isBestseller: false,
   homeSortOrder: "0",
+  imageUrl: "",
   colorFrom: "",
   colorTo: "",
   categoryId: ""
@@ -176,6 +178,7 @@ export function ProductManager() {
           <textarea className="admin-textarea min-h-28" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
           <textarea className="admin-textarea min-h-28" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
           <textarea className="admin-textarea min-h-28 md:col-span-2" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          <input className="admin-input md:col-span-2" placeholder="Image URL or /uploads path" value={form.imageUrl} onChange={(event) => setForm((current) => ({ ...current, imageUrl: event.target.value }))} />
           <input className="admin-input" placeholder="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
           <input className="admin-input" placeholder="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
           <input className="admin-input" placeholder="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
@@ -202,6 +205,19 @@ export function ProductManager() {
             />
             Show in bestseller section
           </label>
+          <div className="md:col-span-2 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Image preview</p>
+            <div className="mt-3 flex h-40 items-center justify-center rounded-[1.2rem] bg-white">
+              {form.imageUrl ? (
+                <div
+                  className="h-32 w-32 bg-contain bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${form.imageUrl})` }}
+                />
+              ) : (
+                <p className="text-sm text-slate-400">No image selected</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
@@ -224,7 +240,15 @@ export function ProductManager() {
           {products.map((product) => (
             <article key={product.id} className="admin-panel-muted p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div>
+                <div className="flex gap-4">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.2rem] bg-white">
+                    {product.imageUrl ? (
+                      <div className="h-16 w-16 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${product.imageUrl})` }} />
+                    ) : (
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">No image</span>
+                    )}
+                  </div>
+                  <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
                     {product.sku} | {product.slug}
                   </p>
@@ -234,6 +258,7 @@ export function ProductManager() {
                     ${product.price} | Stock {product.stock} | {product.active ? "Active" : "Draft"} | Bestseller{" "}
                     {product.isBestseller ? `Yes (#${product.homeSortOrder})` : "No"}
                   </p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -259,6 +284,7 @@ export function ProductManager() {
                         active: product.active,
                         isBestseller: Boolean(product.isBestseller),
                         homeSortOrder: String(product.homeSortOrder ?? 0),
+                        imageUrl: product.imageUrl || "",
                         colorFrom: product.colorFrom || "",
                         colorTo: product.colorTo || "",
                         categoryId: product.categoryId

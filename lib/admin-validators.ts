@@ -38,6 +38,7 @@ export type ProductPayload = {
   active: boolean;
   isBestseller: boolean;
   homeSortOrder: number;
+  imageUrl: string | null;
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;
@@ -285,6 +286,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       active: asBoolean(payload.active),
       isBestseller: asBoolean(payload.isBestseller),
       homeSortOrder: asInteger(payload.homeSortOrder),
+      imageUrl: asOptionalString(payload.imageUrl),
       colorFrom: asOptionalString(payload.colorFrom),
       colorTo: asOptionalString(payload.colorTo),
       categoryId

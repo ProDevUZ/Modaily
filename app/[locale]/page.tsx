@@ -72,6 +72,20 @@ function MiniBottle() {
   );
 }
 
+function ProductPackshot({ imageUrl, name }: { imageUrl: string; name: string }) {
+  if (!imageUrl) {
+    return <MiniBottle />;
+  }
+
+  return (
+    <div
+      className="h-[146px] w-[112px] bg-contain bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${imageUrl})` }}
+      aria-label={name}
+    />
+  );
+}
+
 function HeroPackshot() {
   return (
     <div className="relative h-[360px] w-full">
@@ -167,7 +181,7 @@ export default async function HomePage({ params }: PageProps) {
             {content.bestsellers.slice(0, 4).map((product) => (
               <article key={product.id}>
                 <div className="flex h-[156px] items-center justify-center bg-[#f5f5f5]">
-                  <MiniBottle />
+                  <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
                 </div>
                 <h3 className="mt-3 min-h-[40px] text-[12px] uppercase leading-4 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
                 <Link href={`/${locale}/catalog/${product.slug}`} className="mt-2 inline-flex h-[30px] w-full items-center justify-center border border-black/40 text-[9px] uppercase tracking-[0.18em] text-black/72">

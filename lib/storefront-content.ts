@@ -78,7 +78,8 @@ export async function getHomePageContent(locale: Locale) {
           : locale === "ru"
             ? product.shortDescriptionRu || product.shortDescriptionEn || ""
             : product.shortDescriptionEn || "",
-      price: product.price
+      price: product.price,
+      imageUrl: product.imageUrl || ""
     })),
     promoCards: promoRows.map((row) => ({
       id: row.id,

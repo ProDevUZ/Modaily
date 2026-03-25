@@ -51,6 +51,7 @@ model Product {
   active             Boolean  @default(true)
   isBestseller       Boolean  @default(false)
   homeSortOrder      Int      @default(0)
+  imageUrl           String?
   colorFrom          String?
   colorTo            String?
   categoryId         String

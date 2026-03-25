@@ -3,13 +3,15 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_URL=file:./dev.db
+ENV DATABASE_URL=file:/data/dev.db
 ENV PORT=3000
 
 COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+RUN mkdir -p /data
 
 RUN npm run prisma:generate
 RUN npm run db:push

@@ -69,6 +69,7 @@ async function seedCatalog() {
         active: true,
         isBestseller: index < 4,
         homeSortOrder: index < 4 ? index + 1 : 0,
+        imageUrl: null,
         colorFrom: product.colors[0],
         colorTo: product.colors[1],
         categoryId

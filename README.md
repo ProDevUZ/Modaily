@@ -31,6 +31,8 @@ On container startup it will:
 2. seed initial data if the database is empty
 3. start the Next.js server
 
+Docker stores SQLite data in a named volume mounted at `/data`, so schema files inside the image are no longer overridden by runtime data.
+
 ## Admin
 
 - `/uz/admin`
