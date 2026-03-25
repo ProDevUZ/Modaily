@@ -102,20 +102,6 @@ export function SiteHeader({ locale, siteSettings }: SiteHeaderProps) {
               </span>
             </Link>
 
-            <div className="hidden items-center gap-1 pl-2 lg:flex">
-              {locales.map((entry) => (
-                <Link
-                  key={entry}
-                  href={switchLocale(entry)}
-                  className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                    entry === locale ? "bg-black text-white" : "text-black/45"
-                  }`}
-                >
-                  {localeNames[entry]}
-                </Link>
-              ))}
-            </div>
-
             <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full lg:hidden" onClick={() => setIsOpen((current) => !current)}>
               <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M4 7h16M4 12h16M4 17h16" />

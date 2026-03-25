@@ -45,8 +45,8 @@ function repeatToCount<T>(items: T[], count: number) {
 
 function graySurface(imageUrl: string, opacity = 0.52) {
   return {
-    backgroundImage: `linear-gradient(rgba(239,239,239,${opacity}), rgba(239,239,239,${opacity})), radial-gradient(circle at 20% 20%, rgba(255,255,255,0.45), transparent 22%), radial-gradient(circle at 80% 70%, rgba(0,0,0,0.06), transparent 24%), url(${imageUrl})`,
-    backgroundColor: "#e7e7e7",
+    backgroundImage: `linear-gradient(rgba(237,237,237,${opacity}), rgba(237,237,237,${opacity})), radial-gradient(circle at 12% 16%, rgba(255,255,255,0.38) 0, transparent 18%), radial-gradient(circle at 76% 70%, rgba(0,0,0,0.06) 0, transparent 22%), radial-gradient(circle at 30% 82%, rgba(0,0,0,0.04) 0, transparent 12%), url(${imageUrl})`,
+    backgroundColor: "#e2e2e2",
     backgroundSize: "cover",
     backgroundPosition: "center"
   };
@@ -134,28 +134,28 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <div className="bg-white text-black">
       <section className="px-4 pt-0 lg:px-6">
-        <div className="mx-auto max-w-[1180px] overflow-hidden border-b border-black/10">
-          <div className="grid min-h-[430px] lg:grid-cols-[1.02fr_0.98fr]" style={graySurface(content.hero.imageUrl)}>
-            <div className="flex flex-col justify-center px-7 py-8 lg:px-10">
+        <div className="mx-auto max-w-[1038px] overflow-hidden border-b border-black/10">
+          <div className="grid min-h-[392px] lg:grid-cols-[1fr_1fr]" style={graySurface(content.hero.imageUrl, 0.58)}>
+            <div className="flex flex-col justify-center px-8 py-8 lg:px-10">
               <p className="text-[10px] uppercase tracking-[0.35em] text-black/28">Novinka</p>
-              <h1 className="mt-3 max-w-[8.5ch] text-[42px] font-black uppercase leading-[0.92] tracking-[-0.05em] text-[#484848] lg:text-[56px]">
+              <h1 className="mt-3 max-w-[8.5ch] text-[40px] font-black uppercase leading-[0.93] tracking-[-0.06em] text-[#494949] lg:text-[54px]">
                 {content.hero.title}
               </h1>
-              <p className="mt-4 max-w-[390px] text-[15px] leading-7 text-black/50">{content.hero.description}</p>
-              <Link href={content.hero.primaryCtaLink} className="mt-7 inline-flex h-[42px] w-[195px] items-center justify-center bg-[#cf1230] text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
+              <p className="mt-4 max-w-[370px] text-[13px] leading-6 text-black/48">{content.hero.description}</p>
+              <Link href={content.hero.primaryCtaLink} className="mt-7 inline-flex h-[38px] w-[170px] items-center justify-center bg-[#cf1230] text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
                 {copy.learnMore}
               </Link>
             </div>
 
-            <div className="hidden items-end justify-center px-6 py-8 lg:flex">
+            <div className="hidden items-end justify-center px-4 py-7 lg:flex">
               <HeroPackshot />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-10 lg:px-6">
-        <div className="mx-auto max-w-[1180px]">
+      <section className="px-4 py-8 lg:px-6">
+        <div className="mx-auto max-w-[1038px]">
           <div className="flex items-center justify-between">
             <h2 className="text-[20px] tracking-[-0.03em]">{copy.bestsellers}</h2>
             <Link href={`/${locale}/catalog`} className="text-[12px] text-[#cf1230]">
@@ -163,14 +163,14 @@ export default async function HomePage({ params }: PageProps) {
             </Link>
           </div>
 
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {content.bestsellers.slice(0, 4).map((product) => (
               <article key={product.id}>
-                <div className="flex h-[184px] items-center justify-center bg-[#f4f4f4]">
+                <div className="flex h-[156px] items-center justify-center bg-[#f5f5f5]">
                   <MiniBottle />
                 </div>
-                <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-5 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
-                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-3 inline-flex h-[34px] w-full items-center justify-center border border-black/40 text-[10px] uppercase tracking-[0.18em] text-black/72">
+                <h3 className="mt-3 min-h-[40px] text-[12px] uppercase leading-4 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
+                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-2 inline-flex h-[30px] w-full items-center justify-center border border-black/40 text-[9px] uppercase tracking-[0.18em] text-black/72">
                   {copy.learnMore}
                 </Link>
               </article>
@@ -184,22 +184,22 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="px-4 py-2 lg:px-6">
-        <div className="mx-auto grid max-w-[1180px] gap-7 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-[1038px] gap-5 lg:grid-cols-2">
           {promoCards.slice(0, 2).map((card, index) => (
             <article key={`${card.id}-${index}`}>
-              <div className="h-[240px] overflow-hidden rounded-[10px]" style={softPhotoSurface(card.imageUrl, index === 0 ? "rgba(240,240,240,0.35)" : "rgba(255,255,255,0.18)")}>
+              <div className="h-[218px] overflow-hidden rounded-[10px]" style={softPhotoSurface(card.imageUrl, index === 0 ? "rgba(240,240,240,0.35)" : "rgba(255,255,255,0.18)")}>
                 {index === 0 ? (
-                  <div className="flex h-full items-end justify-center pb-6">
-                    <div className="w-[240px] scale-[0.7]">
+                  <div className="flex h-full items-end justify-center pb-5">
+                    <div className="w-[224px] scale-[0.68]">
                       <HeroPackshot />
                     </div>
                   </div>
                 ) : null}
               </div>
               <div className="px-1 py-4">
-                <h3 className="text-[18px] uppercase tracking-[-0.04em] text-[#383838]">{card.title}</h3>
-                <p className="mt-2 min-h-[56px] text-[11px] leading-5 text-black/48">{card.description}</p>
-                <Link href={card.buttonLink} className="mt-4 inline-flex h-[34px] w-[190px] items-center justify-center border border-black/35 text-[10px] uppercase tracking-[0.18em] text-black/72">
+                <h3 className="text-[16px] uppercase tracking-[-0.04em] text-[#383838]">{card.title}</h3>
+                <p className="mt-2 min-h-[48px] text-[10px] leading-5 text-black/48">{card.description}</p>
+                <Link href={card.buttonLink} className="mt-4 inline-flex h-[32px] w-[152px] items-center justify-center border border-black/35 text-[9px] uppercase tracking-[0.18em] text-black/72">
                   {copy.learnMore}
                 </Link>
               </div>
@@ -209,7 +209,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="px-4 py-8 lg:px-6">
-        <div className="mx-auto max-w-[1180px]">
+        <div className="mx-auto max-w-[1038px]">
           <h2 className="text-[26px] tracking-[-0.05em]">{copy.gallery}</h2>
           <div className="mt-5 grid grid-cols-12 gap-3">
             {galleryImages.map((item, index) => {
@@ -248,7 +248,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section id="video-gallery" className="px-4 py-8 lg:px-6">
-        <div className="mx-auto max-w-[1180px]">
+        <div className="mx-auto max-w-[1038px]">
           <div className="flex items-center justify-between">
             <div>
               <div className="h-[2px] w-[228px] bg-[#cf1230]" />
@@ -260,11 +260,11 @@ export default async function HomePage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
             {videoItems.map((video, index) => (
               <div
                 key={`${video.id}-${index}`}
-                className="relative h-[360px] overflow-hidden rounded-[14px]"
+                className="relative h-[332px] overflow-hidden rounded-[14px]"
                 style={softPhotoSurface(video.imageUrl, index === 2 ? "rgba(80,55,40,0.18)" : "rgba(255,255,255,0.12)")}
               >
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_35%,rgba(0,0,0,0.18)_100%)]" />
@@ -280,7 +280,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="mt-4 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-4 py-8 text-white lg:px-6">
-        <div className="mx-auto max-w-[1180px]">
+        <div className="mx-auto max-w-[1038px]">
           <h2 className="text-[22px]">{copy.reviews}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {testimonials.map((item, index) => (
@@ -300,7 +300,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section id="about" className="px-4 py-12 lg:px-6">
-        <div className="mx-auto max-w-[1180px]">
+        <div className="mx-auto max-w-[1038px]">
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
               <h2 className="text-[26px] uppercase tracking-[-0.06em] text-[#cf1230]">{content.about.title}</h2>
