@@ -257,8 +257,8 @@ export function ProductManager() {
                         price: String(product.price),
                         stock: String(product.stock),
                         active: product.active,
-                        isBestseller: product.isBestseller,
-                        homeSortOrder: String(product.homeSortOrder),
+                        isBestseller: Boolean(product.isBestseller),
+                        homeSortOrder: String(product.homeSortOrder ?? 0),
                         colorFrom: product.colorFrom || "",
                         colorTo: product.colorTo || "",
                         categoryId: product.categoryId
