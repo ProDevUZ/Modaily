@@ -101,8 +101,8 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
   return (
     <header className="relative z-50 bg-white">
-      <div className="bg-[#151515] px-4 py-1.5 text-center text-[10px] text-white">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap">
+      <div className="bg-[#151515] px-4 py-2 text-center text-[11px] text-white">
+        <div className="mx-auto flex max-w-[1320px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap">
           <span className="opacity-75">{siteSettings.announcementText}</span>
           <Link href={siteSettings.announcementLink} className="opacity-100 underline-offset-4 hover:underline">
             {siteSettings.announcementLinkLabel}
@@ -111,12 +111,12 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
       </div>
 
       <div className="border-b border-black/8">
-        <div className="mx-auto flex h-[58px] max-w-[1180px] items-center justify-between px-4 lg:px-6">
-          <Link href={`/${locale}`} className="text-[1.15rem] font-black uppercase tracking-[-0.04em] text-[#bf1730]">
+        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between px-5 lg:px-8">
+          <Link href={`/${locale}`} className="text-[1.6rem] font-black uppercase tracking-[-0.05em] text-[#bf1730]">
             {siteSettings.brandName}
           </Link>
 
-          <nav className="hidden items-center gap-10 text-[14px] text-black lg:flex">
+          <nav className="hidden items-center gap-12 text-[16px] text-black lg:flex">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} className="transition hover:text-[#bf1730]">
                 {item.label}
@@ -128,20 +128,20 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
             <button
               type="button"
               aria-label="Search"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-black"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-black"
               onClick={() => {
                 setIsSearchOpen((current) => !current);
                 setIsOpen(false);
               }}
             >
-              <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
             </button>
 
-            <Link href={`/${locale}/cart`} aria-label="Cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-black">
-              <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <Link href={`/${locale}/cart`} aria-label="Cart" className="relative flex h-10 w-10 items-center justify-center rounded-full text-black">
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M6 7h13l-1.4 7H8.2L6 4H3" />
                 <circle cx="9.5" cy="19" r="1.2" />
                 <circle cx="17" cy="19" r="1.2" />
@@ -151,8 +151,8 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
               </span>
             </Link>
 
-            <button type="button" className="flex h-9 w-9 items-center justify-center rounded-full lg:hidden" onClick={() => setIsOpen((current) => !current)}>
-              <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <button type="button" className="flex h-10 w-10 items-center justify-center rounded-full lg:hidden" onClick={() => setIsOpen((current) => !current)}>
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
@@ -161,7 +161,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
         {isOpen ? (
           <div className="border-t border-black/8 px-4 py-3 lg:hidden">
-            <div className="mx-auto flex max-w-[1180px] flex-col gap-3 text-sm">
+            <div className="mx-auto flex max-w-[1320px] flex-col gap-3 text-sm">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href} className="text-black" onClick={() => setIsOpen(false)}>
                   {item.label}
@@ -188,8 +188,8 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
       {isSearchOpen ? (
         <div className="border-b border-black/8 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.05)]">
-          <div className="mx-auto max-w-[1180px]">
-            <div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/8 bg-[#faf7f5] p-4">
+          <div className="mx-auto max-w-[1320px]">
+            <div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/8 bg-[#faf7f5] p-4 md:p-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/35">{searchCopy.title}</p>

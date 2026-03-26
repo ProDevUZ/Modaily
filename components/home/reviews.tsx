@@ -1,3 +1,5 @@
+import { FallbackImage } from "@/components/ui/fallback-image";
+
 type ReviewItem = {
   id: string;
   authorName: string;
@@ -26,33 +28,34 @@ function Stars({ rating }: { rating: number }) {
 
 export function Reviews({ title, items }: ReviewsProps) {
   return (
-    <section className="space-y-8 rounded-[32px] bg-[linear-gradient(135deg,#7e0d22_0%,#ba0c2f_52%,#8b1025_100%)] px-4 py-8 text-white md:px-8 md:py-10">
-      <h2 className="text-[32px] font-medium tracking-[-0.05em] md:text-[50px]">
+    <section className="space-y-8 rounded-[32px] bg-[linear-gradient(135deg,#7e0d22_0%,#ba0c2f_52%,#8b1025_100%)] px-4 py-10 text-white md:px-8 md:py-12">
+      <h2 className="text-[42px] font-medium tracking-[-0.05em] md:text-[56px]">
         {title}
       </h2>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {items.map((item) => (
-          <article key={item.id} className="rounded-[24px] bg-white p-6 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)]">
+          <article key={item.id} className="rounded-[24px] bg-white p-7 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)]">
             <div className="flex items-start gap-4">
-              <img
+              <FallbackImage
                 src={item.avatarUrl || "https://placehold.co/56x56"}
+                fallbackSrc="https://placehold.co/64x64/f0f0f0/bb102b?text=M"
                 alt={item.authorName}
-                className="h-14 w-14 rounded-full object-cover"
+                className="h-16 w-16 rounded-full object-cover"
               />
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">{item.authorName}</h3>
-                    <p className="text-sm text-[#717276]">{item.authorRole}</p>
+                    <h3 className="text-[20px] font-semibold">{item.authorName}</h3>
+                    <p className="text-[15px] text-[#717276]">{item.authorRole}</p>
                   </div>
                   <Stars rating={item.rating} />
                 </div>
 
                 <div className="my-4 border-t border-[#e9eff5]" />
 
-                <p className="text-base leading-8">{item.body}</p>
+                <p className="text-[17px] leading-8">{item.body}</p>
               </div>
             </div>
           </article>

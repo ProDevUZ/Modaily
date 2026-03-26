@@ -5,6 +5,7 @@ import { Gallery } from "@/components/home/gallery";
 import { ProductCard } from "@/components/home/product-card";
 import { Reviews } from "@/components/home/reviews";
 import { VideoGallery } from "@/components/home/video-gallery";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
 import { getHomePageContent } from "@/lib/storefront-content";
 
@@ -66,10 +67,11 @@ function ProductPackshot({ imageUrl, name }: { imageUrl: string; name: string })
   }
 
   return (
-    <img
+    <FallbackImage
       src={imageUrl}
+      fallbackSrc="https://placehold.co/180x240/f3f3f3/bb102b?text=Modaily"
       alt={name}
-      className="h-[146px] w-[112px] object-contain"
+      className="h-[240px] w-[180px] object-contain"
     />
   );
 }
@@ -119,66 +121,67 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <div className="bg-white text-black">
       <section className="px-4 pt-0 lg:px-6">
-        <div className="mx-auto max-w-[1038px] overflow-hidden border-b border-black/10 bg-[#f2f2f0]">
-          <div className="grid min-h-[392px] gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="flex flex-col justify-center px-8 py-8 lg:px-10">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-black/28">
+        <div className="mx-auto max-w-[1320px] overflow-hidden border-b border-black/10 bg-[#f2f2f0]">
+          <div className="grid min-h-[560px] gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="flex flex-col justify-center px-8 py-10 lg:px-12 xl:px-14">
+              <p className="text-[12px] uppercase tracking-[0.35em] text-black/35">
                 {content.hero.badge || "Novinka"}
               </p>
-              <h1 className="mt-3 max-w-[8.5ch] text-[40px] font-black uppercase leading-[0.93] tracking-[-0.06em] text-[#494949] lg:text-[54px]">
+              <h1 className="mt-4 max-w-[8.5ch] text-[56px] font-black uppercase leading-[0.9] tracking-[-0.07em] text-[#494949] lg:text-[76px] xl:text-[86px]">
                 {content.hero.title}
               </h1>
-              <p className="mt-4 max-w-[370px] text-[13px] leading-6 text-black/48">{content.hero.description}</p>
+              <p className="mt-5 max-w-[460px] text-[18px] leading-8 text-black/56">{content.hero.description}</p>
               <Link
                 href={content.hero.primaryCtaLink}
-                className="mt-7 inline-flex h-[38px] w-[170px] items-center justify-center bg-[#cf1230] text-[10px] font-semibold uppercase tracking-[0.2em] text-white"
+                className="mt-8 inline-flex h-[52px] w-[220px] items-center justify-center bg-[#cf1230] text-[12px] font-semibold uppercase tracking-[0.22em] text-white"
               >
                 {content.hero.primaryCta || copy.learnMore}
               </Link>
             </div>
 
-            <div className="hidden items-end justify-center bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0)_68%)] px-6 py-8 lg:flex">
-              <img
+            <div className="hidden items-end justify-center bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0)_68%)] px-8 py-10 lg:flex">
+              <FallbackImage
                 src={content.hero.imageUrl || "https://placehold.co/720x555"}
+                fallbackSrc="https://placehold.co/720x555/f1f1ef/bb102b?text=Modaily+Hero"
                 alt={content.hero.title}
-                className="max-h-[360px] w-full max-w-[520px] object-contain"
+                className="max-h-[500px] w-full max-w-[720px] object-contain"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-8 lg:px-6">
-        <div className="mx-auto max-w-[1038px]">
+      <section className="px-4 py-12 lg:px-6">
+        <div className="mx-auto max-w-[1320px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-[20px] tracking-[-0.03em]">{copy.bestsellers}</h2>
-            <Link href={`/${locale}/catalog`} className="text-[12px] text-[#cf1230]">
+            <h2 className="text-[34px] tracking-[-0.05em] md:text-[46px]">{copy.bestsellers}</h2>
+            <Link href={`/${locale}/catalog`} className="text-[15px] text-[#cf1230]">
               {copy.moreProducts} __
             </Link>
           </div>
 
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {content.bestsellers.slice(0, 4).map((product) => (
               <article key={product.id}>
-                <div className="flex h-[156px] items-center justify-center bg-[#f5f5f5]">
+                <div className="flex h-[290px] items-center justify-center bg-[#f5f5f5]">
                   <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
                 </div>
-                <h3 className="mt-3 min-h-[40px] text-[12px] uppercase leading-4 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
-                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-2 inline-flex h-[30px] w-full items-center justify-center border border-black/40 text-[9px] uppercase tracking-[0.18em] text-black/72">
+                <h3 className="mt-4 min-h-[54px] text-[18px] uppercase leading-6 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
+                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-3 inline-flex h-[46px] w-full items-center justify-center border border-black/40 text-[12px] uppercase tracking-[0.18em] text-black/72">
                   {copy.learnMore}
                 </Link>
               </article>
             ))}
           </div>
 
-          <div className="mt-5 h-[2px] w-full bg-black/8">
+          <div className="mt-8 h-[3px] w-full bg-black/8">
             <div className="h-full w-[72%] bg-black" />
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-2 lg:px-6">
-        <div className="mx-auto grid max-w-[1038px] gap-5 lg:grid-cols-2">
+      <section className="px-4 py-6 lg:px-6">
+        <div className="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-2">
           {promoCards.slice(0, 2).map((card, index) => (
             <ProductCard
               key={`${card.id}-${index}`}
@@ -192,20 +195,20 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-4 py-8 lg:px-6">
-        <div className="mx-auto max-w-[1038px]">
+      <section className="px-4 py-12 lg:px-6">
+        <div className="mx-auto max-w-[1320px]">
           <Gallery title={copy.gallery} items={galleryImages} />
         </div>
       </section>
 
-      <section id="video-gallery" className="px-4 py-8 lg:px-6">
-        <div className="mx-auto max-w-[1038px]">
+      <section id="video-gallery" className="px-4 py-12 lg:px-6">
+        <div className="mx-auto max-w-[1320px]">
           <VideoGallery title={copy.videos} items={videoItems} />
         </div>
       </section>
 
-      <section className="mt-4 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-4 py-8 text-white lg:px-6">
-        <div className="mx-auto max-w-[1038px]">
+      <section className="mt-6 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-4 py-12 text-white lg:px-6">
+        <div className="mx-auto max-w-[1320px]">
           <Reviews
             title={copy.reviews}
             items={testimonials.map((item, index) => ({
@@ -220,26 +223,27 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section id="about" className="px-4 py-12 lg:px-6">
-        <div className="mx-auto max-w-[1038px]">
-          <div className="grid gap-8 lg:grid-cols-2">
+      <section id="about" className="px-4 py-16 lg:px-6">
+        <div className="mx-auto max-w-[1320px]">
+          <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="text-[26px] uppercase tracking-[-0.06em] text-[#cf1230]">{content.about.title}</h2>
-              <p className="mt-4 max-w-[470px] text-[12px] leading-6 text-black/64">{content.about.description}</p>
+              <h2 className="text-[42px] uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
+              <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/64">{content.about.description}</p>
             </div>
             <div>
-              <p className="text-right text-[28px] font-black uppercase tracking-[-0.06em] text-[#cf1230]">
+              <p className="text-right text-[40px] font-black uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">
                 {content.about.secondaryTitle || "MODAILY"}
               </p>
-              <p className="mt-4 text-[12px] leading-6 text-black/64">{content.about.secondaryDescription || content.about.description}</p>
+              <p className="mt-5 text-[16px] leading-8 text-black/64">{content.about.secondaryDescription || content.about.description}</p>
             </div>
           </div>
 
-          <div className="mt-10 overflow-hidden rounded-[10px] bg-[#f4f4f2]">
-            <img
+          <div className="mt-12 overflow-hidden rounded-[10px] bg-[#f4f4f2]">
+            <FallbackImage
               src={content.about.imageUrl || "https://placehold.co/1259x514"}
+              fallbackSrc="https://placehold.co/1259x514/f4f4f2/bb102b?text=Modaily+About"
               alt={content.about.title}
-              className="h-[300px] w-full object-cover md:h-[360px]"
+              className="h-[360px] w-full object-cover md:h-[500px]"
             />
           </div>
         </div>
