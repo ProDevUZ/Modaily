@@ -147,3 +147,11 @@ select {
     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 140px 140px;
 }
+
+.brand-wordmark {
+  display: inline-block;
+  letter-spacing: 0.14em;
+  transform: scaleX(1.06);
+  transform-origin: left center;
+  white-space: nowrap;
+}
