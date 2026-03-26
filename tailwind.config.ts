@@ -21,7 +21,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["Georgia", "Times New Roman", "serif"],
-        body: ["Trebuchet MS", "Segoe UI", "sans-serif"]
+        body: ["Avenir Next", "Helvetica Neue", "Arial", "sans-serif"]
       }
     }
   },

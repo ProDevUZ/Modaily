@@ -102,7 +102,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
   return (
     <header className="relative z-50 bg-white">
       <div className="bg-[#151515] px-4 py-2 text-center text-[11px] text-white">
-        <div className="mx-auto flex max-w-[1320px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap">
+        <div className="mx-auto flex max-w-[1760px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap px-6">
           <span className="opacity-75">{siteSettings.announcementText}</span>
           <Link href={siteSettings.announcementLink} className="opacity-100 underline-offset-4 hover:underline">
             {siteSettings.announcementLinkLabel}
@@ -111,7 +111,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
       </div>
 
       <div className="border-b border-black/8">
-        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between px-5 lg:px-8">
+        <div className="mx-auto flex h-[72px] max-w-[1760px] items-center justify-between px-8 lg:px-12">
           <Link href={`/${locale}`} className="text-[1.6rem] font-black uppercase tracking-[-0.05em] text-[#bf1730]">
             {siteSettings.brandName}
           </Link>
@@ -161,7 +161,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
         {isOpen ? (
           <div className="border-t border-black/8 px-4 py-3 lg:hidden">
-            <div className="mx-auto flex max-w-[1320px] flex-col gap-3 text-sm">
+            <div className="mx-auto flex max-w-[1760px] flex-col gap-3 px-4 text-sm">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href} className="text-black" onClick={() => setIsOpen(false)}>
                   {item.label}
@@ -188,7 +188,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
       {isSearchOpen ? (
         <div className="border-b border-black/8 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.05)]">
-          <div className="mx-auto max-w-[1320px]">
+          <div className="mx-auto max-w-[1760px] px-4">
             <div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/8 bg-[#faf7f5] p-4 md:p-6">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>

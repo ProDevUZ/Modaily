@@ -7,6 +7,7 @@ import { Reviews } from "@/components/home/reviews";
 import { VideoGallery } from "@/components/home/video-gallery";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
+import { getLocalizedProducts } from "@/lib/products";
 import { getHomePageContent } from "@/lib/storefront-content";
 
 type PageProps = {
@@ -46,6 +47,104 @@ function repeatToCount<T>(items: T[], count: number) {
   }
 
   return Array.from({ length: count }, (_, index) => items[index % items.length]);
+}
+
+function getFallbackPromoCards(locale: keyof typeof labels) {
+  const buttonLabel = labels[locale].learnMore;
+
+  return [
+    {
+      id: "promo-fallback-1",
+      title:
+        locale === "ru"
+          ? "В конце дня уделите себе несколько минут..."
+          : locale === "en"
+            ? "Take a few quiet minutes at the end of the day..."
+            : "Kun oxirida o'zingiz uchun bir necha daqiqa ajrating...",
+      description:
+        locale === "ru"
+          ? "Тонер глубоко увлажняет кожу, сыворотка ухаживает, а крем сохраняет мягкость и гладкость."
+          : locale === "en"
+            ? "Toner layers hydration, serum refines the look of skin, and cream seals in softness."
+            : "Toner namlik beradi, serum parvarishlaydi, krem esa terini mayin va silliq saqlaydi.",
+      buttonLabel,
+      buttonLink: `/${locale}/catalog`,
+      imageUrl: ""
+    },
+    {
+      id: "promo-fallback-2",
+      title: locale === "ru" ? "SLIN LIFTING COLLAGEN CREAM" : "SLIN LIFTING COLLAGEN CREAM",
+      description:
+        locale === "ru"
+          ? "Гиалуроновая кислота, керамиды и пептиды помогают коже выглядеть более гладкой и упругой."
+          : locale === "en"
+            ? "Hyaluronic acid, ceramides and peptides help skin look smoother and more resilient."
+            : "Gialuron kislotasi, keramidler va peptidlar terini silliqroq va tarangroq ko'rsatishga yordam beradi.",
+      buttonLabel,
+      buttonLink: `/${locale}/catalog`,
+      imageUrl: ""
+    }
+  ];
+}
+
+function getFallbackGalleryItems() {
+  return Array.from({ length: 8 }, (_, index) => ({
+    id: `gallery-fallback-${index + 1}`,
+    title: `Gallery ${index + 1}`,
+    imageUrl: ""
+  }));
+}
+
+function getFallbackVideoItems() {
+  return Array.from({ length: 3 }, (_, index) => ({
+    id: `video-fallback-${index + 1}`,
+    title: `Video ${index + 1}`,
+    imageUrl: ""
+  }));
+}
+
+function getFallbackTestimonials(locale: keyof typeof labels) {
+  return [
+    {
+      id: "testimonial-fallback-1",
+      authorName: locale === "ru" ? "Азиза" : "Aziza",
+      authorRole: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Cleanser",
+      body:
+        locale === "ru"
+          ? "Пользуюсь косметикой MODAILY уже больше месяца. Кожа стала мягче, а текстура выглядит заметно ровнее."
+          : locale === "en"
+            ? "I have used MODAILY for over a month. My skin feels softer and the texture looks more even."
+            : "MODAILY mahsulotlarini bir oydan ko'proq ishlatdim. Teri yumshadi va tekstura ancha tekis ko'rinadi.",
+      avatarUrl: "",
+      rating: 5
+    },
+    {
+      id: "testimonial-fallback-2",
+      authorName: locale === "ru" ? "Камола" : "Kamola",
+      authorRole: locale === "ru" ? "Крем для рук Silk Touch Modaily" : "Silk Touch Hand Cream",
+      body:
+        locale === "ru"
+          ? "Крем хорошо ложится под повседневный уход и держит ощущение комфорта в течение дня."
+          : locale === "en"
+            ? "The cream fits nicely into a daily routine and keeps skin comfortable throughout the day."
+            : "Krem kundalik parvarishga yaxshi mos tushadi va kun bo'yi qulaylik hissini saqlab turadi.",
+      avatarUrl: "",
+      rating: 5
+    },
+    {
+      id: "testimonial-fallback-3",
+      authorName: locale === "ru" ? "Умида" : "Umida",
+      authorRole: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Foam Cleanser",
+      body:
+        locale === "ru"
+          ? "У меня чувствительная кожа, поэтому особенно важно, что формулы работают мягко и без раздражения."
+          : locale === "en"
+            ? "My skin is sensitive, so it matters that the formulas feel gentle and non-irritating."
+            : "Mening terim sezgir, shuning uchun formulalar muloyim va bezovta qilmasligi juda muhim.",
+      avatarUrl: "",
+      rating: 5
+    }
+  ];
 }
 
 function MiniBottle() {
@@ -112,28 +211,40 @@ export default async function HomePage({ params }: PageProps) {
 
   const dictionary = getDictionary(locale);
   const content = await getHomePageContent(locale);
+  const catalogProducts = getLocalizedProducts(locale);
   const copy = labels[locale];
-  const galleryImages = repeatToCount(content.galleryImages, 8);
-  const promoCards = repeatToCount(content.promoCards, 2);
-  const testimonials = repeatToCount(content.testimonials, 6);
-  const videoItems = repeatToCount(content.galleryVideos, 3);
+  const bestsellerProducts =
+    content.bestsellers.length > 0
+      ? content.bestsellers
+      : catalogProducts.slice(0, 4).map((product) => ({
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          shortDescription: product.shortDescription,
+          price: product.price,
+          imageUrl: ""
+        }));
+  const galleryImages = repeatToCount(content.galleryImages.length > 0 ? content.galleryImages : getFallbackGalleryItems(), 8);
+  const promoCards = repeatToCount(content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale), 2);
+  const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
+  const videoItems = repeatToCount(content.galleryVideos.length > 0 ? content.galleryVideos : getFallbackVideoItems(), 3);
 
   return (
     <div className="bg-white text-black">
-      <section className="px-4 pt-0 lg:px-6">
-        <div className="mx-auto max-w-[1320px] overflow-hidden border-b border-black/10 bg-[#f2f2f0]">
-          <div className="grid min-h-[560px] gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="flex flex-col justify-center px-8 py-10 lg:px-12 xl:px-14">
-              <p className="text-[12px] uppercase tracking-[0.35em] text-black/35">
+      <section className="pt-0">
+        <div className="mx-auto w-full max-w-[1820px] overflow-hidden border-b border-black/10 bg-[#ecebe8]">
+          <div className="grid min-h-[690px] gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+            <div className="flex flex-col justify-center px-10 py-12 lg:px-14 xl:px-[84px]">
+              <p className="text-[18px] tracking-[0.02em] text-black/42">
                 {content.hero.badge || "Novinka"}
               </p>
-              <h1 className="mt-4 max-w-[8.5ch] text-[56px] font-black uppercase leading-[0.9] tracking-[-0.07em] text-[#494949] lg:text-[76px] xl:text-[86px]">
+              <h1 className="mt-3 max-w-[8.5ch] text-[74px] font-black uppercase leading-[0.92] tracking-[-0.08em] text-[#515151] lg:text-[88px] xl:text-[102px]">
                 {content.hero.title}
               </h1>
-              <p className="mt-5 max-w-[460px] text-[18px] leading-8 text-black/56">{content.hero.description}</p>
+              <p className="mt-8 max-w-[640px] text-[22px] leading-[1.55] text-black/55">{content.hero.description}</p>
               <Link
                 href={content.hero.primaryCtaLink}
-                className="mt-8 inline-flex h-[52px] w-[220px] items-center justify-center bg-[#cf1230] text-[12px] font-semibold uppercase tracking-[0.22em] text-white"
+                className="mt-10 inline-flex h-[60px] w-[340px] items-center justify-center bg-[#cf1230] text-[14px] font-medium uppercase tracking-[0.18em] text-white"
               >
                 {content.hero.primaryCta || copy.learnMore}
               </Link>
@@ -144,24 +255,24 @@ export default async function HomePage({ params }: PageProps) {
                 src={content.hero.imageUrl || "https://placehold.co/720x555"}
                 fallbackSrc="https://placehold.co/720x555/f1f1ef/bb102b?text=Modaily+Hero"
                 alt={content.hero.title}
-                className="max-h-[500px] w-full max-w-[720px] object-contain"
+                className="max-h-[620px] w-full max-w-[920px] object-contain"
               />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-12 lg:px-6">
-        <div className="mx-auto max-w-[1320px]">
+      <section className="px-8 py-12 lg:px-12">
+        <div className="mx-auto max-w-[1520px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-[34px] tracking-[-0.05em] md:text-[46px]">{copy.bestsellers}</h2>
-            <Link href={`/${locale}/catalog`} className="text-[15px] text-[#cf1230]">
+            <h2 className="text-[40px] tracking-[-0.05em] md:text-[50px]">{copy.bestsellers}</h2>
+            <Link href={`/${locale}/catalog`} className="text-[18px] text-[#cf1230]">
               {copy.moreProducts} __
             </Link>
           </div>
 
           <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {content.bestsellers.slice(0, 4).map((product) => (
+            {bestsellerProducts.slice(0, 4).map((product) => (
               <article key={product.id}>
                 <div className="flex h-[290px] items-center justify-center bg-[#f5f5f5]">
                   <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
@@ -180,8 +291,8 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-4 py-6 lg:px-6">
-        <div className="mx-auto grid max-w-[1320px] gap-8 lg:grid-cols-2">
+      <section className="px-8 py-6 lg:px-12">
+        <div className="mx-auto grid max-w-[1520px] gap-8 lg:grid-cols-2">
           {promoCards.slice(0, 2).map((card, index) => (
             <ProductCard
               key={`${card.id}-${index}`}
@@ -195,26 +306,26 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-4 py-12 lg:px-6">
-        <div className="mx-auto max-w-[1320px]">
+      <section className="px-8 py-12 lg:px-12">
+        <div className="mx-auto max-w-[1520px]">
           <Gallery title={copy.gallery} items={galleryImages} />
         </div>
       </section>
 
-      <section id="video-gallery" className="px-4 py-12 lg:px-6">
-        <div className="mx-auto max-w-[1320px]">
+      <section id="video-gallery" className="px-8 py-12 lg:px-12">
+        <div className="mx-auto max-w-[1520px]">
           <VideoGallery title={copy.videos} items={videoItems} />
         </div>
       </section>
 
-      <section className="mt-6 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-4 py-12 text-white lg:px-6">
-        <div className="mx-auto max-w-[1320px]">
+      <section className="mt-6 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-8 py-12 text-white lg:px-12">
+        <div className="mx-auto max-w-[1520px]">
           <Reviews
             title={copy.reviews}
             items={testimonials.map((item, index) => ({
               id: `${item.id}-${index}`,
               authorName: item.authorName,
-              authorRole: item.authorRole || item.productName,
+              authorRole: item.authorRole,
               body: item.body,
               avatarUrl: item.avatarUrl,
               rating: item.rating
@@ -223,8 +334,8 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section id="about" className="px-4 py-16 lg:px-6">
-        <div className="mx-auto max-w-[1320px]">
+      <section id="about" className="px-8 py-16 lg:px-12">
+        <div className="mx-auto max-w-[1520px]">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
               <h2 className="text-[42px] uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
