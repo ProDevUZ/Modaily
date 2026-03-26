@@ -232,9 +232,16 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <div className="bg-white text-black">
       <section className="pt-0">
-        <div className="mx-auto w-full max-w-[1820px] overflow-hidden border-b border-black/10 bg-[#ecebe8]">
-          <div className="grid min-h-[690px] gap-8 lg:grid-cols-[0.78fr_1.22fr]">
-            <div className="flex flex-col justify-center px-10 py-12 lg:px-14 xl:px-[84px]">
+        <div className="grid min-h-[690px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8]">
+          <FallbackImage
+            src={content.hero.imageUrl || "/images/home/hero-main.jpg"}
+            fallbackSrc="/images/home/hero-main.jpg"
+            alt={content.hero.title}
+            className="col-start-1 row-start-1 h-full min-h-[690px] w-full object-cover object-center"
+          />
+          <div className="col-start-1 row-start-1 bg-[linear-gradient(90deg,rgba(236,235,232,0.96)_0%,rgba(236,235,232,0.92)_28%,rgba(236,235,232,0.72)_46%,rgba(236,235,232,0.18)_68%,rgba(236,235,232,0.04)_100%)]" />
+          <div className="col-start-1 row-start-1 mx-auto flex min-h-[690px] w-full max-w-[1760px] items-center px-8 lg:px-12 xl:px-[118px]">
+            <div className="max-w-[760px] py-12">
               <p className="text-[18px] tracking-[0.02em] text-black/42">
                 {content.hero.badge || "Novinka"}
               </p>
@@ -249,21 +256,12 @@ export default async function HomePage({ params }: PageProps) {
                 {content.hero.primaryCta || copy.learnMore}
               </Link>
             </div>
-
-            <div className="hidden items-end justify-center bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0)_68%)] px-8 py-10 lg:flex">
-              <FallbackImage
-                src={content.hero.imageUrl || "https://placehold.co/720x555"}
-                fallbackSrc="/images/home/hero-main.jpg"
-                alt={content.hero.title}
-                className="max-h-[620px] w-full max-w-[920px] object-contain"
-              />
-            </div>
           </div>
         </div>
       </section>
 
       <section className="px-8 py-12 lg:px-12">
-        <div className="mx-auto max-w-[1520px]">
+        <div className="mx-auto max-w-[1680px]">
           <div className="flex items-center justify-between">
             <h2 className="text-[40px] tracking-[-0.05em] md:text-[50px]">{copy.bestsellers}</h2>
             <Link href={`/${locale}/catalog`} className="text-[18px] text-[#cf1230]">
@@ -292,7 +290,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="px-8 py-6 lg:px-12">
-        <div className="mx-auto grid max-w-[1520px] gap-8 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-[1680px] gap-8 lg:grid-cols-2">
           {promoCards.slice(0, 2).map((card, index) => (
             <ProductCard
               key={`${card.id}-${index}`}
@@ -307,19 +305,19 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="px-8 py-12 lg:px-12">
-        <div className="mx-auto max-w-[1520px]">
+        <div className="mx-auto max-w-[1680px]">
           <Gallery title={copy.gallery} items={galleryImages} />
         </div>
       </section>
 
       <section id="video-gallery" className="px-8 py-12 lg:px-12">
-        <div className="mx-auto max-w-[1520px]">
+        <div className="mx-auto max-w-[1680px]">
           <VideoGallery title={copy.videos} items={videoItems} />
         </div>
       </section>
 
       <section className="mt-6 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-8 py-12 text-white lg:px-12">
-        <div className="mx-auto max-w-[1520px]">
+        <div className="mx-auto max-w-[1680px]">
           <Reviews
             title={copy.reviews}
             items={testimonials.map((item, index) => ({
@@ -335,7 +333,7 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section id="about" className="px-8 py-16 lg:px-12">
-        <div className="mx-auto max-w-[1520px]">
+        <div className="mx-auto max-w-[1680px]">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
               <h2 className="text-[42px] uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
