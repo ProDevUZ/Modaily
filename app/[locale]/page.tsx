@@ -253,7 +253,7 @@ export default async function HomePage({ params }: PageProps) {
             <div className="hidden items-end justify-center bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0)_68%)] px-8 py-10 lg:flex">
               <FallbackImage
                 src={content.hero.imageUrl || "https://placehold.co/720x555"}
-                fallbackSrc="https://placehold.co/720x555/f1f1ef/bb102b?text=Modaily+Hero"
+                fallbackSrc="/images/home/hero-main.jpg"
                 alt={content.hero.title}
                 className="max-h-[620px] w-full max-w-[920px] object-contain"
               />
