@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDeferredValue, useEffect, useState } from "react";
@@ -134,18 +135,11 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                 setIsOpen(false);
               }}
             >
-              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <circle cx="11" cy="11" r="6.5" />
-                <path d="m16 16 4 4" />
-              </svg>
+              <Image src="/icons/search.svg" alt="" width={24} height={24} className="h-[20px] w-[20px]" aria-hidden="true" />
             </button>
 
             <Link href={`/${locale}/cart`} aria-label="Cart" className="relative flex h-10 w-10 items-center justify-center rounded-full text-black">
-              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M6 7h13l-1.4 7H8.2L6 4H3" />
-                <circle cx="9.5" cy="19" r="1.2" />
-                <circle cx="17" cy="19" r="1.2" />
-              </svg>
+              <Image src="/icons/basket.svg" alt="" width={24} height={24} className="h-[20px] w-[20px]" aria-hidden="true" />
               <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d1112e] px-1 text-[9px] font-bold text-white">
                 {count}
               </span>
