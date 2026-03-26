@@ -4,6 +4,7 @@ import { CartProvider } from "@/components/cart-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDictionary, isLocale, type Locale } from "@/lib/i18n";
+import { getLocalizedProducts } from "@/lib/products";
 import { getLocalizedSiteSettings } from "@/lib/storefront-content";
 
 type LayoutProps = {
@@ -20,11 +21,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
 
   const dictionary = getDictionary(locale);
   const siteSettings = await getLocalizedSiteSettings(locale);
+  const searchProducts = getLocalizedProducts(locale);
 
   return (
     <CartProvider locale={locale} currency={dictionary.currency}>
       <div className="min-h-screen">
-        <SiteHeader locale={locale} dictionary={dictionary} siteSettings={siteSettings} />
+        <SiteHeader locale={locale} dictionary={dictionary} siteSettings={siteSettings} searchProducts={searchProducts} />
         <main>{children}</main>
         <SiteFooter locale={locale} dictionary={dictionary} siteSettings={siteSettings} />
       </div>

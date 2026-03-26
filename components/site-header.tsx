@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 import { localeNames, locales, type Dictionary, type Locale } from "@/lib/i18n";
+import type { LocalizedProduct } from "@/lib/products";
 
 type SiteHeaderProps = {
   locale: Locale;
@@ -16,6 +17,7 @@ type SiteHeaderProps = {
     announcementLinkLabel: string;
     announcementLink: string;
   };
+  searchProducts: LocalizedProduct[];
 };
 
 const navLabels = {
@@ -36,10 +38,35 @@ const navLabels = {
   }
 } as const;
 
-export function SiteHeader({ locale, siteSettings }: SiteHeaderProps) {
+const searchLabels = {
+  uz: {
+    placeholder: "Mahsulot qidirish...",
+    title: "Mahsulot qidiruvi",
+    empty: "Mos mahsulot topilmadi.",
+    browseAll: "Barcha mahsulotlar"
+  },
+  ru: {
+    placeholder: "Поиск товара...",
+    title: "Поиск по товарам",
+    empty: "Подходящие товары не найдены.",
+    browseAll: "Все товары"
+  },
+  en: {
+    placeholder: "Search products...",
+    title: "Product search",
+    empty: "No matching products found.",
+    browseAll: "Browse all products"
+  }
+} as const;
+
+export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { count } = useCart();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const searchCopy = searchLabels[locale];
 
   const navItems = [
     { href: `/${locale}/catalog`, label: navLabels[locale].catalog },
@@ -57,6 +84,20 @@ export function SiteHeader({ locale, siteSettings }: SiteHeaderProps) {
     segments[0] = nextLocale;
     return `/${segments.join("/")}`;
   };
+
+  useEffect(() => {
+    setIsOpen(false);
+    setIsSearchOpen(false);
+    setSearchQuery("");
+  }, [pathname]);
+
+  const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
+  const filteredProducts = normalizedQuery
+    ? searchProducts.filter((product) => {
+        const haystack = [product.name, product.category, product.shortDescription, product.description].join(" ").toLowerCase();
+        return haystack.includes(normalizedQuery);
+      })
+    : searchProducts.slice(0, 6);
 
   return (
     <header className="relative z-50 bg-white">
@@ -84,7 +125,15 @@ export function SiteHeader({ locale, siteSettings }: SiteHeaderProps) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Search" className="hidden h-9 w-9 items-center justify-center rounded-full text-black lg:flex">
+            <button
+              type="button"
+              aria-label="Search"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-black"
+              onClick={() => {
+                setIsSearchOpen((current) => !current);
+                setIsOpen(false);
+              }}
+            >
               <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
@@ -136,6 +185,60 @@ export function SiteHeader({ locale, siteSettings }: SiteHeaderProps) {
           </div>
         ) : null}
       </div>
+
+      {isSearchOpen ? (
+        <div className="border-b border-black/8 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.05)]">
+          <div className="mx-auto max-w-[1180px]">
+            <div className="flex flex-col gap-4 rounded-[1.5rem] border border-black/8 bg-[#faf7f5] p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/35">{searchCopy.title}</p>
+                  <p className="mt-1 text-sm text-black/50">{searchCopy.browseAll}</p>
+                </div>
+                <Link href={`/${locale}/catalog`} className="text-sm font-semibold text-[#bf1730]">
+                  {searchCopy.browseAll}
+                </Link>
+              </div>
+
+              <div className="relative">
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={searchCopy.placeholder}
+                  className="h-12 w-full rounded-[1rem] border border-black/10 bg-white px-4 pr-12 text-sm text-black outline-none transition focus:border-[#bf1730]"
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-black/35">
+                  <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <circle cx="11" cy="11" r="6.5" />
+                    <path d="m16 16 4 4" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.slice(0, 6).map((product) => (
+                    <Link
+                      key={product.slug}
+                      href={`/${locale}/catalog/${product.slug}`}
+                      className="rounded-[1rem] border border-black/8 bg-white p-4 transition hover:border-[#bf1730] hover:shadow-[0_12px_28px_rgba(191,23,48,0.08)]"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35">{product.category}</p>
+                      <p className="mt-2 text-base font-semibold text-black">{product.name}</p>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-black/55">{product.shortDescription}</p>
+                      <p className="mt-3 text-sm font-semibold text-[#bf1730]">${product.price}</p>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="rounded-[1rem] border border-dashed border-black/12 bg-white p-4 text-sm text-black/50">
+                    {searchCopy.empty}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }
