@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FooterGradientBackground } from "@/components/footer-gradient-background";
 import type { Dictionary, Locale } from "@/lib/i18n";
 
 type SiteFooterProps = {
@@ -39,8 +40,8 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
   const labels = footerLabels[locale];
 
   return (
-    <footer className="brand-footer-surface text-white">
-      <div className="brand-footer-grid">
+    <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="text-white">
+      <footer className="brand-footer-grid">
         <div className="mx-auto max-w-[1560px] px-8 py-8 lg:px-10 lg:py-10 xl:px-12 xl:py-12">
           <div className="border-t border-white/35 pt-10 lg:pt-12">
             <div className="grid gap-10 lg:grid-cols-[1.42fr_0.56fr_0.94fr] lg:gap-14 xl:gap-20">
@@ -139,7 +140,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
             <div className="mt-8 border-t border-white/30" />
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </FooterGradientBackground>
   );
 }
