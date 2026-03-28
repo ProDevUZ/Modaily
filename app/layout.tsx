@@ -38,6 +38,19 @@ const artegraDisplay = localFont({
   fallback: ["Arial", "sans-serif"]
 });
 
+const artegraHeroTitle = localFont({
+  src: [
+    {
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-alt-900-black.otf",
+      weight: "900",
+      style: "normal"
+    }
+  ],
+  variable: "--font-hero-title",
+  display: "swap",
+  fallback: ["Arial", "sans-serif"]
+});
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://modaily.com"),
   title: {
@@ -63,7 +76,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${avenirBody.variable} ${artegraDisplay.variable}`}>{children}</body>
+      <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable}`}>{children}</body>
     </html>
   );
 }

@@ -152,7 +152,7 @@ function MiniBottle() {
     <div className="flex h-[146px] w-[64px] flex-col items-center justify-end">
       <div className="h-[34px] w-[28px] rounded-t-[20px] rounded-b-[8px] bg-[linear-gradient(180deg,#db1534_0%,#bb102b_100%)]" />
       <div className="flex h-[112px] w-[50px] items-start justify-center rounded-[18px] bg-[linear-gradient(180deg,#fff_0%,#f7f7f7_100%)] pt-[34px] shadow-[0_12px_24px_rgba(0,0,0,0.14)]">
-        <div className="text-center text-[7px] font-black uppercase tracking-[0.16em] text-[#c61731]">
+        <div className="text-center text-[7px] font-black uppercase tracking-[0.16em] text-[var(--brand)]">
           Modaily
         </div>
       </div>
@@ -245,13 +245,13 @@ export default async function HomePage({ params }: PageProps) {
               <p className="text-[18px] tracking-[0.02em] text-black/42">
                 {content.hero.badge || "Novinka"}
               </p>
-              <h1 className="mt-3 max-w-[8.5ch] font-display text-[74px] uppercase leading-[0.92] tracking-[-0.045em] text-[#515151] lg:text-[88px] xl:text-[102px]">
+              <h1 className="hero-title mt-3 max-w-[8.5ch] text-[74px] uppercase leading-[0.92] tracking-[-0.045em] text-[#515151] lg:text-[88px] xl:text-[102px]">
                 {content.hero.title}
               </h1>
               <p className="mt-8 max-w-[640px] text-[22px] leading-[1.55] text-black/55">{content.hero.description}</p>
               <Link
                 href={content.hero.primaryCtaLink}
-                className="mt-10 inline-flex h-[60px] w-[340px] items-center justify-center bg-[#cf1230] text-[14px] font-medium uppercase tracking-[0.18em] text-white"
+                className="mt-10 inline-flex h-[60px] w-[340px] items-center justify-center bg-[var(--brand)] text-[14px] font-medium uppercase tracking-[0.18em] text-white"
               >
                 {content.hero.primaryCta || copy.learnMore}
               </Link>
@@ -264,7 +264,7 @@ export default async function HomePage({ params }: PageProps) {
         <div className="mx-auto max-w-[1680px]">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
-            <Link href={`/${locale}/catalog`} className="text-[18px] text-[#cf1230]">
+            <Link href={`/${locale}/catalog`} className="text-[18px] text-[var(--brand)]">
               {copy.moreProducts} __
             </Link>
           </div>
@@ -336,11 +336,11 @@ export default async function HomePage({ params }: PageProps) {
         <div className="mx-auto max-w-[1680px]">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="font-display text-[42px] uppercase tracking-[-0.04em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
+              <h2 className="font-display text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">{content.about.title}</h2>
               <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/64">{content.about.description}</p>
             </div>
             <div>
-              <p className="font-display text-right text-[40px] uppercase tracking-[-0.04em] text-[#cf1230] md:text-[56px]">
+              <p className="font-display text-right text-[40px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
                 {content.about.secondaryTitle || "MODAILY"}
               </p>
               <p className="mt-5 text-[16px] leading-8 text-black/64">{content.about.secondaryDescription || content.about.description}</p>

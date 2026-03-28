@@ -113,13 +113,13 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
       <div className="border-b border-black/8">
         <div className="mx-auto flex h-[72px] max-w-[1760px] items-center justify-between px-8 lg:px-12">
-          <Link href={`/${locale}`} className="brand-wordmark text-[1.6rem] uppercase text-[#bf1730]">
+          <Link href={`/${locale}`} className="brand-wordmark text-[1.6rem] uppercase text-[var(--brand)]">
             {siteSettings.brandName}
           </Link>
 
           <nav className="hidden items-center gap-12 text-[16px] text-black lg:flex">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-[#bf1730]">
+              <Link key={item.href} href={item.href} className="transition hover:text-[var(--brand)]">
                 {item.label}
               </Link>
             ))}
@@ -189,7 +189,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black/35">{searchCopy.title}</p>
                   <p className="mt-1 text-sm text-black/50">{searchCopy.browseAll}</p>
                 </div>
-                <Link href={`/${locale}/catalog`} className="text-sm font-semibold text-[#bf1730]">
+                <Link href={`/${locale}/catalog`} className="text-sm font-semibold text-[var(--brand)]">
                   {searchCopy.browseAll}
                 </Link>
               </div>
@@ -199,7 +199,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={searchCopy.placeholder}
-                  className="h-12 w-full rounded-[1rem] border border-black/10 bg-white px-4 pr-12 text-sm text-black outline-none transition focus:border-[#bf1730]"
+                  className="h-12 w-full rounded-[1rem] border border-black/10 bg-white px-4 pr-12 text-sm text-black outline-none transition focus:border-[var(--brand)]"
                 />
                 <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-black/35">
                   <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -215,12 +215,12 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                     <Link
                       key={product.slug}
                       href={`/${locale}/catalog/${product.slug}`}
-                      className="rounded-[1rem] border border-black/8 bg-white p-4 transition hover:border-[#bf1730] hover:shadow-[0_12px_28px_rgba(191,23,48,0.08)]"
+                      className="rounded-[1rem] border border-black/8 bg-white p-4 transition hover:border-[var(--brand)] hover:shadow-[0_12px_28px_rgba(186,12,47,0.08)]"
                     >
                       <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-black/35">{product.category}</p>
                       <p className="mt-2 text-base font-semibold text-black">{product.name}</p>
                       <p className="mt-2 line-clamp-2 text-sm leading-6 text-black/55">{product.shortDescription}</p>
-                      <p className="mt-3 text-sm font-semibold text-[#bf1730]">${product.price}</p>
+                      <p className="mt-3 text-sm font-semibold text-[var(--brand)]">${product.price}</p>
                     </Link>
                   ))
                 ) : (

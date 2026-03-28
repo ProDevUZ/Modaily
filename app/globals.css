@@ -7,6 +7,8 @@
   --foreground: #1f1a17;
   --card: rgba(255, 251, 245, 0.8);
   --line: rgba(31, 26, 23, 0.08);
+  --brand: #ba0c2f;
+  --brand-rgb: 186, 12, 47;
 }
 
 * {
@@ -152,9 +154,10 @@ select {
   display: inline-block;
   font-family: var(--font-display), Arial, sans-serif;
   font-weight: 900;
-  letter-spacing: 0.12em;
-  transform: scaleX(1.025);
-  transform-origin: left center;
-  font-kerning: normal;
   white-space: nowrap;
+}
+
+.hero-title {
+  font-family: var(--font-hero-title), var(--font-display), Arial, sans-serif;
+  font-weight: 900;
 }
