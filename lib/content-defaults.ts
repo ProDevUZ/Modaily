@@ -40,7 +40,7 @@ export const defaultHomeHero = {
   secondaryCtaRu: "Каталог",
   secondaryCtaEn: "Catalog",
   secondaryCtaLink: "/ru/catalog",
-  imageUrl: "/images/home/hero-main.jpg"
+  imageUrl: "/images/home/mainpage.jpg"
 };
 
 export const defaultHomeAbout = {

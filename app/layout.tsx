@@ -1,5 +1,42 @@
 import type { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
+
+const avenirBody = localFont({
+  src: [
+    {
+      path: "../public/shrift/Avenir LT 55 Roman/avenirlt_roman.ttf",
+      weight: "400",
+      style: "normal"
+    }
+  ],
+  variable: "--font-body",
+  display: "swap",
+  fallback: ["Arial", "sans-serif"]
+});
+
+const artegraDisplay = localFont({
+  src: [
+    {
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-extended-alt-400-regular.otf",
+      weight: "400",
+      style: "normal"
+    },
+    {
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-extended-alt-600-semibold.otf",
+      weight: "600",
+      style: "normal"
+    },
+    {
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-extended-alt-900-black.otf",
+      weight: "900",
+      style: "normal"
+    }
+  ],
+  variable: "--font-display",
+  display: "swap",
+  fallback: ["Arial", "sans-serif"]
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://modaily.com"),
@@ -26,7 +63,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={`${avenirBody.variable} ${artegraDisplay.variable}`}>{children}</body>
     </html>
   );
 }

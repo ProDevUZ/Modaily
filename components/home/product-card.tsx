@@ -30,7 +30,7 @@ export function ProductCard({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[18px] font-semibold uppercase tracking-[0.05em] text-black md:text-[22px]">
+        <h3 className="font-display text-[18px] uppercase tracking-[0.03em] text-black md:text-[22px]">
           {title}
         </h3>
         <p className="text-[13px] uppercase leading-6 text-neutral-500 md:text-[14px] md:leading-7">

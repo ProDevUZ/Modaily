@@ -35,7 +35,7 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
       <div className="flex items-end justify-between gap-4">
         <div className="flex-1">
           <div className="h-[3px] w-44 bg-[#ba0c2f] md:w-60" />
-          <h2 className="mt-5 text-[34px] font-medium text-neutral-500 md:text-[40px]">
+          <h2 className="mt-5 font-display text-[34px] text-neutral-500 md:text-[40px]">
             {title}
           </h2>
         </div>

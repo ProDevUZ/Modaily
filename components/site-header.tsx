@@ -113,7 +113,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
       <div className="border-b border-black/8">
         <div className="mx-auto flex h-[72px] max-w-[1760px] items-center justify-between px-8 lg:px-12">
-          <Link href={`/${locale}`} className="brand-wordmark text-[1.6rem] font-black uppercase text-[#bf1730]">
+          <Link href={`/${locale}`} className="brand-wordmark text-[1.6rem] uppercase text-[#bf1730]">
             {siteSettings.brandName}
           </Link>
 

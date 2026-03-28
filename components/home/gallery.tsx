@@ -25,7 +25,7 @@ const galleryPattern = [
 export function Gallery({ title, items }: GalleryProps) {
   return (
     <section className="space-y-8">
-      <h2 className="text-[42px] font-medium tracking-[-0.05em] text-black md:text-[56px]">
+      <h2 className="font-display text-[42px] tracking-[-0.04em] text-black md:text-[56px]">
         {title}
       </h2>
 

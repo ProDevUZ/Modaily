@@ -234,8 +234,8 @@ export default async function HomePage({ params }: PageProps) {
       <section className="pt-0">
         <div className="grid min-h-[690px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8]">
           <FallbackImage
-            src={content.hero.imageUrl || "/images/home/hero-main.jpg"}
-            fallbackSrc="/images/home/hero-main.jpg"
+            src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
+            fallbackSrc="/images/home/mainpage.jpg"
             alt={content.hero.title}
             className="col-start-1 row-start-1 h-full min-h-[690px] w-full object-cover object-center"
           />
@@ -245,7 +245,7 @@ export default async function HomePage({ params }: PageProps) {
               <p className="text-[18px] tracking-[0.02em] text-black/42">
                 {content.hero.badge || "Novinka"}
               </p>
-              <h1 className="mt-3 max-w-[8.5ch] text-[74px] font-black uppercase leading-[0.92] tracking-[-0.08em] text-[#515151] lg:text-[88px] xl:text-[102px]">
+              <h1 className="mt-3 max-w-[8.5ch] font-display text-[74px] uppercase leading-[0.92] tracking-[-0.045em] text-[#515151] lg:text-[88px] xl:text-[102px]">
                 {content.hero.title}
               </h1>
               <p className="mt-8 max-w-[640px] text-[22px] leading-[1.55] text-black/55">{content.hero.description}</p>
@@ -263,7 +263,7 @@ export default async function HomePage({ params }: PageProps) {
       <section className="px-8 py-12 lg:px-12">
         <div className="mx-auto max-w-[1680px]">
           <div className="flex items-center justify-between">
-            <h2 className="text-[40px] tracking-[-0.05em] md:text-[50px]">{copy.bestsellers}</h2>
+            <h2 className="font-display text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
             <Link href={`/${locale}/catalog`} className="text-[18px] text-[#cf1230]">
               {copy.moreProducts} __
             </Link>
@@ -336,11 +336,11 @@ export default async function HomePage({ params }: PageProps) {
         <div className="mx-auto max-w-[1680px]">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="text-[42px] uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
+              <h2 className="font-display text-[42px] uppercase tracking-[-0.04em] text-[#cf1230] md:text-[56px]">{content.about.title}</h2>
               <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/64">{content.about.description}</p>
             </div>
             <div>
-              <p className="text-right text-[40px] font-black uppercase tracking-[-0.06em] text-[#cf1230] md:text-[56px]">
+              <p className="font-display text-right text-[40px] uppercase tracking-[-0.04em] text-[#cf1230] md:text-[56px]">
                 {content.about.secondaryTitle || "MODAILY"}
               </p>
               <p className="mt-5 text-[16px] leading-8 text-black/64">{content.about.secondaryDescription || content.about.description}</p>

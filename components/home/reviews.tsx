@@ -29,7 +29,7 @@ function Stars({ rating }: { rating: number }) {
 export function Reviews({ title, items }: ReviewsProps) {
   return (
     <section className="space-y-8 rounded-[32px] bg-[linear-gradient(135deg,#7e0d22_0%,#ba0c2f_52%,#8b1025_100%)] px-4 py-10 text-white md:px-8 md:py-12">
-      <h2 className="text-[42px] font-medium tracking-[-0.05em] md:text-[56px]">
+      <h2 className="font-display text-[42px] tracking-[-0.04em] md:text-[56px]">
         {title}
       </h2>
 

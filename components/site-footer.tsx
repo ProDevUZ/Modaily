@@ -45,7 +45,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
           <div className="border-t border-white/35 pt-10 lg:pt-12">
             <div className="grid gap-10 lg:grid-cols-[1.42fr_0.56fr_0.94fr] lg:gap-14 xl:gap-20">
               <div className="pt-2">
-                <p className="brand-wordmark text-[4.1rem] font-black uppercase leading-none text-white lg:text-[4.7rem]">
+                <p className="brand-wordmark text-[4.1rem] uppercase leading-none text-white lg:text-[4.7rem]">
                   {siteSettings.brandName}
                 </p>
 
