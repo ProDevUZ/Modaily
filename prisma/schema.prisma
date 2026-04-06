@@ -45,8 +45,19 @@ model Product {
   descriptionUz      String?
   descriptionRu      String?
   descriptionEn      String?
+  featureUz          String?
+  featureRu          String?
+  featureEn          String?
+  ingredientsUz      String?
+  ingredientsRu      String?
+  ingredientsEn      String?
+  usageUz            String?
+  usageRu            String?
+  usageEn            String?
+  skinTypes          String?
   size               String?
   price              Int
+  hidePrice          Boolean  @default(false)
   stock              Int      @default(0)
   active             Boolean  @default(true)
   isBestseller       Boolean  @default(false)
@@ -58,6 +69,30 @@ model Product {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  galleryImages      ProductGalleryImage[]
+  reviews            ProductReview[]
+}
+
+model ProductGalleryImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  sortOrder Int      @default(0)
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductReview {
+  id         String   @id @default(cuid())
+  authorName String
+  body       String
+  rating     Int      @default(5)
+  active     Boolean  @default(true)
+  productId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 enum GalleryItemType {
@@ -68,6 +103,7 @@ enum GalleryItemType {
 model SiteSettings {
   id                     String   @id @default(cuid())
   brandName              String   @default("Modaily")
+  hideCommerce           Boolean  @default(false)
   announcementTextUz     String?
   announcementTextRu     String?
   announcementTextEn     String?
@@ -149,6 +185,9 @@ model HomeAboutSection {
   secondaryDescriptionUz String?
   secondaryDescriptionRu String?
   secondaryDescriptionEn String?
+  bottomDescriptionUz String?
+  bottomDescriptionRu String?
+  bottomDescriptionEn String?
   imageUrl            String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

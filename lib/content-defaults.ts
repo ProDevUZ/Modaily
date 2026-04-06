@@ -1,5 +1,6 @@
 export const defaultSiteSettings = {
   brandName: "Modaily",
+  hideCommerce: false,
   announcementTextUz: "Yangi skincare kolleksiyasini ko'ring",
   announcementTextRu: "Смотрите новую skincare-коллекцию",
   announcementTextEn: "Explore the new skincare collection",
@@ -12,7 +13,7 @@ export const defaultSiteSettings = {
   footerTelegram: "@modaily_cis",
   footerInstagram: "@modaily_cis",
   footerAddressUz: "Toshkent shahri, Yashnobod tumani, Umrbod ko'chasi 5",
-  footerAddressRu: "г. Ташкент, Яшнабадский район, улица Умрбод, дом 5",
+  footerAddressRu: "г. Ташкент, Яшнабадский район, улица Умурбод, дом 5",
   footerAddressEn: "5 Umrbod street, Yashnabad district, Tashkent",
   newsletterTitleUz: "Yangiliklarimizga obuna bo'ling",
   newsletterTitleRu: "Подпишитесь на наши новости",
@@ -44,23 +45,29 @@ export const defaultHomeHero = {
 };
 
 export const defaultHomeAbout = {
-  titleUz: "Modaily haqida",
-  titleRu: "О Modaily",
-  titleEn: "About Modaily",
+  titleUz: "O MODAILY",
+  titleRu: "О MODAILY",
+  titleEn: "ABOUT MODAILY",
   descriptionUz:
-    "Modaily formulalari Yevropada ishlab chiqilgan bo'lib, kundalik parvarishni sodda va yoqimli qiladi.",
+    "Modaily — hayot sifatini yaxshilash maqsadida yaratilgan Britaniyaning kundalik parvarish brendi. Biz tashqi ko'rinishga g'amxo'rlik har bir inson uchun qulay va oson kundalik odatga aylanishi kerakligini isbotlashga intilamiz.",
   descriptionRu:
-    "Modaily — это британский бренд ежедневного ухода, созданный с целью улучшения качества жизни людей.",
+    "Modaily — это британский бренд ежедневного ухода, созданный с целью улучшения качества жизни людей. Мы стремимся доказать, что забота о своем внешнем виде должна стать удобной и легкой повседневной привычкой для каждого.",
   descriptionEn:
-    "Modaily is a UK-formulated skincare brand focused on making everyday rituals effective and approachable.",
-  secondaryTitleUz: "Formulated in UK",
-  secondaryTitleRu: "Formulated in UK",
-  secondaryTitleEn: "Formulated in UK",
+    "Modaily is a British everyday skincare brand created to improve quality of life. We believe self-care should become a simple, comfortable daily habit for everyone.",
+  secondaryTitleUz: "MODAILY",
+  secondaryTitleRu: "MODAILY",
+  secondaryTitleEn: "MODAILY",
   secondaryDescriptionUz:
-    "Minimalist, tushunarli va kundalik foydalanishga mos formulalar orqali teri holatini qo'llab-quvvatlaymiz.",
+    "Modaily kosmetikasi olimlar va dermatologlar ishlanmalari asosida yaratiladi. Har bir formula teri tuzilishi, shahar muhiti va zamonaviy hayot ritmini inobatga olgan holda ishlab chiqiladi. Biz uchun mahsulot nafaqat chiroyli qadoqlangan, balki ilmiy asoslangan tarkib, isbotlangan xavfsizlik va haqiqiy natijaga ega bo'lishi kerak.",
   secondaryDescriptionRu:
-    "Мы создаем продукты, которые поддерживают естественный баланс кожи и подходят для ежедневного использования.",
+    "Косметика Modaily создается на основе разработок ученых и дерматологов. Каждая формула разрабатывается с учетом структуры кожи, городской среды и ритма современной жизни. Для нас продукт должен быть не только красиво упакован, но и иметь научно обоснованный состав, проверенную безопасность и реальные результаты.",
   secondaryDescriptionEn:
-    "We build clear, everyday skincare with a strong focus on barrier support and visible comfort.",
-  imageUrl: "/images/home/about-lineup.png"
+    "Modaily skincare is created from the work of scientists and dermatologists. Every formula is developed with skin structure, urban environments and the pace of modern life in mind. For us, a product should be more than beautifully packaged; it must also have a scientifically grounded formula, proven safety and real results.",
+  bottomDescriptionUz:
+    "Brend falsafasi — hayotni soddalashtirish, teriga g'amxo'rlik qilish va o'zingizni sevish. Shu sabab Modaily minimalistik, tushunarli va o'zaro bog'liq mahsulotlar yaratadi: har bir iste'molchi uy sharoitida, ortiqcha murakkabliksiz, har kuni o'z terisiga professional darajada g'amxo'rlik qila oladi.",
+  bottomDescriptionRu:
+    "Философия бренда — «упрощай свою жизнь, заботься о коже, люби себя». Поэтому Modaily создает минималистичные, понятные и взаимосвязанные продукты: каждый потребитель может профессионально заботиться о своей коже в домашних условиях, без лишних сложностей, каждый день.",
+  bottomDescriptionEn:
+    "The brand philosophy is simple: simplify life, care for your skin and love yourself. That is why Modaily creates minimalist, easy-to-understand and connected products so every customer can care for their skin professionally at home, without unnecessary complexity, every day.",
+  imageUrl: "/images/Galary/about1.png"
 };

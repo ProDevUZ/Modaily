@@ -79,7 +79,7 @@ export function CartPageView({ locale, dictionary }: CartPageViewProps) {
 
           <aside className="glass h-fit rounded-[2rem] p-6">
             <p className="eyebrow">{dictionary.cart.summaryEyebrow}</p>
-            <h2 className="mt-3 font-display text-3xl text-ink">{dictionary.cart.summaryTitle}</h2>
+            <h2 className="mt-3 text-3xl text-ink">{dictionary.cart.summaryTitle}</h2>
             <div className="mt-6 space-y-3 border-y border-stone-200/70 py-5">
               <div className="flex items-center justify-between text-sm text-stone-600">
                 <span>{dictionary.cart.itemsLabel}</span>

@@ -32,8 +32,19 @@ export type ProductPayload = {
   descriptionUz: string | null;
   descriptionRu: string | null;
   descriptionEn: string | null;
+  featureUz: string | null;
+  featureRu: string | null;
+  featureEn: string | null;
+  ingredientsUz: string | null;
+  ingredientsRu: string | null;
+  ingredientsEn: string | null;
+  usageUz: string | null;
+  usageRu: string | null;
+  usageEn: string | null;
+  skinTypes: string | null;
   size: string | null;
   price: number;
+  hidePrice: boolean;
   stock: number;
   active: boolean;
   isBestseller: boolean;
@@ -42,10 +53,15 @@ export type ProductPayload = {
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;
+  galleryImages: {
+    imageUrl: string;
+    sortOrder: number;
+  }[];
 };
 
 export type SiteSettingsPayload = {
   brandName: string;
+  hideCommerce: boolean;
   announcementTextUz: string | null;
   announcementTextRu: string | null;
   announcementTextEn: string | null;
@@ -118,6 +134,9 @@ export type HomeAboutPayload = {
   secondaryDescriptionUz: string | null;
   secondaryDescriptionRu: string | null;
   secondaryDescriptionEn: string | null;
+  bottomDescriptionUz: string | null;
+  bottomDescriptionRu: string | null;
+  bottomDescriptionEn: string | null;
   imageUrl: string | null;
 };
 
@@ -168,6 +187,19 @@ function asBoolean(value: unknown) {
 function asInteger(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : fallback;
+}
+
+function asSkinTypes(value: unknown) {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const normalized = value
+    .map((entry) => asString(entry))
+    .filter(Boolean)
+    .filter((entry, index, array) => array.indexOf(entry) === index);
+
+  return normalized.length > 0 ? normalized.join(",") : null;
 }
 
 function toSlug(value: string) {
@@ -266,6 +298,32 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
     return { success: false, error: "Category is required." };
   }
 
+  const galleryImages = Array.isArray(payload.galleryImages)
+    ? payload.galleryImages
+        .map((entry, index) => {
+          if (!entry || typeof entry !== "object") {
+            return null;
+          }
+
+          const row = entry as Record<string, unknown>;
+          const imageUrl = asString(row.imageUrl);
+
+          if (!imageUrl) {
+            return null;
+          }
+
+          return {
+            imageUrl,
+            sortOrder: asInteger(row.sortOrder, index)
+          };
+        })
+        .filter((entry): entry is { imageUrl: string; sortOrder: number } => entry !== null)
+    : [];
+
+  if (galleryImages.length > 6) {
+    return { success: false, error: "Gallery can contain maximum 6 images." };
+  }
+
   return {
     success: true,
     data: {
@@ -280,8 +338,19 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       descriptionUz: asOptionalString(payload.descriptionUz),
       descriptionRu: asOptionalString(payload.descriptionRu),
       descriptionEn: asOptionalString(payload.descriptionEn),
+      featureUz: asOptionalString(payload.featureUz),
+      featureRu: asOptionalString(payload.featureRu),
+      featureEn: asOptionalString(payload.featureEn),
+      ingredientsUz: asOptionalString(payload.ingredientsUz),
+      ingredientsRu: asOptionalString(payload.ingredientsRu),
+      ingredientsEn: asOptionalString(payload.ingredientsEn),
+      usageUz: asOptionalString(payload.usageUz),
+      usageRu: asOptionalString(payload.usageRu),
+      usageEn: asOptionalString(payload.usageEn),
+      skinTypes: asSkinTypes(payload.skinTypes),
       size: asOptionalString(payload.size),
       price: Math.round(price),
+      hidePrice: asBoolean(payload.hidePrice),
       stock: Math.round(stock),
       active: asBoolean(payload.active),
       isBestseller: asBoolean(payload.isBestseller),
@@ -289,7 +358,8 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       imageUrl: asOptionalString(payload.imageUrl),
       colorFrom: asOptionalString(payload.colorFrom),
       colorTo: asOptionalString(payload.colorTo),
-      categoryId
+      categoryId,
+      galleryImages
     }
   };
 }
@@ -301,6 +371,7 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
     success: true,
     data: {
       brandName: asString(payload.brandName) || "Modaily",
+      hideCommerce: asBoolean(payload.hideCommerce),
       announcementTextUz: asOptionalString(payload.announcementTextUz),
       announcementTextRu: asOptionalString(payload.announcementTextRu),
       announcementTextEn: asOptionalString(payload.announcementTextEn),
@@ -415,6 +486,9 @@ export function validateHomeAboutPayload(body: unknown): ValidationResult<HomeAb
       secondaryDescriptionUz: asOptionalString(payload.secondaryDescriptionUz),
       secondaryDescriptionRu: asOptionalString(payload.secondaryDescriptionRu),
       secondaryDescriptionEn: asOptionalString(payload.secondaryDescriptionEn),
+      bottomDescriptionUz: asOptionalString(payload.bottomDescriptionUz),
+      bottomDescriptionRu: asOptionalString(payload.bottomDescriptionRu),
+      bottomDescriptionEn: asOptionalString(payload.bottomDescriptionEn),
       imageUrl: asOptionalString(payload.imageUrl)
     }
   };
@@ -424,13 +498,18 @@ export function validateGalleryItemPayload(body: unknown): ValidationResult<Gall
   const payload = body as Record<string, unknown>;
   const type = asString(payload.type).toUpperCase();
   const imageUrl = asString(payload.imageUrl);
+  const videoUrl = asOptionalString(payload.videoUrl);
 
   if (type !== "IMAGE" && type !== "VIDEO") {
     return { success: false, error: "Gallery item type must be IMAGE or VIDEO." };
   }
 
-  if (!imageUrl) {
+  if (type === "IMAGE" && !imageUrl) {
     return { success: false, error: "Gallery item image URL is required." };
+  }
+
+  if (type === "VIDEO" && !videoUrl) {
+    return { success: false, error: "Gallery video URL is required." };
   }
 
   return {
@@ -443,8 +522,8 @@ export function validateGalleryItemPayload(body: unknown): ValidationResult<Gall
       descriptionUz: asOptionalString(payload.descriptionUz),
       descriptionRu: asOptionalString(payload.descriptionRu),
       descriptionEn: asOptionalString(payload.descriptionEn),
-      imageUrl,
-      videoUrl: asOptionalString(payload.videoUrl),
+      imageUrl: type === "VIDEO" ? imageUrl : imageUrl,
+      videoUrl,
       sortOrder: asInteger(payload.sortOrder),
       active: asBoolean(payload.active)
     }

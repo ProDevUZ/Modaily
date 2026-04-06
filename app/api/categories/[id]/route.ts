@@ -62,7 +62,7 @@ export async function DELETE(_: Request, { params }: RouteProps) {
   if (productsCount > 0) {
     return NextResponse.json(
       { error: "Category has products. Reassign or delete products first." },
-      { status: 400 }
+      { status: 409 }
     );
   }
 

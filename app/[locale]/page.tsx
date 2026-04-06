@@ -5,10 +5,14 @@ import { Gallery } from "@/components/home/gallery";
 import { ProductCard } from "@/components/home/product-card";
 import { Reviews } from "@/components/home/reviews";
 import { VideoGallery } from "@/components/home/video-gallery";
+import { FooterGradientBackground } from "@/components/footer-gradient-background";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
-import { getLocalizedProducts } from "@/lib/products";
+import { getStorefrontProducts } from "@/lib/storefront-products";
 import { getHomePageContent } from "@/lib/storefront-content";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -92,6 +96,14 @@ function getFallbackGalleryItems() {
     id: `gallery-fallback-${index + 1}`,
     title: `Gallery ${index + 1}`,
     imageUrl: ""
+  }));
+}
+
+function getLocalGalleryItems() {
+  return Array.from({ length: 8 }, (_, index) => ({
+    id: `gallery-local-${index + 1}`,
+    title: `Gallery ${index + 1}`,
+    imageUrl: `/images/Galary/${index + 1}.png`
   }));
 }
 
@@ -211,7 +223,7 @@ export default async function HomePage({ params }: PageProps) {
 
   const dictionary = getDictionary(locale);
   const content = await getHomePageContent(locale);
-  const catalogProducts = getLocalizedProducts(locale);
+  const catalogProducts = await getStorefrontProducts(locale);
   const copy = labels[locale];
   const bestsellerProducts =
     content.bestsellers.length > 0
@@ -224,7 +236,8 @@ export default async function HomePage({ params }: PageProps) {
           price: product.price,
           imageUrl: ""
         }));
-  const galleryImages = repeatToCount(content.galleryImages.length > 0 ? content.galleryImages : getFallbackGalleryItems(), 8);
+  const gallerySource = content.galleryImages.some((item) => item.imageUrl?.trim()) ? content.galleryImages : getLocalGalleryItems();
+  const galleryImages = gallerySource.length > 0 ? gallerySource : getFallbackGalleryItems();
   const promoCards = repeatToCount(content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale), 2);
   const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
   const videoItems = repeatToCount(content.galleryVideos.length > 0 ? content.galleryVideos : getFallbackVideoItems(), 3);
@@ -232,26 +245,55 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <div className="bg-white text-black">
       <section className="pt-0">
-        <div className="grid min-h-[690px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8]">
+        <div className="grid h-[696px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:hidden">
           <FallbackImage
             src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
             fallbackSrc="/images/home/mainpage.jpg"
             alt={content.hero.title}
-            className="col-start-1 row-start-1 h-full min-h-[690px] w-full object-cover object-center"
+            className="col-start-1 row-start-1 h-full w-full object-cover object-[62%_4%]"
           />
-          <div className="col-start-1 row-start-1 bg-[linear-gradient(90deg,rgba(236,235,232,0.96)_0%,rgba(236,235,232,0.92)_28%,rgba(236,235,232,0.72)_46%,rgba(236,235,232,0.18)_68%,rgba(236,235,232,0.04)_100%)]" />
-          <div className="col-start-1 row-start-1 mx-auto flex min-h-[690px] w-full max-w-[1760px] items-center px-8 lg:px-12 xl:px-[118px]">
-            <div className="max-w-[760px] py-12">
-              <p className="text-[18px] tracking-[0.02em] text-black/42">
-                {content.hero.badge || "Novinka"}
-              </p>
-              <h1 className="hero-title mt-3 max-w-[8.5ch] text-[74px] uppercase leading-[0.92] tracking-[-0.045em] text-[#515151] lg:text-[88px] xl:text-[102px]">
+          <div className="col-start-1 row-start-1 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.34)_66%,rgba(255,255,255,0.82)_79%,rgba(255,255,255,0.98)_89%,#ffffff_100%)]" />
+          <div className="col-start-1 row-start-1 flex h-[696px] items-end px-[38px] pb-[31px]">
+            <div className="w-full max-w-[338px]">
+              <p className="text-[17px] leading-none tracking-[-0.02em] text-black/52">{content.hero.badge || "Novinka"}</p>
+              <h1 className="hero-title mt-[11px] text-[35px] uppercase leading-[1.02] tracking-[-0.045em] text-[#1f1f1f]">
                 {content.hero.title}
               </h1>
-              <p className="mt-8 max-w-[640px] text-[22px] leading-[1.55] text-black/55">{content.hero.description}</p>
+              <p className="mt-[14px] max-w-[332px] text-[15px] leading-[1.55] text-black/76">
+                {content.hero.description}
+              </p>
               <Link
                 href={content.hero.primaryCtaLink}
-                className="mt-10 inline-flex h-[60px] w-[340px] items-center justify-center bg-[var(--brand)] text-[14px] font-medium uppercase tracking-[0.18em] text-white"
+                className="mt-[28px] inline-flex h-[50px] w-[254px] items-center justify-center bg-[var(--brand)] text-[13px] uppercase tracking-[0.19em] text-white"
+              >
+                {content.hero.primaryCta || copy.learnMore}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden min-h-[460px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:grid md:min-h-[520px] xl:min-h-[555px]">
+          <FallbackImage
+            src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
+            fallbackSrc="/images/home/mainpage.jpg"
+            alt={content.hero.title}
+            className="col-start-1 row-start-1 h-full min-h-[460px] w-full object-cover object-center md:min-h-[520px] xl:min-h-[555px]"
+          />
+          <div className="col-start-1 row-start-1 bg-[linear-gradient(90deg,rgba(241,240,236,0.22)_0%,rgba(241,240,236,0.14)_14%,rgba(241,240,236,0.06)_24%,rgba(241,240,236,0.00)_34%)]" />
+          <div className="col-start-1 row-start-1 mx-auto flex min-h-[460px] w-full max-w-[1760px] items-center px-6 sm:px-8 lg:px-12 xl:px-[86px]">
+            <div className="max-w-[680px] py-10 md:py-12">
+              <p className="text-[16px] tracking-[0.01em] text-black/44 md:text-[18px]">
+                {content.hero.badge || "Novinka"}
+              </p>
+              <h1 className="hero-title mt-3 max-w-[8.2ch] text-[52px] uppercase leading-[0.94] tracking-[-0.02em] text-[#565656]">
+                {content.hero.title}
+              </h1>
+              <p className="mt-7 max-w-[690px] text-[17px] leading-[1.46] text-black/58 sm:text-[19px] lg:mt-8 lg:text-[22px]">
+                {content.hero.description}
+              </p>
+              <Link
+                href={content.hero.primaryCtaLink}
+                className="mt-8 inline-flex h-[48px] w-[218px] items-center justify-center bg-[var(--brand)] text-[13px] font-medium uppercase tracking-[0.18em] text-white sm:h-[52px] sm:w-[250px] lg:mt-9 lg:h-[57px] lg:w-[271px]"
               >
                 {content.hero.primaryCta || copy.learnMore}
               </Link>
@@ -260,31 +302,40 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-8 py-12 lg:px-12">
+      <section className="px-[38px] py-9 lg:px-12 lg:py-12">
         <div className="mx-auto max-w-[1680px]">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
+          <div className="hidden items-center justify-between lg:flex">
+            <h2 className="text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
             <Link href={`/${locale}/catalog`} className="text-[18px] text-[var(--brand)]">
               {copy.moreProducts} __
             </Link>
           </div>
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="lg:hidden">
+            <h2 className="text-[33px] leading-none tracking-[-0.05em] text-black">{copy.bestsellers}</h2>
+          </div>
+
+          <div className="mt-5 h-[4px] w-full rounded-full bg-[#e5e8ec] lg:mt-8 lg:h-[3px] lg:bg-black/8">
+            <div className="h-full w-[71%] rounded-full bg-[#282828] lg:bg-black" />
+          </div>
+
+          <Link href={`/${locale}/catalog`} className="mt-5 inline-flex items-center gap-2 border-b border-[var(--brand)] pb-1 text-[15px] leading-none text-[var(--brand)] lg:hidden">
+            <span>{copy.moreProducts}</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+
+          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4">
             {bestsellerProducts.slice(0, 4).map((product) => (
               <article key={product.id}>
-                <div className="flex h-[290px] items-center justify-center bg-[#f5f5f5]">
+                <div className="flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
                   <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
                 </div>
-                <h3 className="mt-4 min-h-[54px] text-[18px] uppercase leading-6 tracking-[-0.03em] text-[#2f2f2f]">{product.name}</h3>
-                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-3 inline-flex h-[46px] w-full items-center justify-center border border-black/40 text-[12px] uppercase tracking-[0.18em] text-black/72">
+                <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:leading-6">{product.name}</h3>
+                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">
                   {copy.learnMore}
                 </Link>
               </article>
             ))}
-          </div>
-
-          <div className="mt-8 h-[3px] w-full bg-black/8">
-            <div className="h-full w-[72%] bg-black" />
           </div>
         </div>
       </section>
@@ -304,10 +355,8 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-8 py-12 lg:px-12">
-        <div className="mx-auto max-w-[1680px]">
-          <Gallery title={copy.gallery} items={galleryImages} />
-        </div>
+      <section className="py-12">
+        <Gallery title={copy.gallery} items={galleryImages} />
       </section>
 
       <section id="video-gallery" className="px-8 py-12 lg:px-12">
@@ -316,8 +365,8 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mt-6 bg-[linear-gradient(135deg,#820d20_0%,#ba102d_50%,#8f1326_100%)] px-8 py-12 text-white lg:px-12">
-        <div className="mx-auto max-w-[1680px]">
+      <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="mt-6">
+        <section className="py-12 text-white">
           <Reviews
             title={copy.reviews}
             items={testimonials.map((item, index) => ({
@@ -329,30 +378,40 @@ export default async function HomePage({ params }: PageProps) {
               rating: item.rating
             }))}
           />
-        </div>
-      </section>
+        </section>
+      </FooterGradientBackground>
 
       <section id="about" className="px-8 py-16 lg:px-12">
         <div className="mx-auto max-w-[1680px]">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="font-display text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">{content.about.title}</h2>
-              <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/64">{content.about.description}</p>
+              <h2 className="text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">{content.about.title}</h2>
+              <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/80">{content.about.description}</p>
             </div>
             <div>
-              <p className="font-display text-right text-[40px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
-                {content.about.secondaryTitle || "MODAILY"}
-              </p>
-              <p className="mt-5 text-[16px] leading-8 text-black/64">{content.about.secondaryDescription || content.about.description}</p>
+              {((content.about.secondaryTitle || "MODAILY").trim().toUpperCase() === "MODAILY") ? (
+                <p className="brand-wordmark text-right text-[40px] uppercase leading-none text-[var(--brand)] md:text-[56px]">
+                  {content.about.secondaryTitle || "MODAILY"}
+                </p>
+              ) : (
+                <p className="text-right text-[40px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
+                  {content.about.secondaryTitle || "MODAILY"}
+                </p>
+              )}
+              <p className="mt-5 text-[16px] leading-8 text-black/80">{content.about.secondaryDescription || content.about.description}</p>
             </div>
           </div>
 
-          <div className="mt-12 overflow-hidden rounded-[10px] bg-[#f4f4f2]">
+          {content.about.bottomDescription ? (
+            <p className="mt-8 text-[16px] leading-8 text-black/80">{content.about.bottomDescription}</p>
+          ) : null}
+
+          <div className="mt-12 overflow-hidden rounded-[10px] bg-white">
             <FallbackImage
-              src={content.about.imageUrl || "https://placehold.co/1259x514"}
-              fallbackSrc="https://placehold.co/1259x514/f4f4f2/bb102b?text=Modaily+About"
+              src={content.about.imageUrl || "/images/Galary/about1.png"}
+              fallbackSrc="/images/Galary/about1.png"
               alt={content.about.title}
-              className="h-[360px] w-full object-cover md:h-[500px]"
+              className="h-[360px] w-full object-contain object-center md:h-[560px]"
             />
           </div>
         </div>

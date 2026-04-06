@@ -65,7 +65,7 @@ select {
 }
 
 .display-title {
-  @apply font-display text-4xl leading-tight text-ink sm:text-5xl lg:text-6xl;
+  @apply text-4xl leading-tight text-ink sm:text-5xl lg:text-6xl;
 }
 
 .body-copy {
@@ -143,21 +143,81 @@ select {
     linear-gradient(135deg, #7e0d22 0%, #8c1024 18%, #b10f2b 52%, #9b1127 78%, #7a0d20 100%);
 }
 
-.brand-footer-grid {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 140px 140px;
-}
-
 .brand-wordmark {
   display: inline-block;
-  font-family: var(--font-display), Arial, sans-serif;
-  font-weight: 900;
+  font-family: var(--font-brand), Arial, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
 .hero-title {
   font-family: var(--font-hero-title), var(--font-display), Arial, sans-serif;
   font-weight: 900;
+  text-shadow: none;
+  font-stretch: expanded;
+}
+
+@keyframes gallery-marquee-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes gallery-marquee-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.gallery-marquee-left {
+  animation: gallery-marquee-left 42s linear infinite;
+  will-change: transform;
+}
+
+.gallery-marquee-right {
+  animation: gallery-marquee-right 46s linear infinite;
+  will-change: transform;
+}
+
+.catalog-range-thumb::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+}
+
+.catalog-range-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 999px;
+  border: 5px solid #dfe5f8;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 17, 37, 0.08);
+  cursor: pointer;
+}
+
+.catalog-range-thumb::-moz-range-track {
+  height: 6px;
+  background: transparent;
+}
+
+.catalog-range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 5px solid #dfe5f8;
+  background: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 17, 37, 0.08);
+  cursor: pointer;
 }

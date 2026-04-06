@@ -23,6 +23,7 @@ type DictionaryShape = {
   };
   actions: {
     addToCart: string;
+    details: string;
   };
   currency: Currency;
   hero: {
@@ -107,7 +108,8 @@ const dictionaries: Record<Locale, DictionaryShape> = {
       admin: "Admin"
     },
     actions: {
-      addToCart: "Savatga qo'shish"
+      addToCart: "Savatga qo'shish",
+      details: "Batafsil"
     },
     currency: {
       code: "USD",
@@ -212,7 +214,8 @@ const dictionaries: Record<Locale, DictionaryShape> = {
       admin: "Админ"
     },
     actions: {
-      addToCart: "Добавить в корзину"
+      addToCart: "Добавить в корзину",
+      details: "Подробнее"
     },
     currency: {
       code: "USD",
@@ -317,7 +320,8 @@ const dictionaries: Record<Locale, DictionaryShape> = {
       admin: "Admin"
     },
     actions: {
-      addToCart: "Add to cart"
+      addToCart: "Add to cart",
+      details: "Learn more"
     },
     currency: {
       code: "USD",

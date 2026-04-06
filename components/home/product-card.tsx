@@ -18,29 +18,28 @@ export function ProductCard({
   buttonLabel
 }: HomeProductCardProps) {
   return (
-    <article className="flex h-full flex-col gap-6">
-      <div className="grid overflow-hidden rounded-[20px]">
+    <article className="flex h-full flex-col items-start gap-5">
+      <div className="grid w-full overflow-hidden rounded-tl-[5px] rounded-tr-[20px] rounded-br-[5px] rounded-bl-[20px] bg-[#f3f3f1]">
         <FallbackImage
-          src={imageUrl || "https://placehold.co/584x356"}
-          fallbackSrc="https://placehold.co/584x356/f4f4f2/bb102b?text=Modaily"
+          src={imageUrl || ""}
+          fallbackSrc="https://placehold.co/584x356/f3f3f1/f3f3f1"
           alt={title}
-          className="col-start-1 row-start-1 h-[320px] w-full object-cover md:h-[380px] xl:h-[420px]"
+          className="col-start-1 row-start-1 h-[280px] w-full object-cover md:h-[320px] xl:h-[356px]"
         />
-        <div className="col-start-1 row-start-1 bg-white/10" />
       </div>
 
-      <div className="space-y-4">
-        <h3 className="font-display text-[18px] uppercase tracking-[0.03em] text-black md:text-[22px]">
+      <div className="space-y-3">
+        <h3 className="text-[15px] uppercase leading-[2.4] tracking-[0.02em] text-black">
           {title}
         </h3>
-        <p className="text-[13px] uppercase leading-6 text-neutral-500 md:text-[14px] md:leading-7">
+        <p className="max-w-[584px] text-[10px] uppercase leading-5 text-[#666]">
           {description}
         </p>
       </div>
 
       <Link
         href={href}
-        className="inline-flex min-h-[52px] w-full items-center justify-center border border-black px-6 text-center text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-black hover:text-white sm:w-[280px]"
+        className="inline-flex h-[46px] w-full items-center justify-center border border-black px-6 text-center text-[13px] uppercase tracking-[0.16em] text-black transition hover:bg-black hover:text-white sm:w-[256px]"
       >
         {buttonLabel}
       </Link>

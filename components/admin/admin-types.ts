@@ -38,8 +38,19 @@ export type AdminProduct = {
   descriptionUz: string | null;
   descriptionRu: string | null;
   descriptionEn: string | null;
+  featureUz: string | null;
+  featureRu: string | null;
+  featureEn: string | null;
+  ingredientsUz: string | null;
+  ingredientsRu: string | null;
+  ingredientsEn: string | null;
+  usageUz: string | null;
+  usageRu: string | null;
+  usageEn: string | null;
+  skinTypes: string | null;
   size: string | null;
   price: number;
+  hidePrice: boolean;
   stock: number;
   active: boolean;
   isBestseller: boolean;
@@ -51,11 +62,24 @@ export type AdminProduct = {
   createdAt: string;
   updatedAt: string;
   category?: AdminCategory;
+  galleryImages?: AdminProductGalleryImage[];
+  _count?: {
+    reviews: number;
+  };
+};
+
+export type AdminProductGalleryImage = {
+  id: string;
+  imageUrl: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type AdminSiteSettings = {
   id: string;
   brandName: string;
+  hideCommerce: boolean;
   announcementTextUz: string | null;
   announcementTextRu: string | null;
   announcementTextEn: string | null;
@@ -137,6 +161,9 @@ export type AdminHomeAbout = {
   secondaryDescriptionUz: string | null;
   secondaryDescriptionRu: string | null;
   secondaryDescriptionEn: string | null;
+  bottomDescriptionUz: string | null;
+  bottomDescriptionRu: string | null;
+  bottomDescriptionEn: string | null;
   imageUrl: string | null;
   createdAt: string;
   updatedAt: string;

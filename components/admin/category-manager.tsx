@@ -70,14 +70,20 @@ export function CategoryManager() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(category: AdminCategory) {
+    if ((category._count?.products || 0) > 0) {
+      setMessage(null);
+      setError("This category still has products. Move those products to another category first.");
+      return;
+    }
+
     if (!window.confirm("Delete this category?")) {
       return;
     }
 
     try {
-      await requestJson(`/api/categories/${id}`, { method: "DELETE" });
-      if (editingId === id) {
+      await requestJson(`/api/categories/${category.id}`, { method: "DELETE" });
+      if (editingId === category.id) {
         setEditingId(null);
         setForm(emptyForm);
       }
@@ -164,10 +170,21 @@ export function CategoryManager() {
                 >
                   Edit
                 </button>
-                <button type="button" className="admin-button-danger" onClick={() => handleDelete(category.id)}>
+                <button
+                  type="button"
+                  className="admin-button-danger disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:hover:bg-slate-100"
+                  onClick={() => handleDelete(category)}
+                  disabled={(category._count?.products || 0) > 0}
+                  title={(category._count?.products || 0) > 0 ? "Move products out of this category before deleting it." : "Delete category"}
+                >
                   Delete
                 </button>
               </div>
+              {(category._count?.products || 0) > 0 ? (
+                <p className="mt-3 text-xs text-slate-500">
+                  Delete is locked while this category has linked products.
+                </p>
+              ) : null}
             </article>
           ))}
         </div>

@@ -7,11 +7,22 @@ import {
   isUnsupportedProductHomeFieldError,
   normalizeProductHomeFields
 } from "@/lib/product-home-fields";
+import { getProductWriteErrorPayload } from "@/lib/product-write-errors";
 
 export async function GET() {
   const products = await prisma.product.findMany({
     include: {
-      category: true
+      category: true,
+      galleryImages: {
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
+      _count: {
+        select: {
+          reviews: true
+        }
+      }
     },
     orderBy: {
       createdAt: "desc"
@@ -31,9 +42,24 @@ export async function POST(request: Request) {
 
   try {
     const product = await prisma.product.create({
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        galleryImages: {
+          create: parsed.data.galleryImages
+        }
+      },
       include: {
-        category: true
+        category: true,
+        galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        _count: {
+          select: {
+            reviews: true
+          }
+        }
       }
     });
 
@@ -50,26 +76,22 @@ export async function POST(request: Request) {
 
         return NextResponse.json(normalizeProductHomeFields(product), { status: 201 });
       } catch (legacyError) {
+        const payload = getProductWriteErrorPayload(legacyError, "create");
         return NextResponse.json(
-          {
-            error:
-              process.env.NODE_ENV === "development" && legacyError instanceof Error
-                ? legacyError.message
-                : "Product could not be created."
-          },
-          { status: 400 }
+          process.env.NODE_ENV === "development" && legacyError instanceof Error
+            ? { error: legacyError.message, hint: payload.hint }
+            : payload,
+          { status: payload.status }
         );
       }
     }
 
+    const payload = getProductWriteErrorPayload(error, "create");
     return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development" && error instanceof Error
-            ? error.message
-            : "Product could not be created."
-      },
-      { status: 400 }
+      process.env.NODE_ENV === "development" && error instanceof Error
+        ? { error: error.message, hint: payload.hint }
+        : payload,
+      { status: payload.status }
     );
   }
 }

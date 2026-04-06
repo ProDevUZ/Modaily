@@ -7,6 +7,7 @@ import {
   isUnsupportedProductHomeFieldError,
   normalizeProductHomeFields
 } from "@/lib/product-home-fields";
+import { getProductWriteErrorPayload } from "@/lib/product-write-errors";
 
 type RouteProps = {
   params: Promise<{ id: string }>;
@@ -17,7 +18,17 @@ export async function GET(_: Request, { params }: RouteProps) {
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      category: true
+      category: true,
+      galleryImages: {
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
+      _count: {
+        select: {
+          reviews: true
+        }
+      }
     }
   });
 
@@ -40,9 +51,25 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   try {
     const product = await prisma.product.update({
       where: { id },
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        galleryImages: {
+          deleteMany: {},
+          create: parsed.data.galleryImages
+        }
+      },
       include: {
-        category: true
+        category: true,
+        galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        _count: {
+          select: {
+            reviews: true
+          }
+        }
       }
     });
 
@@ -60,26 +87,22 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 
         return NextResponse.json(normalizeProductHomeFields(product));
       } catch (legacyError) {
+        const payload = getProductWriteErrorPayload(legacyError, "update");
         return NextResponse.json(
-          {
-            error:
-              process.env.NODE_ENV === "development" && legacyError instanceof Error
-                ? legacyError.message
-                : "Product could not be updated."
-          },
-          { status: 400 }
+          process.env.NODE_ENV === "development" && legacyError instanceof Error
+            ? { error: legacyError.message, hint: payload.hint }
+            : payload,
+          { status: payload.status }
         );
       }
     }
 
+    const payload = getProductWriteErrorPayload(error, "update");
     return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "development" && error instanceof Error
-            ? error.message
-            : "Product could not be updated."
-      },
-      { status: 400 }
+      process.env.NODE_ENV === "development" && error instanceof Error
+        ? { error: error.message, hint: payload.hint }
+        : payload,
+      { status: payload.status }
     );
   }
 }

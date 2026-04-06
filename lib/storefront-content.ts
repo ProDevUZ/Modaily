@@ -1,6 +1,13 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Locale } from "@/lib/i18n";
 import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "@/lib/content-defaults";
+
+const promoButtonLabels = {
+  uz: "Batafsil",
+  ru: "Узнать подробнее",
+  en: "Learn more"
+} as const;
 
 function localizedValue(entry: Record<string, unknown>, base: string, locale: Locale) {
   const localizedKey = `${base}${locale.slice(0, 1).toUpperCase()}${locale.slice(1)}`;
@@ -16,12 +23,14 @@ function localizedValue(entry: Record<string, unknown>, base: string, locale: Lo
 }
 
 export async function getLocalizedSiteSettings(locale: Locale) {
+  noStore();
   const settings = (await prisma.siteSettings.findFirst({
     orderBy: { createdAt: "asc" }
   })) ?? defaultSiteSettings;
 
   return {
     brandName: settings.brandName,
+    hideCommerce: Boolean(settings.hideCommerce),
     announcementText: localizedValue(settings, "announcementText", locale),
     announcementLinkLabel: localizedValue(settings, "announcementLinkLabel", locale),
     announcementLink: settings.announcementLink || `/${locale}/catalog`,
@@ -36,6 +45,7 @@ export async function getLocalizedSiteSettings(locale: Locale) {
 }
 
 export async function getHomePageContent(locale: Locale) {
+  noStore();
   const [heroRow, aboutRow, promoRows, galleryRows, testimonialRows, bestsellers] = await Promise.all([
     prisma.homeHero.findFirst({ orderBy: { createdAt: "asc" } }),
     prisma.homeAboutSection.findFirst({ orderBy: { createdAt: "asc" } }),
@@ -85,8 +95,8 @@ export async function getHomePageContent(locale: Locale) {
       id: row.id,
       title: localizedValue(row, "title", locale),
       description: localizedValue(row, "description", locale),
-      buttonLabel: localizedValue(row, "buttonLabel", locale),
-      buttonLink: row.buttonLink || `/${locale}/catalog`,
+      buttonLabel: promoButtonLabels[locale],
+      buttonLink: `/${locale}/catalog`,
       imageUrl: row.imageUrl || ""
     })),
     galleryImages: galleryRows
@@ -118,6 +128,7 @@ export async function getHomePageContent(locale: Locale) {
       description: localizedValue(about, "description", locale),
       secondaryTitle: localizedValue(about, "secondaryTitle", locale),
       secondaryDescription: localizedValue(about, "secondaryDescription", locale),
+      bottomDescription: localizedValue(about, "bottomDescription", locale),
       imageUrl: about.imageUrl || ""
     }
   };

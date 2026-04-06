@@ -33,6 +33,27 @@ On container startup it will:
 
 Docker stores SQLite data in a named volume mounted at `/data`, so schema files inside the image are no longer overridden by runtime data.
 
+## Railway deploy
+
+This project is ready to deploy on Railway with the existing Dockerfile.
+
+Required Railway setup:
+
+1. Create a new Railway project from this GitHub repo.
+2. Add a Railway Volume and mount it to `/data`.
+3. Set these environment variables:
+
+```bash
+DATABASE_URL=file:/data/dev.db
+PORT=3000
+```
+
+Notes:
+
+- the app boot command already runs `prisma db push` and `db:seed`
+- uploaded product, promo, gallery image/video files are also stored under `/data/uploads`
+- without the `/data` volume, both the SQLite database and uploaded files would be lost on redeploy
+
 ## Admin
 
 - `/uz/admin`

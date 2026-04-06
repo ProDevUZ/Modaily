@@ -14,6 +14,19 @@ type ReviewsProps = {
   items: ReviewItem[];
 };
 
+function splitRows<T>(items: T[]) {
+  if (items.length === 0) {
+    return { topRow: [], bottomRow: [] };
+  }
+
+  const midpoint = Math.ceil(items.length / 2);
+
+  return {
+    topRow: items.slice(0, midpoint),
+    bottomRow: items.slice(midpoint)
+  };
+}
+
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex gap-1 text-[#ba0c2f]">
@@ -26,40 +39,74 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-export function Reviews({ title, items }: ReviewsProps) {
+function ReviewCard({ item }: { item: ReviewItem }) {
+  const avatarSrc =
+    item.avatarUrl && !item.avatarUrl.includes("/images/home/avatar-") ? item.avatarUrl : "/images/home/ModailyProduct.png";
+
   return (
-    <section className="space-y-8 rounded-[32px] bg-[linear-gradient(135deg,#7e0d22_0%,#ba0c2f_52%,#8b1025_100%)] px-4 py-10 text-white md:px-8 md:py-12">
-      <h2 className="font-display text-[42px] tracking-[-0.04em] md:text-[56px]">
+    <article className="w-[360px] shrink-0 rounded-[24px] bg-white p-6 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)] sm:w-[420px] xl:w-[520px]">
+      <div className="flex items-start gap-4">
+        <FallbackImage
+          src={avatarSrc}
+          fallbackSrc="/images/home/ModailyProduct.png"
+          alt={item.authorName}
+          className="h-14 w-14 rounded-full object-cover"
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-[18px] font-semibold">{item.authorName}</h3>
+              <p className="text-[14px] text-[#717276]">{item.authorRole}</p>
+            </div>
+            <Stars rating={item.rating} />
+          </div>
+
+          <div className="my-4 border-t border-[#e9eff5]" />
+
+          <p className="text-[15px] leading-8">{item.body}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ReviewRow({
+  items,
+  animationClass
+}: {
+  items: ReviewItem[];
+  animationClass: string;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  const loopItems = [...items, ...items];
+
+  return (
+    <div className="overflow-hidden">
+      <div className={`flex w-max gap-4 sm:gap-6 ${animationClass}`}>
+        {loopItems.map((item, index) => (
+          <ReviewCard key={`${item.id}-${index}`} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function Reviews({ title, items }: ReviewsProps) {
+  const { topRow, bottomRow } = splitRows(items);
+
+  return (
+    <section className="space-y-8 py-10 text-white md:py-12">
+      <h2 className="px-8 text-[42px] tracking-[-0.04em] md:px-10 md:text-[56px] lg:px-12">
         {title}
       </h2>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        {items.map((item) => (
-          <article key={item.id} className="rounded-[24px] bg-white p-7 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)]">
-            <div className="flex items-start gap-4">
-              <FallbackImage
-                src={item.avatarUrl || "https://placehold.co/56x56"}
-                fallbackSrc="https://placehold.co/64x64/f0f0f0/bb102b?text=M"
-                alt={item.authorName}
-                className="h-16 w-16 rounded-full object-cover"
-              />
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="text-[20px] font-semibold">{item.authorName}</h3>
-                    <p className="text-[15px] text-[#717276]">{item.authorRole}</p>
-                  </div>
-                  <Stars rating={item.rating} />
-                </div>
-
-                <div className="my-4 border-t border-[#e9eff5]" />
-
-                <p className="text-[17px] leading-8">{item.body}</p>
-              </div>
-            </div>
-          </article>
-        ))}
+      <div className="space-y-4 sm:space-y-5">
+        <ReviewRow items={topRow} animationClass="gallery-marquee-left" />
+        <ReviewRow items={bottomRow.length > 0 ? bottomRow : topRow} animationClass="gallery-marquee-right" />
       </div>
     </section>
   );

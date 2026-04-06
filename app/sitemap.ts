@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 
 import { locales } from "@/lib/i18n";
-import { products } from "@/lib/products";
+import { getStorefrontProductSlugs } from "@/lib/storefront-products";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://modaily.com";
   const now = new Date();
+  const productSlugs = await getStorefrontProductSlugs();
 
   const pages = locales.flatMap((locale) => [
     {
@@ -23,8 +24,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]);
 
   const productPages = locales.flatMap((locale) =>
-    products.map((product) => ({
-      url: `${baseUrl}/${locale}/catalog/${product.slug}`,
+    productSlugs.map((slug) => ({
+      url: `${baseUrl}/${locale}/catalog/${slug}`,
       lastModified: now
     }))
   );

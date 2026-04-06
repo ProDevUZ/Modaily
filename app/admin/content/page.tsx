@@ -1,14 +1,5 @@
-import { ContentManager } from "@/components/admin/content-manager";
-import { AdminShell } from "@/components/admin/admin-shell";
+import { redirect } from "next/navigation";
 
-export default function AdminContentPage() {
-  return (
-    <AdminShell
-      current="content"
-      title="Content CMS"
-      description="Home page’dagi editorial bloklar, media gallery, testimonials va global storefront content shu bo‘limda boshqariladi."
-    >
-      <ContentManager />
-    </AdminShell>
-  );
+export default function AdminContentIndexPage() {
+  redirect("/admin/content/hero");
 }

@@ -41,12 +41,25 @@ const artegraDisplay = localFont({
 const artegraHeroTitle = localFont({
   src: [
     {
-      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-alt-900-black.otf",
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-extended-alt-900-black.otf",
       weight: "900",
       style: "normal"
     }
   ],
   variable: "--font-hero-title",
+  display: "swap",
+  fallback: ["Arial", "sans-serif"]
+});
+
+const artegraBrand = localFont({
+  src: [
+    {
+      path: "../public/shrift/Artegra-Sans-Font-Family/Demo_Fonts/Fontspring-DEMO-artegra_sans-extended-700-bold.otf",
+      weight: "700",
+      style: "normal"
+    }
+  ],
+  variable: "--font-brand",
   display: "swap",
   fallback: ["Arial", "sans-serif"]
 });
@@ -76,7 +89,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable}`}>{children}</body>
+      <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable} ${artegraBrand.variable}`}>{children}</body>
     </html>
   );
 }

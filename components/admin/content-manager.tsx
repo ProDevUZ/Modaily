@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
+import { type AdminContentSectionKey } from "@/lib/admin-content-navigation";
 import {
   type AdminGalleryItem,
   type AdminHomeAbout,
@@ -86,7 +87,7 @@ function Area({ value, onChange, placeholder }: { value: string | null; onChange
   return <textarea className="admin-textarea" value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />;
 }
 
-export function ContentManager() {
+export function ContentManager({ section, galleryMode }: { section: AdminContentSectionKey; galleryMode?: "image" | "video" }) {
   const [siteSettings, setSiteSettings] = useState<SiteSettingsForm | null>(null);
   const [hero, setHero] = useState<HeroForm | null>(null);
   const [about, setAbout] = useState<AboutForm | null>(null);
@@ -103,6 +104,9 @@ export function ContentManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [promoUploadPending, setPromoUploadPending] = useState(false);
+  const [galleryUploadPending, setGalleryUploadPending] = useState(false);
+  const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -158,10 +162,18 @@ export function ContentManager() {
   async function handlePromoSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
+      const payload = {
+        ...promoForm,
+        buttonLabelUz: "",
+        buttonLabelRu: "",
+        buttonLabelEn: "",
+        buttonLink: ""
+      };
+
       await requestJson(editingPromoId ? `/api/content/home-promo-cards/${editingPromoId}` : "/api/content/home-promo-cards", {
         method: editingPromoId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(promoForm)
+        body: JSON.stringify(payload)
       });
       setEditingPromoId(null);
       setPromoForm(emptyPromoForm);
@@ -169,6 +181,39 @@ export function ContentManager() {
       await loadData();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not save promo.");
+    }
+  }
+
+  async function handlePromoImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setPromoUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
+        method: "POST",
+        body: formData
+      });
+
+      setPromoForm((current) => ({
+        ...current,
+        imageUrl: payload.url
+      }));
+      setMessage("Promo image uploaded.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Promo image upload failed.");
+    } finally {
+      setPromoUploadPending(false);
+      event.target.value = "";
     }
   }
 
@@ -181,11 +226,77 @@ export function ContentManager() {
         body: JSON.stringify(galleryForm)
       });
       setEditingGalleryId(null);
-      setGalleryForm(emptyGalleryForm);
+      setGalleryForm({ ...emptyGalleryForm, type: activeGalleryType });
       setMessage(editingGalleryId ? "Gallery item updated." : "Gallery item created.");
       await loadData();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Could not save gallery item.");
+    }
+  }
+
+  async function handleGalleryImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setGalleryUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/gallery-image", {
+        method: "POST",
+        body: formData
+      });
+
+      setGalleryForm((current) => ({
+        ...current,
+        imageUrl: payload.url
+      }));
+      setMessage("Gallery image uploaded.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Gallery image upload failed.");
+    } finally {
+      setGalleryUploadPending(false);
+      event.target.value = "";
+    }
+  }
+
+  async function handleGalleryVideoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setGalleryVideoUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/gallery-video", {
+        method: "POST",
+        body: formData
+      });
+
+      setGalleryForm((current) => ({
+        ...current,
+        videoUrl: payload.url
+      }));
+      setMessage("Gallery video uploaded.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Gallery video upload failed.");
+    } finally {
+      setGalleryVideoUploadPending(false);
+      event.target.value = "";
     }
   }
 
@@ -222,6 +333,14 @@ export function ContentManager() {
   }
 
   const bestsellers = products.filter((product) => product.isBestseller).sort((a, b) => a.homeSortOrder - b.homeSortOrder);
+  const activeGalleryType = galleryMode === "video" ? "VIDEO" : "IMAGE";
+  const filteredGalleryItems = galleryItems.filter((item) => item.type === activeGalleryType);
+
+  useEffect(() => {
+    if (section === "gallery" && !editingGalleryId) {
+      setGalleryForm((current) => ({ ...current, type: activeGalleryType }));
+    }
+  }, [section, activeGalleryType, editingGalleryId]);
 
   return (
     <div className="space-y-6">
@@ -229,7 +348,8 @@ export function ContentManager() {
       {message ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">{message}</p> : null}
       {loading ? <p className="text-sm text-slate-500">Loading content dashboard...</p> : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {section === "bestseller" ? (
+        <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard title="Bestseller" description="Bestseller mahsulot tanlovi Product CRUD ichidagi flag va sort order orqali boshqariladi.">
           <div className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <div>
@@ -253,7 +373,11 @@ export function ContentManager() {
             {bestsellers.length === 0 ? <p className="text-sm text-slate-500">No bestseller products yet.</p> : null}
           </div>
         </SectionCard>
+        </div>
+      ) : null}
 
+      {section === "settings" ? (
+        <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard title="Site Settings" description="Top bar, footer va newsletter matnlari uchun global content.">
           {siteSettings ? (
             <form
@@ -265,6 +389,14 @@ export function ContentManager() {
             >
               <Field value={siteSettings.brandName} onChange={(value) => setSiteSettings((current) => (current ? { ...current, brandName: value } : current))} placeholder="Brand name" />
               <Field value={siteSettings.announcementLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementLink: value } : current))} placeholder="Announcement link" />
+              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.hideCommerce}
+                  onChange={(event) => setSiteSettings((current) => (current ? { ...current, hideCommerce: event.target.checked } : current))}
+                />
+                Price and ordering hidden mode
+              </label>
               <Field value={siteSettings.announcementTextUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextUz: value } : current))} placeholder="Announcement UZ" />
               <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Announcement RU" />
               <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Announcement EN" />
@@ -281,9 +413,11 @@ export function ContentManager() {
             </form>
           ) : null}
         </SectionCard>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {section === "hero" ? (
+        <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard title="Hero" description="Main page birinchi katta blok.">
           {hero ? (
             <form
@@ -314,7 +448,11 @@ export function ContentManager() {
             </form>
           ) : null}
         </SectionCard>
+        </div>
+      ) : null}
 
+      {section === "about" ? (
+        <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard title="About" description="Brand story va product lineup bloki.">
           {about ? (
             <form
@@ -331,35 +469,62 @@ export function ContentManager() {
               <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Description UZ" />
               <Area value={about.descriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Description RU" />
               <Area value={about.descriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Description EN" />
+              <Field value={about.secondaryTitleUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleUz: value } : current))} placeholder="Secondary title UZ" />
               <Field value={about.secondaryTitleRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleRu: value } : current))} placeholder="Secondary title RU" />
+              <Field value={about.secondaryTitleEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleEn: value } : current))} placeholder="Secondary title EN" />
+              <Area value={about.secondaryDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionUz: value } : current))} placeholder="Secondary description UZ" />
               <Area value={about.secondaryDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionRu: value } : current))} placeholder="Secondary description RU" />
+              <Area value={about.secondaryDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionEn: value } : current))} placeholder="Secondary description EN" />
+              <Area value={about.bottomDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionUz: value } : current))} placeholder="Bottom paragraph UZ" />
+              <Area value={about.bottomDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionRu: value } : current))} placeholder="Bottom paragraph RU" />
+              <Area value={about.bottomDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionEn: value } : current))} placeholder="Bottom paragraph EN" />
               <button type="submit" className="admin-button-primary md:col-span-2">
                 Save about
               </button>
             </form>
           ) : null}
         </SectionCard>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
-        <SectionCard title="Promo Cards" description="Bestseller’dan keyingi editorial bannerlar.">
+      {section === "promo" ? (
+        <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
+        <SectionCard title="Promo Cards" description="Bestsellerdan keyingi editorial bannerlar.">
           <form onSubmit={handlePromoSubmit} className="grid gap-4 md:grid-cols-2">
             <Field value={promoForm.titleUz} onChange={(value) => setPromoForm((current) => ({ ...current, titleUz: value }))} placeholder="Title UZ" />
             <Field value={promoForm.titleRu} onChange={(value) => setPromoForm((current) => ({ ...current, titleRu: value }))} placeholder="Title RU" />
             <Field value={promoForm.titleEn} onChange={(value) => setPromoForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
-            <Field value={promoForm.imageUrl} onChange={(value) => setPromoForm((current) => ({ ...current, imageUrl: value }))} placeholder="Image URL" />
+            <div className="space-y-3 md:col-span-2">
+              <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">Upload image</p>
+                  <p className="mt-1 text-xs text-slate-500">JPG, PNG, WebP, AVIF. Up to 20 MB. Shown in the homepage promo cards block.</p>
+                </div>
+                <span className="admin-button-secondary">{promoUploadPending ? "Uploading..." : "Choose file"}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handlePromoImageUpload} disabled={promoUploadPending} />
+              </label>
+
+              {promoForm.imageUrl ? (
+                <div className="admin-panel-muted flex items-center gap-4 px-4 py-3">
+                  <img src={promoForm.imageUrl} alt="Promo preview" className="h-20 w-32 rounded-2xl object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-950">{promoForm.imageUrl}</p>
+                    <p className="mt-1 text-xs text-slate-500">Uploaded image will be used in the editorial promo card.</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
             <Area value={promoForm.descriptionUz} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionUz: value }))} placeholder="Description UZ" />
             <Area value={promoForm.descriptionRu} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionRu: value }))} placeholder="Description RU" />
             <Area value={promoForm.descriptionEn} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionEn: value }))} placeholder="Description EN" />
-            <Field value={promoForm.buttonLink} onChange={(value) => setPromoForm((current) => ({ ...current, buttonLink: value }))} placeholder="Button link" />
-            <Field value={promoForm.buttonLabelUz} onChange={(value) => setPromoForm((current) => ({ ...current, buttonLabelUz: value }))} placeholder="Button UZ" />
-            <Field value={promoForm.buttonLabelRu} onChange={(value) => setPromoForm((current) => ({ ...current, buttonLabelRu: value }))} placeholder="Button RU" />
-            <Field value={promoForm.buttonLabelEn} onChange={(value) => setPromoForm((current) => ({ ...current, buttonLabelEn: value }))} placeholder="Button EN" />
             <Field value={String(promoForm.sortOrder)} onChange={(value) => setPromoForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={promoForm.active} onChange={(event) => setPromoForm((current) => ({ ...current, active: event.target.checked }))} />
               Active card
             </label>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
+              Promo tugmasi avtomatik katalogga olib boradi. Button label va link alohida kiritilmaydi.
+            </div>
             <button type="submit" className="admin-button-primary md:col-span-2">
               {editingPromoId ? "Update promo card" : "Create promo card"}
             </button>
@@ -418,40 +583,99 @@ export function ContentManager() {
             {promoCards.length === 0 ? <p className="text-sm text-slate-500">No promo cards yet.</p> : null}
           </div>
         </SectionCard>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
-        <SectionCard title="Gallery" description="IMAGE va VIDEO bitta modelda boshqariladi.">
+      {section === "gallery" ? (
+        <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
+        <SectionCard
+          title={galleryMode === "video" ? "Video" : "Image"}
+          description={galleryMode === "video" ? "Video reels section shu bo'limdan boshqariladi." : "Main page Galereya qismidagi 2 qatorli horizontal image marquee shu bo'limdan boshqariladi."}
+        >
           <form onSubmit={handleGallerySubmit} className="grid gap-4 md:grid-cols-2">
-            <select className="admin-select" value={galleryForm.type} onChange={(event) => setGalleryForm((current) => ({ ...current, type: event.target.value as GalleryForm["type"] }))}>
-              <option value="IMAGE">Image</option>
-              <option value="VIDEO">Video</option>
-            </select>
-            <Field value={galleryForm.imageUrl} onChange={(value) => setGalleryForm((current) => ({ ...current, imageUrl: value }))} placeholder="Cover image URL" />
-            <Field value={galleryForm.videoUrl} onChange={(value) => setGalleryForm((current) => ({ ...current, videoUrl: value }))} placeholder="Video URL" />
+            <div className="admin-panel-muted flex items-center justify-between px-4 py-3 md:col-span-2">
+              <span className="text-sm font-semibold text-slate-900">Content type</span>
+              <span className="admin-badge">{activeGalleryType}</span>
+            </div>
+            {galleryMode === "image" ? (
+              <div className="space-y-3 md:col-span-2">
+                <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Upload image</p>
+                    <p className="mt-1 text-xs text-slate-500">Only image files. Up to 20 MB. Original quality is preserved.</p>
+                  </div>
+                  <span className="admin-button-secondary">{galleryUploadPending ? "Uploading..." : "Choose file"}</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleGalleryImageUpload} disabled={galleryUploadPending} />
+                </label>
+
+                {galleryForm.imageUrl ? (
+                  <div className="admin-panel-muted flex items-center gap-4 px-4 py-3">
+                    <img src={galleryForm.imageUrl} alt="Gallery preview" className="h-20 w-20 rounded-2xl object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-950">{galleryForm.imageUrl}</p>
+                      <p className="mt-1 text-xs text-slate-500">Uploaded image will be shown in homepage gallery.</p>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="space-y-3 md:col-span-2">
+                <div className="admin-panel-muted flex items-center justify-between gap-4 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Upload video</p>
+                    <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. Up to 250 MB. Uploaded video will be used in the homepage reels block.</p>
+                  </div>
+                  <label className={`admin-button-secondary ${galleryVideoUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                    {galleryVideoUploadPending ? "Uploading..." : "Choose video"}
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                      className="hidden"
+                      onChange={handleGalleryVideoUpload}
+                      disabled={galleryVideoUploadPending}
+                    />
+                  </label>
+                </div>
+
+                <Field value={galleryForm.videoUrl} onChange={(value) => setGalleryForm((current) => ({ ...current, videoUrl: value }))} placeholder="Video URL" />
+
+                {galleryForm.videoUrl ? (
+                  <div className="admin-panel-muted space-y-2 px-4 py-3">
+                    <p className="truncate text-sm font-semibold text-slate-950">{galleryForm.videoUrl}</p>
+                    <p className="text-xs text-slate-500">Uploaded video will be linked from the homepage video reels block.</p>
+                  </div>
+                ) : null}
+              </div>
+            )}
             <Field value={String(galleryForm.sortOrder)} onChange={(value) => setGalleryForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
-            <Field value={galleryForm.titleUz} onChange={(value) => setGalleryForm((current) => ({ ...current, titleUz: value }))} placeholder="Title UZ" />
-            <Field value={galleryForm.titleRu} onChange={(value) => setGalleryForm((current) => ({ ...current, titleRu: value }))} placeholder="Title RU" />
-            <Field value={galleryForm.titleEn} onChange={(value) => setGalleryForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
+            {galleryMode === "image" ? (
+              <>
+                <Field value={galleryForm.titleUz} onChange={(value) => setGalleryForm((current) => ({ ...current, titleUz: value }))} placeholder="Title UZ" />
+                <Field value={galleryForm.titleRu} onChange={(value) => setGalleryForm((current) => ({ ...current, titleRu: value }))} placeholder="Title RU" />
+                <Field value={galleryForm.titleEn} onChange={(value) => setGalleryForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
+              </>
+            ) : null}
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={galleryForm.active} onChange={(event) => setGalleryForm((current) => ({ ...current, active: event.target.checked }))} />
               Active item
             </label>
             <button type="submit" className="admin-button-primary md:col-span-2">
-              {editingGalleryId ? "Update gallery item" : "Create gallery item"}
+              {editingGalleryId ? `Update ${galleryMode === "video" ? "video" : "gallery"} item` : `Create ${galleryMode === "video" ? "video" : "gallery"} item`}
             </button>
           </form>
         </SectionCard>
 
-        <SectionCard title="Gallery List" description="Galereya va video preview elementlari.">
+        <SectionCard title={galleryMode === "video" ? "Video List" : "Image List"} description={galleryMode === "video" ? "Video reels preview elementlari." : "Main page gallery carousel rasmlari."}>
           <div className="space-y-4">
-            {galleryItems.map((item) => (
+            {filteredGalleryItems.map((item) => (
               <article key={item.id} className="admin-panel-muted p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{item.type} #{item.sortOrder}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-950">{item.titleRu || item.titleEn || "Untitled"}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{item.imageUrl}</p>
+                    <h3 className="mt-2 text-lg font-semibold text-slate-950">
+                      {galleryMode === "video" ? `Video reel ${item.sortOrder}` : item.titleRu || item.titleEn || "Untitled"}
+                    </h3>
+                    <p className="mt-1 text-sm text-slate-500">{galleryMode === "video" ? item.videoUrl || "No video URL" : item.imageUrl}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -481,7 +705,7 @@ export function ContentManager() {
                       className="admin-button-danger"
                       onClick={() => void handleDelete(`/api/content/gallery-items/${item.id}`, "Gallery item deleted.", () => {
                         setEditingGalleryId(null);
-                        setGalleryForm(emptyGalleryForm);
+                        setGalleryForm({ ...emptyGalleryForm, type: activeGalleryType });
                       })}
                     >
                       Delete
@@ -490,12 +714,14 @@ export function ContentManager() {
                 </div>
               </article>
             ))}
-            {galleryItems.length === 0 ? <p className="text-sm text-slate-500">No gallery items yet.</p> : null}
+            {filteredGalleryItems.length === 0 ? <p className="text-sm text-slate-500">No {galleryMode === "video" ? "video" : "image"} items yet.</p> : null}
           </div>
         </SectionCard>
-      </div>
+        </div>
+      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
+      {section === "testimonials" ? (
+        <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
         <SectionCard title="Testimonials" description="Reviews section kartalari.">
           <form onSubmit={handleTestimonialSubmit} className="grid gap-4 md:grid-cols-2">
             <Field value={testimonialForm.authorName} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorName: value }))} placeholder="Author name" />
@@ -574,7 +800,8 @@ export function ContentManager() {
             {testimonials.length === 0 ? <p className="text-sm text-slate-500">No testimonials yet.</p> : null}
           </div>
         </SectionCard>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

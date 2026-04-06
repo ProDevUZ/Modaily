@@ -19,7 +19,7 @@ type CartContextValue = {
   subtotal: number;
   count: number;
   currency: Currency;
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeItem: (slug: string) => void;
   updateQuantity: (slug: string, quantity: number) => void;
 };
@@ -57,17 +57,17 @@ export function CartProvider({ children, currency }: CartProviderProps) {
     subtotal: items.reduce((total, item) => total + item.price * item.quantity, 0),
     count: items.reduce((total, item) => total + item.quantity, 0),
     currency,
-    addItem: (item) => {
+    addItem: (item, quantity = 1) => {
       setItems((current) => {
         const existing = current.find((entry) => entry.slug === item.slug);
 
         if (existing) {
           return current.map((entry) =>
-            entry.slug === item.slug ? { ...entry, quantity: entry.quantity + 1 } : entry
+            entry.slug === item.slug ? { ...entry, quantity: entry.quantity + quantity } : entry
           );
         }
 
-        return [...current, { ...item, quantity: 1 }];
+        return [...current, { ...item, quantity }];
       });
     },
     removeItem: (slug) => {
