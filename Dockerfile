@@ -19,9 +19,11 @@ RUN mkdir -p /data
 RUN npm run prisma:generate
 RUN npm run db:push
 RUN npm run build
+RUN mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/static
+RUN cp -r public .next/standalone/public
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run db:push && npm run db:seed && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 node .next/standalone/server.js"]
+CMD ["sh", "-c", "npm run db:push && npm run db:seed && cd .next/standalone && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 node server.js"]
