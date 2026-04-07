@@ -102,4 +102,8 @@ export async function readGalleryVideo(filename: string) {
   return readFile(path.join(getGalleryVideoDirectory(), filename));
 }
 
+export function getGalleryVideoPath(filename: string) {
+  return path.join(getGalleryVideoDirectory(), filename);
+}
+
 export { MAX_GALLERY_VIDEO_SIZE };
