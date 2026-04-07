@@ -5,6 +5,7 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/data/dev.db
 ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
@@ -23,4 +24,4 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run db:push && npm run db:seed && npx next start -H 0.0.0.0 -p ${PORT:-3000}"]
+CMD ["sh", "-c", "npm run db:push && npm run db:seed && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 node .next/standalone/server.js"]
