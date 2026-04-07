@@ -240,7 +240,8 @@ export default async function HomePage({ params }: PageProps) {
   const galleryImages = gallerySource.length > 0 ? gallerySource : getFallbackGalleryItems();
   const promoCards = repeatToCount(content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale), 2);
   const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
-  const videoItems = repeatToCount(content.galleryVideos.length > 0 ? content.galleryVideos : getFallbackVideoItems(), 3);
+  const validVideoItems = content.galleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
+  const videoItems = repeatToCount(validVideoItems, 3);
 
   return (
     <div className="bg-white text-black">
@@ -359,11 +360,13 @@ export default async function HomePage({ params }: PageProps) {
         <Gallery title={copy.gallery} items={galleryImages} />
       </section>
 
-      <section id="video-gallery" className="px-8 py-12 lg:px-12">
-        <div className="mx-auto max-w-[1680px]">
-          <VideoGallery title={copy.videos} items={videoItems} />
-        </div>
-      </section>
+      {videoItems.length > 0 ? (
+        <section id="video-gallery" className="px-8 py-12 lg:px-12">
+          <div className="mx-auto max-w-[1680px]">
+            <VideoGallery title={copy.videos} items={videoItems} />
+          </div>
+        </section>
+      ) : null}
 
       <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="mt-6">
         <section className="py-12 text-white">

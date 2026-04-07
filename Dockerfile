@@ -26,4 +26,4 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm run db:push && npm run db:seed && cd .next/standalone && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 node server.js"]
+CMD ["sh", "-c", "npm run db:push && npm run db:seed && node scripts/bootstrap-media.js && node scripts/assign-product-images.js && cd .next/standalone && PORT=${PORT:-3000} HOSTNAME=0.0.0.0 node server.js"]

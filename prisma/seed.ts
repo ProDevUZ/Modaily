@@ -149,7 +149,7 @@ async function seedContent() {
           buttonLabelRu: "Узнать подробнее",
           buttonLabelEn: "Learn more",
           buttonLink: "/ru/catalog",
-          imageUrl: "/images/home/promo-1.jpg",
+          imageUrl: "/images/Galary/Product1.png",
           sortOrder: 1,
           active: true
         },
@@ -164,7 +164,7 @@ async function seedContent() {
           buttonLabelRu: "Узнать подробнее",
           buttonLabelEn: "Learn more",
           buttonLink: "/ru/catalog",
-          imageUrl: "/images/home/promo-2.jpg",
+          imageUrl: "/images/Galary/Product2.png",
           sortOrder: 2,
           active: true
         }
@@ -175,13 +175,10 @@ async function seedContent() {
   if (galleryCount === 0) {
     await prisma.galleryItem.createMany({
       data: [
-        { type: "IMAGE", titleRu: "Gallery 1", imageUrl: "/images/home/gallery-1.jpg", sortOrder: 1, active: true },
-        { type: "IMAGE", titleRu: "Gallery 2", imageUrl: "/images/home/gallery-2.jpg", sortOrder: 2, active: true },
-        { type: "IMAGE", titleRu: "Gallery 3", imageUrl: "/images/home/gallery-3.jpg", sortOrder: 3, active: true },
-        { type: "IMAGE", titleRu: "Gallery 4", imageUrl: "/images/home/gallery-4.jpg", sortOrder: 4, active: true },
-        { type: "VIDEO", titleRu: "Video 1", imageUrl: "/images/home/video-1.jpg", videoUrl: "https://example.com/video-1", sortOrder: 1, active: true },
-        { type: "VIDEO", titleRu: "Video 2", imageUrl: "/images/home/video-2.jpg", videoUrl: "https://example.com/video-2", sortOrder: 2, active: true },
-        { type: "VIDEO", titleRu: "Video 3", imageUrl: "/images/home/video-3.jpg", videoUrl: "https://example.com/video-3", sortOrder: 3, active: true }
+        { type: "IMAGE", titleRu: "Gallery 1", imageUrl: "/images/Galary/1.png", sortOrder: 1, active: true },
+        { type: "IMAGE", titleRu: "Gallery 2", imageUrl: "/images/Galary/2.png", sortOrder: 2, active: true },
+        { type: "IMAGE", titleRu: "Gallery 3", imageUrl: "/images/Galary/3.png", sortOrder: 3, active: true },
+        { type: "IMAGE", titleRu: "Gallery 4", imageUrl: "/images/Galary/4.png", sortOrder: 4, active: true }
       ]
     });
   }
