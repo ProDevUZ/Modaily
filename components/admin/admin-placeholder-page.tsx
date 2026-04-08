@@ -21,7 +21,7 @@ export function AdminPlaceholderPage({
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {points.map((point) => (
             <div key={point} className="admin-panel-muted p-5">
-              <p className="text-sm font-medium leading-7 text-slate-600">{point}</p>
+              <p className="text-sm font-medium leading-7 text-slate-700">{point}</p>
             </div>
           ))}
         </div>

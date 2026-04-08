@@ -2,44 +2,44 @@ export const adminContentSections = [
   {
     key: "hero",
     href: "/admin/content/hero",
-    label: "Hero",
-    description: "Homepage hero block"
+    label: "Хиро",
+    description: "Главный первый блок"
   },
   {
     key: "about",
     href: "/admin/content/about",
-    label: "About",
-    description: "Brand story section"
+    label: "О бренде",
+    description: "Блок истории бренда"
   },
   {
     key: "promo",
     href: "/admin/content/promo",
-    label: "Promo",
-    description: "Editorial promo cards"
+    label: "Промо",
+    description: "Редакционные промо-карточки"
   },
   {
     key: "gallery",
     href: "/admin/content/gallery/image",
-    label: "Gallery",
-    description: "Image and video gallery"
+    label: "Галерея",
+    description: "Изображения и видео"
   },
   {
     key: "testimonials",
     href: "/admin/content/testimonials",
-    label: "Testimonials",
-    description: "Homepage reviews section"
+    label: "Отзывы",
+    description: "Блок отзывов на главной"
   },
   {
     key: "settings",
     href: "/admin/content/settings",
-    label: "Settings",
-    description: "Announcement and footer content"
+    label: "Настройки",
+    description: "Анонс, футер и служебный контент"
   },
   {
     key: "bestseller",
     href: "/admin/content/bestseller",
-    label: "Bestseller",
-    description: "Homepage bestseller selection"
+    label: "Бестселлеры",
+    description: "Выборка товаров для главной"
   }
 ] as const;
 

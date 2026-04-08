@@ -20,6 +20,21 @@ const emptyForm: UserFormState = {
   notes: ""
 };
 
+function FieldGroup({
+  children,
+  hint
+}: {
+  children: React.ReactNode;
+  hint: string;
+}) {
+  return (
+    <div>
+      {children}
+      <p className="admin-form-hint">{hint}</p>
+    </div>
+  );
+}
+
 export function UserManager() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [form, setForm] = useState<UserFormState>(emptyForm);
@@ -104,11 +119,21 @@ export function UserManager() {
         </div>
 
         <div className="mt-5 space-y-4">
-          <input className="admin-input" placeholder="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
-          <input className="admin-input" placeholder="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
-          <input className="admin-input" placeholder="Phone" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
-          <input className="admin-input" placeholder="City" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
-          <textarea className="admin-textarea min-h-28" placeholder="Notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
+          <FieldGroup hint="Full name: customerning to‘liq ismi.">
+            <input className="admin-input" aria-label="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Email: aloqa va login uchun email manzil.">
+            <input className="admin-input" aria-label="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Phone: asosiy telefon raqam.">
+            <input className="admin-input" aria-label="Phone" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="City: foydalanuvchi shahri yoki hududi.">
+            <input className="admin-input" aria-label="City" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Notes: ichki admin eslatmalari va CRM qaydlari.">
+            <textarea className="admin-textarea min-h-28" aria-label="Notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
+          </FieldGroup>
         </div>
 
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}

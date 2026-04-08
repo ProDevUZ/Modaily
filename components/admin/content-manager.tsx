@@ -80,11 +80,21 @@ function SectionCard({ title, description, children }: { title: string; descript
 }
 
 function Field({ value, onChange, placeholder, type = "text" }: { value: string | null; onChange: (value: string) => void; placeholder: string; type?: string }) {
-  return <input className="admin-input" type={type} value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />;
+  return (
+    <div>
+      <input className="admin-input" type={type} value={value ?? ""} aria-label={placeholder} onChange={(event) => onChange(event.target.value)} />
+      <p className="admin-form-hint">{placeholder}</p>
+    </div>
+  );
 }
 
 function Area({ value, onChange, placeholder }: { value: string | null; onChange: (value: string) => void; placeholder: string }) {
-  return <textarea className="admin-textarea" value={value ?? ""} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />;
+  return (
+    <div>
+      <textarea className="admin-textarea" value={value ?? ""} aria-label={placeholder} onChange={(event) => onChange(event.target.value)} />
+      <p className="admin-form-hint">{placeholder}</p>
+    </div>
+  );
 }
 
 export function ContentManager({ section, galleryMode }: { section: AdminContentSectionKey; galleryMode?: "image" | "video" }) {
@@ -351,7 +361,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       {section === "bestseller" ? (
         <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard title="Bestseller" description="Bestseller mahsulot tanlovi Product CRUD ichidagi flag va sort order orqali boshqariladi.">
-          <div className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+          <div className="admin-panel-muted flex items-center justify-between gap-4 p-4">
             <div>
               <p className="text-sm font-semibold text-slate-950">Selected products</p>
               <p className="mt-1 text-sm text-slate-500">{bestsellers.length} ta mahsulot tanlangan.</p>
@@ -389,14 +399,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
             >
               <Field value={siteSettings.brandName} onChange={(value) => setSiteSettings((current) => (current ? { ...current, brandName: value } : current))} placeholder="Brand name" />
               <Field value={siteSettings.announcementLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementLink: value } : current))} placeholder="Announcement link" />
-              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={siteSettings.hideCommerce}
-                  onChange={(event) => setSiteSettings((current) => (current ? { ...current, hideCommerce: event.target.checked } : current))}
-                />
-                Price and ordering hidden mode
-              </label>
               <Field value={siteSettings.announcementTextUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextUz: value } : current))} placeholder="Announcement UZ" />
               <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Announcement RU" />
               <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Announcement EN" />
@@ -518,11 +520,11 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
             <Area value={promoForm.descriptionRu} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionRu: value }))} placeholder="Description RU" />
             <Area value={promoForm.descriptionEn} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionEn: value }))} placeholder="Description EN" />
             <Field value={String(promoForm.sortOrder)} onChange={(value) => setPromoForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
+            <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={promoForm.active} onChange={(event) => setPromoForm((current) => ({ ...current, active: event.target.checked }))} />
               Active card
             </label>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500 md:col-span-2">
+            <div className="admin-panel-muted px-4 py-3 text-sm text-slate-500 md:col-span-2">
               Promo tugmasi avtomatik katalogga olib boradi. Button label va link alohida kiritilmaydi.
             </div>
             <button type="submit" className="admin-button-primary md:col-span-2">
@@ -655,7 +657,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                 <Field value={galleryForm.titleEn} onChange={(value) => setGalleryForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
               </>
             ) : null}
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
+            <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={galleryForm.active} onChange={(event) => setGalleryForm((current) => ({ ...current, active: event.target.checked }))} />
               Active item
             </label>
@@ -737,7 +739,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
             <Area value={testimonialForm.bodyUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyUz: value }))} placeholder="Review UZ" />
             <Area value={testimonialForm.bodyRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyRu: value }))} placeholder="Review RU" />
             <Area value={testimonialForm.bodyEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyEn: value }))} placeholder="Review EN" />
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
+            <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={testimonialForm.active} onChange={(event) => setTestimonialForm((current) => ({ ...current, active: event.target.checked }))} />
               Active review
             </label>

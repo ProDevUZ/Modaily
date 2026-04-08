@@ -14,6 +14,21 @@ type CategoryFormState = {
   descriptionEn: string;
 };
 
+function FieldGroup({
+  children,
+  hint
+}: {
+  children: React.ReactNode;
+  hint: string;
+}) {
+  return (
+    <div>
+      {children}
+      <p className="admin-form-hint">{hint}</p>
+    </div>
+  );
+}
+
 const emptyForm: CategoryFormState = {
   slug: "",
   nameUz: "",
@@ -114,13 +129,27 @@ export function CategoryManager() {
         </div>
 
         <div className="mt-5 space-y-4">
-          <input className="admin-input" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
-          <input className="admin-input" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
-          <input className="admin-input" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
-          <input className="admin-input" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
-          <textarea className="admin-textarea" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
-          <textarea className="admin-textarea" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
-          <textarea className="admin-textarea" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          <FieldGroup hint="Slug: category URL va ichki texnik identifikator.">
+            <input className="admin-input" aria-label="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Name UZ: uzbek storefront ko‘rinishidagi category nomi.">
+            <input className="admin-input" aria-label="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Name RU: rus tilidagi category nomi.">
+            <input className="admin-input" aria-label="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Name EN: english storefront category nomi.">
+            <input className="admin-input" aria-label="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Description UZ: category uchun uzbekcha qisqa izoh.">
+            <textarea className="admin-textarea" aria-label="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Description RU: category uchun ruscha qisqa izoh.">
+            <textarea className="admin-textarea" aria-label="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Description EN: category uchun inglizcha qisqa izoh.">
+            <textarea className="admin-textarea" aria-label="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          </FieldGroup>
         </div>
 
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}

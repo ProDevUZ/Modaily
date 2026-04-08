@@ -5,8 +5,8 @@ export default function AdminProductsPage() {
   return (
     <AdminShell
       current="products"
-      title="Product CRUD"
-      description="Mahsulot moduli SKU, slug, category, narx, stock va UZ/RU/EN kontentni bitta dashboard orqali boshqaradi."
+      title="Товары"
+      description="Управление SKU, slug, категориями, ценой, остатком и контентом UZ/RU/EN в едином разделе."
     >
       <ProductManager />
     </AdminShell>

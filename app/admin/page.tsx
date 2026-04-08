@@ -48,36 +48,40 @@ export default async function AdminOverviewPage() {
 
   const stats = [
     {
-      label: "Catalog Value",
-      value: `$${(catalogValue._sum.price || 0).toLocaleString()}`,
-      copy: "Current total price value across product records",
-      change: "+8.2%"
+      label: "Стоимость каталога",
+      value: `${(catalogValue._sum.price || 0).toLocaleString()} сум`,
+      copy: "Суммарная стоимость всех товарных записей",
+      change: "+8.2%",
+      tone: "yellow" as const
     },
     {
-      label: "Products",
+      label: "Товары",
       value: productCount.toLocaleString(),
-      copy: "Published and draft SKU records in the catalog",
-      change: `+${productCount}`
+      copy: "Все товарные позиции в каталоге",
+      change: `+${productCount}`,
+      tone: "blue" as const
     },
     {
-      label: "Users",
-      value: userCount.toLocaleString(),
-      copy: "Customers and leads captured in the admin backend",
-      change: "+15.3%"
+      label: "Галерея",
+      value: galleryCount.toLocaleString(),
+      copy: "Медиаэлементы для витрины и главной страницы",
+      change: `+${galleryCount}`,
+      tone: "purple" as const
     },
     {
-      label: "Categories",
+      label: "Категории",
       value: categoryCount.toLocaleString(),
-      copy: "Taxonomy groups available for storefront navigation",
-      change: "+3"
+      copy: "Группы каталога для витрины",
+      change: "+3",
+      tone: "green" as const
     }
   ];
 
   return (
     <AdminShell
       current="overview"
-      title="Dashboard"
-      description="Welcome back! Here's what's happening today."
+      title="Дашборд"
+      description="Ключевые показатели и быстрые переходы по панели Modaily."
     >
       <div className="grid gap-5 xl:grid-cols-4">
         {stats.map((item) => (
@@ -87,16 +91,17 @@ export default async function AdminOverviewPage() {
             value={item.value}
             copy={item.copy}
             change={item.change}
+            tone={item.tone}
           />
         ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
         <section className="admin-panel p-6">
-          <h2 className="text-3xl font-semibold text-slate-950">Revenue Overview</h2>
-          <p className="mt-2 text-base text-slate-500">Monthly revenue for the past 7 months</p>
+          <h2 className="text-3xl font-semibold text-slate-950">Обзор динамики</h2>
+          <p className="mt-2 text-base text-slate-500">Визуализация активности за последние 7 месяцев</p>
 
-          <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-slate-100 bg-[#fcfcfd] p-4">
+          <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-[#edf1f7] bg-[#fbfcff] p-4">
             <svg viewBox="0 0 100 100" className="h-[320px] w-full">
               {[0, 25, 50, 75, 100].map((y) => (
                 <line
@@ -128,7 +133,7 @@ export default async function AdminOverviewPage() {
               <path
                 d={buildChartPath()}
                 fill="none"
-                stroke="#0a0720"
+                stroke="#5777ff"
                 strokeWidth="0.45"
                 vectorEffect="non-scaling-stroke"
                 strokeLinecap="round"
@@ -137,7 +142,7 @@ export default async function AdminOverviewPage() {
                 const x = (index / (chartPoints.length - 1)) * 100;
                 const y = 100 - (point.value / 30) * 100;
 
-                return <circle key={point.month} cx={x} cy={y} r="1.4" fill="#0a0720" />;
+                return <circle key={point.month} cx={x} cy={y} r="1.4" fill="#5777ff" />;
               })}
             </svg>
 
@@ -151,8 +156,8 @@ export default async function AdminOverviewPage() {
 
         <section className="space-y-6">
           <div className="admin-panel p-6">
-            <h2 className="text-3xl font-semibold text-slate-950">Modules</h2>
-            <p className="mt-2 text-base text-slate-500">Core management sections for Modaily admin.</p>
+            <h2 className="text-3xl font-semibold text-slate-950">Разделы</h2>
+            <p className="mt-2 text-base text-slate-500">Основные разделы панели управления Modaily.</p>
             <div className="mt-6 grid gap-4">
               {adminSections
                 .filter((section) => section.key !== "overview")
@@ -163,17 +168,17 @@ export default async function AdminOverviewPage() {
           </div>
 
           <div className="admin-panel p-6">
-            <h2 className="text-3xl font-semibold text-slate-950">Structure status</h2>
-            <p className="mt-2 text-base text-slate-500">Admin shell, CRUD pages and storefront CMS structure are ready.</p>
+            <h2 className="text-3xl font-semibold text-slate-950">Статус структуры</h2>
+            <p className="mt-2 text-base text-slate-500">Текущее состояние панели, каталога и CMS.</p>
             <div className="mt-6 space-y-4">
               {[
-                "Dashboard layout and top navigation",
-                "Products, Categories, Users CRUD",
-                `Content CMS: ${promoCount} promo, ${galleryCount} gallery, ${testimonialCount} testimonials`,
-                "Orders, Analytics, Settings, Shop placeholders"
+                "Дашборд и верхняя навигация",
+                "CRUD для товаров и категорий",
+                `Контент CMS: ${promoCount} промо, ${galleryCount} медиа, ${testimonialCount} отзывов`,
+                `Текущая база клиентов: ${userCount} записей`
               ].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#f8fafc] px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#5777ff]" />
                   <span className="text-sm font-medium text-slate-700">{item}</span>
                 </div>
               ))}

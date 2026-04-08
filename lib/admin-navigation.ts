@@ -2,56 +2,38 @@ export const adminSections = [
   {
     key: "overview",
     href: "/admin",
-    label: "Dashboard",
-    summary: "Overview and daily activity"
+    label: "Дашборд",
+    summary: "Обзор и ежедневная активность"
   },
   {
     key: "products",
     href: "/admin/products",
-    label: "Products",
-    summary: "Catalog inventory and SKU content"
+    label: "Товары",
+    summary: "Каталог, SKU и карточки товаров"
   },
   {
     key: "categories",
     href: "/admin/categories",
-    label: "Categories",
-    summary: "Taxonomy and catalog grouping"
-  },
-  {
-    key: "orders",
-    href: "/admin/orders",
-    label: "Orders",
-    summary: "Checkout and fulfillment flow"
-  },
-  {
-    key: "users",
-    href: "/admin/users",
-    label: "Users",
-    summary: "Customers and CRM records"
+    label: "Категории",
+    summary: "Таксономия и группировка каталога"
   },
   {
     key: "content",
     href: "/admin/content",
-    label: "Content",
-    summary: "Homepage CMS and editorial blocks"
-  },
-  {
-    key: "analytics",
-    href: "/admin/analytics",
-    label: "Analytics",
-    summary: "Performance and business reporting"
+    label: "Контент",
+    summary: "CMS главной страницы и редакционные блоки"
   },
   {
     key: "settings",
     href: "/admin/settings",
-    label: "Settings",
-    summary: "System and content configuration"
+    label: "Настройки",
+    summary: "Глобальные настройки витрины"
   },
   {
     key: "shop",
     href: "/admin/shop",
-    label: "Shop",
-    summary: "Storefront management shortcuts"
+    label: "Магазин",
+    summary: "Быстрые переходы по витрине"
   }
 ] as const;
 

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const galleryModes = [
-  { key: "image", href: "/admin/content/gallery/image", label: "Image" },
-  { key: "video", href: "/admin/content/gallery/video", label: "Video" }
+  { key: "image", href: "/admin/content/gallery/image", label: "Изображения" },
+  { key: "video", href: "/admin/content/gallery/video", label: "Видео" }
 ] as const;
 
 export function GalleryModeTabs() {
@@ -22,7 +22,7 @@ export function GalleryModeTabs() {
               key={mode.key}
               href={mode.href}
               className={`inline-flex min-w-[180px] items-center justify-center border px-8 py-3 text-xl font-semibold transition ${
-                active ? "border-[#0a0720] bg-[#0a0720] text-white" : "border-slate-900 bg-white text-slate-700 hover:bg-slate-50"
+                active ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-[rgba(186,12,47,0.26)] bg-white text-[var(--brand)] hover:bg-[#fff3f6]"
               }`}
             >
               {mode.label}

@@ -10,7 +10,7 @@ export function ContentTabs() {
 
   return (
     <div className="overflow-x-auto">
-      <nav className="flex min-w-max items-center gap-2 rounded-[1.75rem] border border-slate-200 bg-white p-2">
+      <nav className="flex min-w-max items-center gap-2 rounded-[1.75rem] border border-[rgba(186,12,47,0.14)] bg-white p-2">
         {adminContentSections.map((section) => {
           const active = section.key === "gallery" ? pathname.startsWith("/admin/content/gallery") : pathname === section.href;
 
@@ -19,7 +19,7 @@ export function ContentTabs() {
               key={section.key}
               href={section.href}
               className={`rounded-2xl px-4 py-2.5 text-sm font-semibold transition ${
-                active ? "bg-[#0a0720] text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                active ? "bg-[var(--brand)] text-white" : "text-slate-600 hover:bg-[#fff3f6] hover:text-[var(--brand)]"
               }`}
             >
               {section.label}

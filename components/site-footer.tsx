@@ -82,7 +82,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                   Blog
                 </Link>
                 <Link href={`/${locale}#about`} className="transition hover:text-white/80">
-                  O nas
+                  {locale === "uz" ? "Biz haqimizda" : "O nas"}
                 </Link>
               </nav>
 
@@ -216,7 +216,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                       Blog
                     </Link>
                     <Link href={`/${locale}#about`} className="block transition hover:text-white">
-                      O nas
+                      {locale === "uz" ? "Biz haqimizda" : "O nas"}
                     </Link>
                   </div>
                 </div>

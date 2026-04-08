@@ -5,8 +5,8 @@ export default function AdminCategoriesPage() {
   return (
     <AdminShell
       current="categories"
-      title="Category CRUD"
-      description="Kategoriya bo‘limi katalog strukturasi uchun alohida boshqaruv moduli. Har bir category uch tilda saqlanadi va product relation bilan ishlaydi."
+      title="Категории"
+      description="Управление структурой каталога. Каждая категория хранится на трех языках и связана с товарами."
     >
       <CategoryManager />
     </AdminShell>

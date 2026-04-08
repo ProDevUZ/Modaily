@@ -106,7 +106,7 @@ function FieldGroup({ children, hint, className }: FieldGroupProps) {
   return (
     <div className={className}>
       {children}
-      <p className="mt-2 px-1 text-[11px] leading-4 text-slate-400">{hint}</p>
+      <p className="admin-form-hint">{hint}</p>
     </div>
   );
 }
@@ -321,70 +321,70 @@ export function ProductManager() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <FieldGroup hint="Internal product code used in admin and warehouse.">
-            <input className="admin-input" placeholder="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
+            <input className="admin-input" aria-label="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Product URL segment used in the storefront link.">
-            <input className="admin-input" placeholder="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+            <input className="admin-input" aria-label="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Product name shown in Uzbek storefront pages.">
-            <input className="admin-input" placeholder="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+            <input className="admin-input" aria-label="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Product name shown in Russian storefront pages.">
-            <input className="admin-input" placeholder="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+            <input className="admin-input" aria-label="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="Product name shown in English storefront pages.">
-            <input className="admin-input" placeholder="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
+            <input className="admin-input" aria-label="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Short teaser text for Uzbek cards and previews.">
-            <textarea className="admin-textarea" placeholder="Short description UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
+            <textarea className="admin-textarea" aria-label="Short description UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Short teaser text for Russian cards and previews.">
-            <textarea className="admin-textarea" placeholder="Short description RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
+            <textarea className="admin-textarea" aria-label="Short description RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="Short teaser text for English cards and previews.">
-            <textarea className="admin-textarea" placeholder="Short description EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
+            <textarea className="admin-textarea" aria-label="Short description EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Main product description for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-28" placeholder="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+            <textarea className="admin-textarea min-h-28" aria-label="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Main product description for Russian detail page.">
-            <textarea className="admin-textarea min-h-28" placeholder="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+            <textarea className="admin-textarea min-h-28" aria-label="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="Main product description for English detail page.">
-            <textarea className="admin-textarea min-h-28" placeholder="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+            <textarea className="admin-textarea min-h-28" aria-label="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Feature copy shown in Uzbek accordion section.">
-            <textarea className="admin-textarea min-h-24" placeholder="Features UZ" value={form.featureUz} onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Features UZ" value={form.featureUz} onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Feature copy shown in Russian accordion section.">
-            <textarea className="admin-textarea min-h-24" placeholder="Features RU" value={form.featureRu} onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Features RU" value={form.featureRu} onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="Feature copy shown in English accordion section.">
-            <textarea className="admin-textarea min-h-24" placeholder="Features EN" value={form.featureEn} onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Features EN" value={form.featureEn} onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Key ingredients text for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Ingredients UZ" value={form.ingredientsUz} onChange={(event) => setForm((current) => ({ ...current, ingredientsUz: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Ingredients UZ" value={form.ingredientsUz} onChange={(event) => setForm((current) => ({ ...current, ingredientsUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Key ingredients text for Russian detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Ingredients RU" value={form.ingredientsRu} onChange={(event) => setForm((current) => ({ ...current, ingredientsRu: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Ingredients RU" value={form.ingredientsRu} onChange={(event) => setForm((current) => ({ ...current, ingredientsRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="Key ingredients text for English detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Ingredients EN" value={form.ingredientsEn} onChange={(event) => setForm((current) => ({ ...current, ingredientsEn: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Ingredients EN" value={form.ingredientsEn} onChange={(event) => setForm((current) => ({ ...current, ingredientsEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="How-to-use text for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Usage UZ" value={form.usageUz} onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Usage UZ" value={form.usageUz} onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="How-to-use text for Russian detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Usage RU" value={form.usageRu} onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Usage RU" value={form.usageRu} onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))} />
           </FieldGroup>
           <FieldGroup className="md:col-span-2" hint="How-to-use text for English detail page.">
-            <textarea className="admin-textarea min-h-24" placeholder="Usage EN" value={form.usageEn} onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))} />
+            <textarea className="admin-textarea min-h-24" aria-label="Usage EN" value={form.usageEn} onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup className="md:col-span-2" hint="Optional skin types used in catalog filters. One or multiple can be selected.">
@@ -483,16 +483,16 @@ export function ProductManager() {
           </FieldGroup>
 
           <FieldGroup hint="Package size or product volume, for example 150 ml.">
-            <input className="admin-input" placeholder="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
+            <input className="admin-input" aria-label="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Selling price shown in storefront cards and checkout.">
-            <input className="admin-input" placeholder="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
+            <input className="admin-input" aria-label="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Available quantity currently in stock.">
-            <input className="admin-input" placeholder="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
+            <input className="admin-input" aria-label="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Homepage order inside bestseller section. Lower number comes first.">
-            <input className="admin-input" placeholder="Home sort order" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
+            <input className="admin-input" aria-label="Home sort order" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="Category this product belongs to in the catalog.">
@@ -506,10 +506,10 @@ export function ProductManager() {
             </select>
           </FieldGroup>
           <FieldGroup hint="Gradient start color used for placeholders and cards.">
-            <input className="admin-input" placeholder="Color from" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
+            <input className="admin-input" aria-label="Color from" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
           </FieldGroup>
           <FieldGroup hint="Gradient end color used for placeholders and cards.">
-            <input className="admin-input" placeholder="Color to" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
+            <input className="admin-input" aria-label="Color to" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
           </FieldGroup>
 
           <FieldGroup hint="If disabled, the product stays in admin but is hidden from shoppers.">

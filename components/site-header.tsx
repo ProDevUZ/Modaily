@@ -26,7 +26,7 @@ type SiteHeaderProps = {
 const navLabels = {
   uz: {
     catalog: "Katalog",
-    about: "O nas",
+    about: "Biz haqimizda",
     blog: "Blog"
   },
   ru: {

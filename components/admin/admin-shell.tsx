@@ -12,15 +12,104 @@ type AdminShellProps = {
   children: React.ReactNode;
 };
 
-function AdminNavIcon({ active }: { active: boolean }) {
+const navToneMap: Record<
+  AdminSectionKey,
+  { iconBg: string; iconText: string; iconBorder: string; activeGlow: string }
+> = {
+  overview: {
+    iconBg: "bg-[#eef3ff]",
+    iconText: "text-[#5777ff]",
+    iconBorder: "border-[#dbe4ff]",
+    activeGlow: "shadow-[0_16px_34px_rgba(87,119,255,0.14)]"
+  },
+  products: {
+    iconBg: "bg-[#fff2f4]",
+    iconText: "text-[var(--brand)]",
+    iconBorder: "border-[#ffdbe2]",
+    activeGlow: "shadow-[0_16px_34px_rgba(186,12,47,0.12)]"
+  },
+  categories: {
+    iconBg: "bg-[#fff7e8]",
+    iconText: "text-[#f0a320]",
+    iconBorder: "border-[#ffe7b3]",
+    activeGlow: "shadow-[0_16px_34px_rgba(240,163,32,0.12)]"
+  },
+  content: {
+    iconBg: "bg-[#fff0f6]",
+    iconText: "text-[#ec4899]",
+    iconBorder: "border-[#ffd5e8]",
+    activeGlow: "shadow-[0_16px_34px_rgba(236,72,153,0.14)]"
+  },
+  settings: {
+    iconBg: "bg-[#f4f6fa]",
+    iconText: "text-[#64748b]",
+    iconBorder: "border-[#e2e8f0]",
+    activeGlow: "shadow-[0_16px_34px_rgba(100,116,139,0.12)]"
+  },
+  shop: {
+    iconBg: "bg-[#eefcf7]",
+    iconText: "text-[#10b981]",
+    iconBorder: "border-[#d0f5e7]",
+    activeGlow: "shadow-[0_16px_34px_rgba(16,185,129,0.14)]"
+  }
+};
+
+function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: boolean }) {
+  const tone = navToneMap[section];
+  const iconClass = active
+    ? "border-transparent bg-[#0f172a] text-white"
+    : `${tone.iconBg} ${tone.iconText} ${tone.iconBorder}`;
+
   return (
-    <span
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border ${
-        active ? "border-[#0a0720] bg-[#0a0720] text-white" : "border-slate-200 bg-white text-slate-500"
-      }`}
-    >
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
+    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${iconClass}`}>
+      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {section === "overview" ? (
+          <>
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="5" rx="1.5" />
+            <rect x="14" y="10" width="7" height="11" rx="1.5" />
+            <rect x="3" y="12" width="7" height="9" rx="1.5" />
+          </>
+        ) : null}
+        {section === "products" ? (
+          <>
+            <path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" />
+            <path d="m4 7 8 4 8-4" />
+            <path d="v10" />
+          </>
+        ) : null}
+        {section === "categories" ? (
+          <>
+            <path d="M4 7h7" />
+            <path d="M4 12h7" />
+            <path d="M4 17h7" />
+            <rect x="14" y="5" width="6" height="4" rx="1" />
+            <rect x="14" y="10" width="6" height="4" rx="1" />
+            <rect x="14" y="15" width="6" height="4" rx="1" />
+          </>
+        ) : null}
+        {section === "content" ? (
+          <>
+            <rect x="4" y="4" width="16" height="16" rx="2.5" />
+            <path d="M8 9h8" />
+            <path d="M8 13h5" />
+            <path d="M8 17h8" />
+          </>
+        ) : null}
+        {section === "settings" ? (
+          <>
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.7-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.7 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2h.1a1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1v.1a1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6Z" />
+          </>
+        ) : null}
+        {section === "shop" ? (
+          <>
+            <path d="M5 10.5h14" />
+            <path d="M6 10.5 7.3 5h9.4l1.3 5.5" />
+            <path d="M7 10.5V18a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-7.5" />
+            <path d="M10 14h4" />
+          </>
+        ) : null}
       </svg>
     </span>
   );
@@ -28,39 +117,44 @@ function AdminNavIcon({ active }: { active: boolean }) {
 
 export function AdminShell({ title, description, current, children }: AdminShellProps) {
   const pathname = usePathname();
+  const showSearch = current === "products" || current === "categories";
 
   return (
     <section className="admin-surface">
-      <div className="grid min-h-screen xl:grid-cols-[240px_1fr]">
-        <aside className="border-b border-slate-200 bg-white xl:border-b-0 xl:border-r">
-          <div className="px-4 py-5">
-            <Link href="/admin" className="flex items-center gap-3 rounded-2xl px-2 py-2">
-              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0a0720] text-white">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M7 10V7a5 5 0 0 1 10 0v3" />
-                  <rect x="4" y="10" width="16" height="10" rx="2" />
-                  <path d="M9 15h6" />
+      <div className="grid min-h-screen xl:grid-cols-[304px_1fr]">
+        <aside className="border-b border-[#e9eef7] bg-white xl:border-b-0 xl:border-r">
+          <div className="px-8 py-7">
+            <Link href="/admin" className="flex items-center gap-3 rounded-3xl">
+              <span className="flex h-11 w-11 items-center justify-center rounded-[1.35rem] bg-[#0f172a] text-white shadow-[0_14px_34px_rgba(15,23,42,0.14)]">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 10V8a6 6 0 0 1 12 0v2" />
+                  <rect x="4" y="10" width="16" height="10" rx="2.5" />
+                  <path d="M9.5 14h5" />
                 </svg>
               </span>
-              <div>
-                <p className="text-2xl font-semibold text-slate-950">Modaily</p>
+              <div className="min-w-0">
+                <p className="brand-wordmark text-[32px] uppercase leading-none text-[var(--brand)]">Modaily</p>
+                <p className="mt-1 text-xs font-medium tracking-[0.24em] text-slate-400">Панель управления</p>
               </div>
             </Link>
           </div>
 
-          <nav className="space-y-1 px-4 pb-6">
+          <nav className="space-y-1.5 px-6 pb-8">
             {adminSections.map((section) => {
               const active = current === section.key || pathname === section.href;
+              const tone = navToneMap[section.key];
 
               return (
                 <Link
                   key={section.key}
                   href={section.href}
                   className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
-                    active ? "bg-[#0a0720] text-white" : "text-slate-700 hover:bg-slate-100"
+                    active
+                      ? `bg-white text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.06)] ${tone.activeGlow}`
+                      : "text-slate-500 hover:bg-white hover:text-slate-950"
                   }`}
                 >
-                  <AdminNavIcon active={active} />
+                  <AdminNavIcon section={section.key} active={active} />
                   <span>{section.label}</span>
                 </Link>
               );
@@ -69,36 +163,30 @@ export function AdminShell({ title, description, current, children }: AdminShell
         </aside>
 
         <div className="min-w-0">
-          <header className="border-b border-slate-200 bg-white">
-            <div className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-              <div className="relative w-full max-w-xl">
-                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-400">
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m20 20-3.5-3.5" />
-                  </svg>
-                </span>
-                <input className="admin-input pl-12" placeholder="Search..." />
-              </div>
+          <header className="border-b border-[#e9eef7] bg-[#fbfcff]">
+            <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+              {showSearch ? (
+                <div className="w-full max-w-[460px]">
+                  <div className="relative w-full">
+                    <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                      </svg>
+                    </span>
+                    <input className="admin-input bg-white pl-12 placeholder:text-slate-300" placeholder="Поиск..." />
+                  </div>
+                </div>
+              ) : null}
 
               <div className="flex items-center justify-end gap-5">
-                <button type="button" className="relative text-slate-500">
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
-                    <path d="M10 21a2 2 0 0 0 4 0" />
-                  </svg>
-                  <span className="absolute -right-0.5 top-0 h-2.5 w-2.5 rounded-full bg-red-500" />
-                </button>
-
-                <div className="hidden h-10 w-px bg-slate-200 sm:block" />
-
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-pink-500 to-violet-500 text-sm font-semibold text-white">
+                <div className="flex items-center gap-3 rounded-full bg-white px-2 py-1.5 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#ff7ac3] to-[#8b5cf6] text-sm font-semibold text-white">
                     AU
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">Admin User</p>
-                    <p className="text-sm text-slate-500">admin@modaily.com</p>
+                  <div className="pr-2">
+                    <p className="text-sm font-semibold text-slate-950">Администратор</p>
+                    <p className="text-xs text-slate-400">admin@modaily.com</p>
                   </div>
                 </div>
               </div>
@@ -108,8 +196,8 @@ export function AdminShell({ title, description, current, children }: AdminShell
           <main className="px-5 py-6 lg:px-8">
             <div className="space-y-6">
               <div>
-                <h1 className="text-4xl font-semibold tracking-tight text-slate-950">{title}</h1>
-                <p className="mt-3 text-lg text-slate-600">{description}</p>
+                <h1 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">{title}</h1>
+                <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>
               </div>
               {children}
             </div>
