@@ -67,20 +67,15 @@ function VideoCard({
       return;
     }
 
-    if (isActive) {
-      videoRef.current.muted = false;
-      void videoRef.current.play();
-      setPlaying(true);
-      return;
+    if (!isActive) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+      videoRef.current.muted = true;
+      setPlaying(false);
     }
-
-    videoRef.current.pause();
-    videoRef.current.currentTime = 0;
-    videoRef.current.muted = true;
-    setPlaying(false);
   }, [isActive, item.videoUrl]);
 
-  function togglePlayback() {
+  async function togglePlayback() {
     if (!videoRef.current || !item.videoUrl) {
       return;
     }
@@ -92,6 +87,17 @@ function VideoCard({
       setPlaying(false);
       onToggle("");
       return;
+    }
+
+    videoRef.current.muted = false;
+    videoRef.current.currentTime = 0;
+
+    try {
+      await videoRef.current.play();
+      setPlaying(true);
+    } catch {
+      // iOS/webviews can reject autoplay-like transitions; keep the card selected.
+      setPlaying(false);
     }
 
     onToggle(item.id);

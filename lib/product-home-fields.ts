@@ -13,6 +13,13 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
     hidePrice,
     galleryImages,
     skinTypes,
+    storeImageUrl,
+    storeLocationUz,
+    storeLocationRu,
+    storeLocationEn,
+    storeContactsUz,
+    storeContactsRu,
+    storeContactsEn,
     ...baseData
   } = payload;
 
@@ -33,5 +40,12 @@ export function isUnsupportedProductHomeFieldError(error: unknown) {
     return false;
   }
 
-  return error.message.includes("isBestseller") || error.message.includes("homeSortOrder") || error.message.includes("hidePrice");
+  return (
+    error.message.includes("isBestseller") ||
+    error.message.includes("homeSortOrder") ||
+    error.message.includes("hidePrice") ||
+    error.message.includes("storeImageUrl") ||
+    error.message.includes("storeLocation") ||
+    error.message.includes("storeContacts")
+  );
 }

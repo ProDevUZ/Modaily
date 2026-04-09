@@ -3,7 +3,7 @@ export const adminSections = [
     key: "overview",
     href: "/admin",
     label: "Дашборд",
-    summary: "Обзор и ежедневная активность"
+    summary: "Обзор панели и основных показателей"
   },
   {
     key: "products",
@@ -15,25 +15,25 @@ export const adminSections = [
     key: "categories",
     href: "/admin/categories",
     label: "Категории",
-    summary: "Таксономия и группировка каталога"
+    summary: "Структура и группировка каталога"
   },
   {
     key: "content",
     href: "/admin/content",
     label: "Контент",
-    summary: "CMS главной страницы и редакционные блоки"
+    summary: "CMS главной страницы и медиа-блоков"
   },
   {
     key: "settings",
     href: "/admin/settings",
     label: "Настройки",
-    summary: "Глобальные настройки витрины"
+    summary: "Глобальные параметры витрины"
   },
   {
     key: "shop",
     href: "/admin/shop",
     label: "Магазин",
-    summary: "Быстрые переходы по витрине"
+    summary: "Быстрый переход на витрину"
   }
 ] as const;
 

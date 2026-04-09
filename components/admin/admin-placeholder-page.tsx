@@ -17,7 +17,7 @@ export function AdminPlaceholderPage({
   return (
     <AdminShell current={current} title={title} description={description}>
       <div className="admin-panel p-6">
-        <h2 className="text-2xl font-semibold text-slate-950">Module structure</h2>
+        <h2 className="text-2xl font-semibold text-slate-950">Структура модуля</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {points.map((point) => (
             <div key={point} className="admin-panel-muted p-5">

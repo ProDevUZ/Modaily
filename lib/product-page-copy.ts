@@ -18,6 +18,8 @@ export type ProductPageCopy = {
     packaging: string;
     features: string;
     usage: string;
+    location: string;
+    contacts: string;
     reviews: string;
     reviewsHeading: string;
     leaveReview: string;
@@ -31,6 +33,8 @@ export type ProductPageCopy = {
     submitReview: string;
     addToCart: string;
     loadMore: string;
+    whereToBuy: string;
+    backToProduct: string;
   };
   placeholders: {
     noReviews: string;
@@ -58,6 +62,8 @@ const copy: Record<Locale, ProductPageCopy> = {
       packaging: "Qadoq",
       features: "Asosiy funksiyalar",
       usage: "Qo'llash usuli",
+      location: "Lokatsiya",
+      contacts: "Kontaktlar",
       reviews: "Reyting",
       reviewsHeading: "fikr",
       leaveReview: "Comment qoldirish",
@@ -70,7 +76,9 @@ const copy: Record<Locale, ProductPageCopy> = {
     actions: {
       submitReview: "Yuborish",
       addToCart: "Savatchaga qo'shish",
-      loadMore: "Ko'proq yuklash"
+      loadMore: "Ko'proq yuklash",
+      whereToBuy: "Qayerdan sotib olish",
+      backToProduct: "Mahsulotga qaytish"
     },
     placeholders: {
       noReviews: "Hozircha product uchun fikr qoldirilmagan.",
@@ -91,11 +99,13 @@ const copy: Record<Locale, ProductPageCopy> = {
       size: "Размер",
       sku: "SKU",
       category: "Категория",
-      description: "Описания",
+      description: "Описание",
       details: "Детали",
       packaging: "Упаковка",
       features: "Основные функции",
       usage: "Способ применения",
+      location: "Локация",
+      contacts: "Контакты",
       reviews: "Рейтинг",
       reviewsHeading: "Отзывов",
       leaveReview: "Оставить комментарий",
@@ -108,7 +118,9 @@ const copy: Record<Locale, ProductPageCopy> = {
     actions: {
       submitReview: "Отправить",
       addToCart: "Добавить в корзину",
-      loadMore: "Загрузить больше"
+      loadMore: "Загрузить больше",
+      whereToBuy: "Где купить",
+      backToProduct: "Вернуться к товару"
     },
     placeholders: {
       noReviews: "Пока нет отзывов по этому товару.",
@@ -134,6 +146,8 @@ const copy: Record<Locale, ProductPageCopy> = {
       packaging: "Packaging",
       features: "Key features",
       usage: "How to use",
+      location: "Location",
+      contacts: "Contacts",
       reviews: "Rating",
       reviewsHeading: "Reviews",
       leaveReview: "Leave a comment",
@@ -146,7 +160,9 @@ const copy: Record<Locale, ProductPageCopy> = {
     actions: {
       submitReview: "Submit",
       addToCart: "Add to cart",
-      loadMore: "Load more"
+      loadMore: "Load more",
+      whereToBuy: "Where to buy",
+      backToProduct: "Back to product"
     },
     placeholders: {
       noReviews: "No reviews have been posted for this product yet.",

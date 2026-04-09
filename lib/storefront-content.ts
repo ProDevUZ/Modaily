@@ -35,12 +35,13 @@ export async function getLocalizedSiteSettings(locale: Locale) {
     announcementLinkLabel: localizedValue(settings, "announcementLinkLabel", locale),
     announcementLink: settings.announcementLink || `/${locale}/catalog`,
     footerPhone: settings.footerPhone || "",
-    footerEmail: settings.footerEmail || "",
     footerTelegram: settings.footerTelegram || "",
+    footerTelegramLink: settings.footerTelegramLink || "",
     footerInstagram: settings.footerInstagram || "",
-    footerAddress: localizedValue(settings, "footerAddress", locale),
-    newsletterTitle: localizedValue(settings, "newsletterTitle", locale),
-    newsletterPlaceholder: localizedValue(settings, "newsletterPlaceholder", locale)
+    footerInstagramLink: settings.footerInstagramLink || "",
+    storeAddress: settings.storeAddress || "",
+    storeMapLink: settings.storeMapLink || "",
+    footerAddress: localizedValue(settings, "footerAddress", locale)
   };
 }
 

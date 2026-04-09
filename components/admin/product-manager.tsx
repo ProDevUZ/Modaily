@@ -47,6 +47,13 @@ type ProductFormState = {
   usageUz: string;
   usageRu: string;
   usageEn: string;
+  storeImageUrl: string;
+  storeLocationUz: string;
+  storeLocationRu: string;
+  storeLocationEn: string;
+  storeContactsUz: string;
+  storeContactsRu: string;
+  storeContactsEn: string;
   skinTypes: string[];
   size: string;
   price: string;
@@ -82,6 +89,13 @@ const emptyForm: ProductFormState = {
   usageUz: "",
   usageRu: "",
   usageEn: "",
+  storeImageUrl: "",
+  storeLocationUz: "",
+  storeLocationRu: "",
+  storeLocationEn: "",
+  storeContactsUz: "",
+  storeContactsRu: "",
+  storeContactsEn: "",
   skinTypes: [],
   size: "",
   price: "0",
@@ -128,6 +142,7 @@ export function ProductManager() {
   const [error, setError] = useState<ProductSubmitError | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingStoreImage, setUploadingStoreImage] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -232,6 +247,32 @@ export function ProductManager() {
       setError({ message: uploadError instanceof Error ? uploadError.message : "Could not upload gallery images." });
     } finally {
       setUploadingGallery(false);
+      event.target.value = "";
+    }
+  }
+
+  async function handleStoreImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingStoreImage(true);
+
+    try {
+      const payload = await uploadSingleFile(file);
+      setForm((current) => ({
+        ...current,
+        storeImageUrl: payload.url
+      }));
+      setMessage("Store image uploaded.");
+    } catch (uploadError) {
+      setError({ message: uploadError instanceof Error ? uploadError.message : "Could not upload store image." });
+    } finally {
+      setUploadingStoreImage(false);
       event.target.value = "";
     }
   }
@@ -482,6 +523,41 @@ export function ProductManager() {
             </div>
           </FieldGroup>
 
+          <FieldGroup className="md:col-span-2" hint="Optional store photo for the separate where-to-buy page. Upload JPG, PNG or WebP up to 5 MB.">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-700">Store image</p>
+                  <p className="mt-1 text-xs text-slate-400">{form.storeImageUrl || "No store image uploaded yet"}</p>
+                </div>
+                <label className="admin-button-secondary cursor-pointer text-center">
+                  {uploadingStoreImage ? "Uploading..." : "Upload store image"}
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleStoreImageUpload} disabled={uploadingStoreImage} />
+                </label>
+              </div>
+            </div>
+          </FieldGroup>
+
+          <FieldGroup hint="Store location shown in Uzbek where-to-buy page.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store location UZ" value={form.storeLocationUz} onChange={(event) => setForm((current) => ({ ...current, storeLocationUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Store location shown in Russian where-to-buy page.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store location RU" value={form.storeLocationRu} onChange={(event) => setForm((current) => ({ ...current, storeLocationRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup className="md:col-span-2" hint="Store location shown in English where-to-buy page.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store location EN" value={form.storeLocationEn} onChange={(event) => setForm((current) => ({ ...current, storeLocationEn: event.target.value }))} />
+          </FieldGroup>
+
+          <FieldGroup hint="Store contacts shown in Uzbek where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store contacts UZ" value={form.storeContactsUz} onChange={(event) => setForm((current) => ({ ...current, storeContactsUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Store contacts shown in Russian where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store contacts RU" value={form.storeContactsRu} onChange={(event) => setForm((current) => ({ ...current, storeContactsRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup className="md:col-span-2" hint="Store contacts shown in English where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
+            <textarea className="admin-textarea min-h-24" aria-label="Store contacts EN" value={form.storeContactsEn} onChange={(event) => setForm((current) => ({ ...current, storeContactsEn: event.target.value }))} />
+          </FieldGroup>
+
           <FieldGroup hint="Package size or product volume, for example 150 ml.">
             <input className="admin-input" aria-label="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
           </FieldGroup>
@@ -606,6 +682,13 @@ export function ProductManager() {
                         usageUz: product.usageUz || "",
                         usageRu: product.usageRu || "",
                         usageEn: product.usageEn || "",
+                        storeImageUrl: product.storeImageUrl || "",
+                        storeLocationUz: product.storeLocationUz || "",
+                        storeLocationRu: product.storeLocationRu || "",
+                        storeLocationEn: product.storeLocationEn || "",
+                        storeContactsUz: product.storeContactsUz || "",
+                        storeContactsRu: product.storeContactsRu || "",
+                        storeContactsEn: product.storeContactsEn || "",
                         skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
                         size: product.size || "",
                         price: String(product.price),

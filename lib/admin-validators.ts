@@ -41,6 +41,13 @@ export type ProductPayload = {
   usageUz: string | null;
   usageRu: string | null;
   usageEn: string | null;
+  storeImageUrl: string | null;
+  storeLocationUz: string | null;
+  storeLocationRu: string | null;
+  storeLocationEn: string | null;
+  storeContactsUz: string | null;
+  storeContactsRu: string | null;
+  storeContactsEn: string | null;
   skinTypes: string | null;
   size: string | null;
   price: number;
@@ -72,7 +79,11 @@ export type SiteSettingsPayload = {
   footerPhone: string | null;
   footerEmail: string | null;
   footerTelegram: string | null;
+  footerTelegramLink: string | null;
   footerInstagram: string | null;
+  footerInstagramLink: string | null;
+  storeAddress: string | null;
+  storeMapLink: string | null;
   footerAddressUz: string | null;
   footerAddressRu: string | null;
   footerAddressEn: string | null;
@@ -347,6 +358,13 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       usageUz: asOptionalString(payload.usageUz),
       usageRu: asOptionalString(payload.usageRu),
       usageEn: asOptionalString(payload.usageEn),
+      storeImageUrl: asOptionalString(payload.storeImageUrl),
+      storeLocationUz: asOptionalString(payload.storeLocationUz),
+      storeLocationRu: asOptionalString(payload.storeLocationRu),
+      storeLocationEn: asOptionalString(payload.storeLocationEn),
+      storeContactsUz: asOptionalString(payload.storeContactsUz),
+      storeContactsRu: asOptionalString(payload.storeContactsRu),
+      storeContactsEn: asOptionalString(payload.storeContactsEn),
       skinTypes: asSkinTypes(payload.skinTypes),
       size: asOptionalString(payload.size),
       price: Math.round(price),
@@ -382,7 +400,11 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
       footerPhone: asOptionalString(payload.footerPhone),
       footerEmail: asOptionalString(payload.footerEmail),
       footerTelegram: asOptionalString(payload.footerTelegram),
+      footerTelegramLink: asOptionalString(payload.footerTelegramLink),
       footerInstagram: asOptionalString(payload.footerInstagram),
+      footerInstagramLink: asOptionalString(payload.footerInstagramLink),
+      storeAddress: asOptionalString(payload.storeAddress),
+      storeMapLink: asOptionalString(payload.storeMapLink),
       footerAddressUz: asOptionalString(payload.footerAddressUz),
       footerAddressRu: asOptionalString(payload.footerAddressRu),
       footerAddressEn: asOptionalString(payload.footerAddressEn),

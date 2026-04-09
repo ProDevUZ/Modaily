@@ -54,6 +54,13 @@ model Product {
   usageUz            String?
   usageRu            String?
   usageEn            String?
+  storeImageUrl      String?
+  storeLocationUz    String?
+  storeLocationRu    String?
+  storeLocationEn    String?
+  storeContactsUz    String?
+  storeContactsRu    String?
+  storeContactsEn    String?
   skinTypes          String?
   size               String?
   price              Int
@@ -114,7 +121,11 @@ model SiteSettings {
   footerPhone            String?
   footerEmail            String?
   footerTelegram         String?
+  footerTelegramLink     String?
   footerInstagram        String?
+  footerInstagramLink    String?
+  storeAddress           String?
+  storeMapLink           String?
   footerAddressUz        String?
   footerAddressRu        String?
   footerAddressEn        String?

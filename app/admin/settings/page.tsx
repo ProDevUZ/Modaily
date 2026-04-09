@@ -6,7 +6,7 @@ export default function AdminSettingsPage() {
     <AdminShell
       current="settings"
       title="Настройки"
-      description="Глобальные параметры видимости цен и оформления заказа на витрине."
+      description="Только глобальный режим скрытия цен и оформления заказа для всей витрины."
     >
       <SettingsManager />
     </AdminShell>

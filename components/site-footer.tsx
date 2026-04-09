@@ -9,46 +9,91 @@ type SiteFooterProps = {
   siteSettings: {
     brandName: string;
     footerPhone: string;
-    footerEmail: string;
     footerTelegram: string;
+    footerTelegramLink: string;
     footerInstagram: string;
+    footerInstagramLink: string;
     footerAddress: string;
-    newsletterTitle: string;
-    newsletterPlaceholder: string;
   };
 };
 
 const footerLabels = {
   uz: {
     pages: "Sahifalar",
-    stores: "Do'konlarimiz",
-    subscribe: "Yangiliklarimizga obuna bo'ling!"
+    stores: "Do'konlarimiz"
   },
   ru: {
     pages: "Страницы",
-    stores: "Наши магазины",
-    subscribe: "Подпишись на наши новости!"
+    stores: "Наши магазины"
   },
   en: {
     pages: "Pages",
-    stores: "Our stores",
-    subscribe: "Subscribe to our updates!"
+    stores: "Our stores"
   }
 } as const;
+
+function normalizeHandle(value: string) {
+  return value.trim().replace(/^@/, "");
+}
+
+function normalizeExternalHref(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+function getPhoneHref(phone: string) {
+  const normalized = phone.trim().replace(/[^+\d]/g, "");
+  return normalized ? `tel:${normalized}` : "";
+}
+
+function getInstagramHref(handle: string, link: string) {
+  const directLink = normalizeExternalHref(link);
+
+  if (directLink) {
+    return directLink;
+  }
+
+  const normalizedHandle = normalizeHandle(handle);
+  return normalizedHandle ? `https://instagram.com/${normalizedHandle}` : "";
+}
+
+function getTelegramHref(handle: string, link: string) {
+  const directLink = normalizeExternalHref(link);
+
+  if (directLink) {
+    return directLink;
+  }
+
+  const normalizedHandle = normalizeHandle(handle);
+  return normalizedHandle ? `https://t.me/${normalizedHandle}` : "";
+}
 
 function ContactIcon({
   children,
   href,
-  label
+  label,
+  external = false
 }: {
   children: React.ReactNode;
   href: string;
   label: string;
+  external?: boolean;
 }) {
   return (
     <a
       href={href}
       aria-label={label}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noreferrer" : undefined}
       className="flex h-8 w-8 items-center justify-center rounded-full border border-white/50 text-white transition hover:bg-white/10"
     >
       {children}
@@ -58,6 +103,9 @@ function ContactIcon({
 
 export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps) {
   const labels = footerLabels[locale];
+  const phoneHref = getPhoneHref(siteSettings.footerPhone);
+  const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
+  const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
 
   return (
     <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="text-white">
@@ -93,56 +141,33 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                 </p>
               </div>
 
-              <div className="mt-8 text-left">
-                <p className="text-[14px] font-medium text-white">
-                  {siteSettings.newsletterTitle || labels.subscribe}
-                </p>
-                <div className="mt-4 flex items-center gap-3 border-b border-white/35 pb-3 text-[14px] text-white/75">
-                  <span>{siteSettings.newsletterPlaceholder}</span>
-                  <span className="ml-auto flex h-6 w-6 items-center justify-center rounded-[4px] border border-white/70">
-                    <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-                      <path d="M4 7.5 12 13l8-5.5" />
-                      <rect x="4" y="6" width="16" height="12" rx="2" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-
               <div className="mt-7 border-t border-white/30 pt-5">
                 <div className="flex items-center justify-center gap-4">
-                  <ContactIcon href={`tel:${siteSettings.footerPhone.replace(/\s+/g, "")}`} label="Phone">
-                    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                      <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
-                    </svg>
-                  </ContactIcon>
+                  {phoneHref ? (
+                    <ContactIcon href={phoneHref} label="Phone">
+                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                        <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
+                      </svg>
+                    </ContactIcon>
+                  ) : null}
 
-                  <ContactIcon href={`https://instagram.com/${siteSettings.footerInstagram.replace(/^@/, "")}`} label="Instagram">
-                    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                      <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
-                      <circle cx="12" cy="12" r="3.6" />
-                      <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
-                    </svg>
-                  </ContactIcon>
+                  {instagramHref ? (
+                    <ContactIcon href={instagramHref} label="Instagram" external>
+                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                        <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
+                        <circle cx="12" cy="12" r="3.6" />
+                        <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
+                      </svg>
+                    </ContactIcon>
+                  ) : null}
 
-                  <ContactIcon href={`mailto:${siteSettings.footerEmail}`} label="Email">
-                    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                      <path d="M4 7.5 12 13l8-5.5" />
-                      <rect x="4" y="6" width="16" height="12" rx="2" />
-                    </svg>
-                  </ContactIcon>
-
-                  <ContactIcon href={`https://t.me/${siteSettings.footerTelegram.replace(/^@/, "")}`} label="Telegram">
-                    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                      <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
-                    </svg>
-                  </ContactIcon>
-
-                  <ContactIcon href={`https://wa.me/${siteSettings.footerPhone.replace(/\D/g, "")}`} label="WhatsApp">
-                    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                      <path d="M20 11.5A8.5 8.5 0 0 1 8 19l-4 1 1-4a8.5 8.5 0 1 1 15-4.5Z" />
-                      <path d="M9 9.5c.3 1.8 2.2 3.7 4 4" />
-                    </svg>
-                  </ContactIcon>
+                  {telegramHref ? (
+                    <ContactIcon href={telegramHref} label="Telegram" external>
+                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                        <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
+                      </svg>
+                    </ContactIcon>
+                  ) : null}
                 </div>
               </div>
 
@@ -161,44 +186,41 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                   </p>
 
                   <div className="mt-12 space-y-5 text-[1.05rem] text-white/92 lg:text-[1.08rem]">
-                    <p className="flex items-center gap-4">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                        <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                          <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
-                        </svg>
-                      </span>
-                      {siteSettings.footerPhone}
-                    </p>
-
-                    <p className="flex items-center gap-4">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                        <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                          <path d="M4 7.5 12 13l8-5.5" />
-                          <rect x="4" y="6" width="16" height="12" rx="2" />
-                        </svg>
-                      </span>
-                      {siteSettings.footerEmail}
-                    </p>
+                    {phoneHref ? (
+                      <a href={phoneHref} className="flex items-center gap-4 transition hover:text-white">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                            <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
+                          </svg>
+                        </span>
+                        {siteSettings.footerPhone}
+                      </a>
+                    ) : null}
 
                     <div className="flex flex-wrap items-center gap-x-8 gap-y-4 text-[1.05rem] text-white/92 lg:text-[1.08rem]">
-                      <p className="flex items-center gap-4">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                            <path d="M20 11.5A8.5 8.5 0 0 1 8 19l-4 1 1-4a8.5 8.5 0 1 1 15-4.5Z" />
-                            <path d="M9 9.5c.3 1.8 2.2 3.7 4 4" />
-                          </svg>
-                        </span>
-                        {siteSettings.footerTelegram}
-                      </p>
+                      {telegramHref ? (
+                        <a href={telegramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
+                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                              <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
+                            </svg>
+                          </span>
+                          {siteSettings.footerTelegram}
+                        </a>
+                      ) : null}
 
-                      <p className="flex items-center gap-4">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                            <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
-                          </svg>
-                        </span>
-                        {siteSettings.footerInstagram}
-                      </p>
+                      {instagramHref ? (
+                        <a href={instagramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
+                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                              <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
+                              <circle cx="12" cy="12" r="3.6" />
+                              <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
+                            </svg>
+                          </span>
+                          {siteSettings.footerInstagram}
+                        </a>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -226,20 +248,6 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                   <p className="mt-8 max-w-[420px] text-[1.05rem] leading-8 text-white/88">
                     {siteSettings.footerAddress}
                   </p>
-
-                  <p className="mt-12 text-[1.12rem] font-medium text-white">
-                    {siteSettings.newsletterTitle || labels.subscribe}
-                  </p>
-
-                  <div className="mt-7 flex items-center gap-4 border-b border-white/28 pb-4 text-[1.05rem] text-white/62">
-                    <span>{siteSettings.newsletterPlaceholder}</span>
-                    <span className="ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                      <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                        <path d="M4 7.5 12 13l8-5.5" />
-                        <rect x="4" y="6" width="16" height="12" rx="2" />
-                      </svg>
-                    </span>
-                  </div>
                 </div>
               </div>
 

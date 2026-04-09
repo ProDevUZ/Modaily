@@ -47,6 +47,13 @@ export type AdminProduct = {
   usageUz: string | null;
   usageRu: string | null;
   usageEn: string | null;
+  storeImageUrl: string | null;
+  storeLocationUz: string | null;
+  storeLocationRu: string | null;
+  storeLocationEn: string | null;
+  storeContactsUz: string | null;
+  storeContactsRu: string | null;
+  storeContactsEn: string | null;
   skinTypes: string | null;
   size: string | null;
   price: number;
@@ -90,7 +97,11 @@ export type AdminSiteSettings = {
   footerPhone: string | null;
   footerEmail: string | null;
   footerTelegram: string | null;
+  footerTelegramLink: string | null;
   footerInstagram: string | null;
+  footerInstagramLink: string | null;
+  storeAddress: string | null;
+  storeMapLink: string | null;
   footerAddressUz: string | null;
   footerAddressRu: string | null;
   footerAddressEn: string | null;

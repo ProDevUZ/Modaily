@@ -95,6 +95,87 @@ select {
   filter: blur(18px);
 }
 
+.where-to-buy-pin {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.1)),
+    rgba(255, 248, 248, 0.2);
+  animation: where-to-buy-float 3.8s ease-in-out infinite;
+  transform-origin: 50% 78%;
+}
+
+.where-to-buy-pin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  opacity: 0.8;
+}
+
+.where-to-buy-pin-tail {
+  backdrop-filter: blur(12px);
+  box-shadow: 10px 10px 26px rgba(104, 34, 49, 0.12);
+}
+
+.where-to-buy-icon {
+  animation: where-to-buy-wink 3.2s ease-in-out infinite;
+  position: relative;
+}
+
+.where-to-buy-signal {
+  animation: where-to-buy-signal 1.9s ease-out infinite;
+}
+
+@keyframes where-to-buy-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-6deg);
+    box-shadow: 0 18px 40px rgba(104, 34, 49, 0.18);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 0) rotate(-3deg);
+    box-shadow: 0 24px 54px rgba(104, 34, 49, 0.26);
+  }
+}
+
+@keyframes where-to-buy-wink {
+  0%,
+  100%,
+  68% {
+    transform: scale(1) rotate(0deg);
+  }
+
+  74% {
+    transform: scale(1.08) rotate(-5deg);
+  }
+
+  82% {
+    transform: scale(0.96) rotate(4deg);
+  }
+
+  90% {
+    transform: scale(1.05) rotate(-3deg);
+  }
+}
+
+@keyframes where-to-buy-signal {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+
+  70% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
 .admin-surface {
   background:
     radial-gradient(circle at top left, rgba(87, 119, 255, 0.08), transparent 24%),

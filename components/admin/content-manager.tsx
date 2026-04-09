@@ -388,7 +388,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "settings" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Site Settings" description="Top bar, footer va newsletter matnlari uchun global content.">
+        <SectionCard title="Site Settings" description="Top bar, footer va kontaktlar uchun global content.">
           {siteSettings ? (
             <form
               className="grid gap-4 md:grid-cols-2"
@@ -403,12 +403,13 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
               <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Announcement RU" />
               <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Announcement EN" />
               <Field value={siteSettings.footerPhone} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerPhone: value } : current))} placeholder="Footer phone" />
-              <Field value={siteSettings.footerEmail} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerEmail: value } : current))} placeholder="Footer email" />
-              <Field value={siteSettings.footerInstagram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagram: value } : current))} placeholder="Instagram" />
+              <Field value={siteSettings.footerTelegram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegram: value } : current))} placeholder="Telegram label" />
+              <Field value={siteSettings.footerInstagram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagram: value } : current))} placeholder="Instagram label" />
+              <Field value={siteSettings.footerTelegramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegramLink: value } : current))} placeholder="Telegram link" />
+              <Field value={siteSettings.footerInstagramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagramLink: value } : current))} placeholder="Instagram link" />
               <Area value={siteSettings.footerAddressUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressUz: value } : current))} placeholder="Footer address UZ" />
               <Area value={siteSettings.footerAddressRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressRu: value } : current))} placeholder="Footer address RU" />
               <Area value={siteSettings.footerAddressEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressEn: value } : current))} placeholder="Footer address EN" />
-              <Field value={siteSettings.newsletterTitleRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, newsletterTitleRu: value } : current))} placeholder="Newsletter title RU" />
               <button type="submit" className="admin-button-primary md:col-span-2">
                 Save site settings
               </button>

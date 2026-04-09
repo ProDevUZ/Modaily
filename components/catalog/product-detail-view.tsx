@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { FallbackImage } from "@/components/ui/fallback-image";
@@ -88,6 +88,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showWhereToBuy, setShowWhereToBuy] = useState(false);
 
   const reviewSummary = useMemo(() => {
     const average = reviews.length
@@ -99,6 +100,16 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
       count: reviews.length || product.reviewCount
     };
   }, [product.averageRating, product.reviewCount, reviews]);
+
+  useEffect(() => {
+    setShowWhereToBuy(false);
+
+    const timer = window.setTimeout(() => {
+      setShowWhereToBuy(true);
+    }, 2000);
+
+    return () => window.clearTimeout(timer);
+  }, [product.slug]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -151,24 +162,6 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-10 md:px-8 lg:px-10">
-      <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-black/45">
-        <Link href={`/${locale}`} className="transition hover:text-black">
-          {copy.breadcrumbs.home}
-        </Link>
-        <span>&gt;</span>
-        <Link href={`/${locale}/catalog`} className="transition hover:text-black">
-          {copy.breadcrumbs.catalog}
-        </Link>
-        {product.category ? (
-          <>
-            <span>&gt;</span>
-            <span>{product.category}</span>
-          </>
-        ) : null}
-        <span>&gt;</span>
-        <span className="text-black">{product.name}</span>
-      </div>
-
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.85fr)] xl:gap-12">
         <div>
           <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] lg:hidden">
@@ -239,6 +232,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
         </div>
 
         <div className="lg:sticky lg:top-24 lg:self-start">
+          <div>
           <div className="mt-4 flex items-center gap-3 lg:mt-0">
             <Stars rating={reviewSummary.average || 5} />
             <p className="text-sm text-black/60">
@@ -251,6 +245,36 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
           <p className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">{product.shortDescription || product.description}</p>
 
           {!hideCommerce ? <div className="mt-6 text-[2.3rem] leading-none text-black">{formatPrice(product.price)} сум</div> : null}
+
+          {product.store ? (
+            <Link
+              href={`/${locale}/catalog/${product.slug}/store`}
+              aria-label={copy.actions.whereToBuy}
+              className={`where-to-buy-pin group fixed bottom-5 right-4 z-[60] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-all duration-700 hover:scale-[1.06] sm:bottom-8 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 ${showWhereToBuy ? "pointer-events-auto translate-y-0 rotate-[-6deg] opacity-100" : "pointer-events-none translate-y-4 rotate-[2deg] opacity-0"}`}
+            >
+              <span className="where-to-buy-pin-tail pointer-events-none absolute left-1/2 top-[67px] h-[26px] w-[26px] -translate-x-1/2 rotate-45 rounded-[7px] border-r border-b border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] sm:top-[79px] sm:h-[30px] sm:w-[30px]" />
+              <span className="pointer-events-none absolute inset-[1px] rounded-[999px] bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.12))]" />
+              <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d11842] shadow-[0_0_14px_rgba(209,24,66,0.65)]">
+                <span className="where-to-buy-signal absolute inset-0 rounded-full bg-[#d11842]/45" />
+              </span>
+              <span className="relative z-10 flex flex-col items-center gap-1 text-center">
+                <span className="where-to-buy-icon flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/72 shadow-[0_10px_20px_rgba(255,255,255,0.22)] sm:h-12 sm:w-12">
+                  <span className="pointer-events-none absolute h-[18px] w-[18px] rounded-full border border-[#c41a43]/30 sm:h-[22px] sm:w-[22px]" />
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth="1.85" aria-hidden="true">
+                    <path d="M4 9.5 12 4l8 5.5" />
+                    <path d="M5.5 10.5h13v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
+                    <path d="M9 19.5v-5h6v5" />
+                    <path d="M9.5 10.5V8h5v2.5" />
+                  </svg>
+                </span>
+                <span className="px-2 text-[9px] font-semibold uppercase leading-tight tracking-[0.18em] text-[#7a1029] sm:text-[10px]">
+                  {copy.actions.whereToBuy}
+                </span>
+              </span>
+            </Link>
+          ) : null}
+
+          </div>
 
           <div className={`border-t border-black/12 pt-4 ${hideCommerce ? "mt-6" : "mt-8"}`}>
             <div className="flex items-center justify-between text-[1.05rem] text-black/55">
@@ -335,6 +359,8 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </span>
           </div>
 
+          {!hideCommerce ? (
+            <>
           <button
             type="button"
             className="mt-6 flex h-[38px] w-full items-center justify-center rounded-[12px] border border-black/10 bg-white px-5 text-sm text-black/35"
@@ -383,6 +409,8 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 {loading ? "..." : copy.actions.submitReview}
               </button>
             </form>
+          ) : null}
+            </>
           ) : null}
 
           <h3 className="mt-12 text-[2rem] text-black">

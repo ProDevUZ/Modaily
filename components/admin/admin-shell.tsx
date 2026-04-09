@@ -62,7 +62,15 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
 
   return (
     <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${iconClass}`}>
-      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4.5 w-4.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
         {section === "overview" ? (
           <>
             <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -75,7 +83,7 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
           <>
             <path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" />
             <path d="m4 7 8 4 8-4" />
-            <path d="v10" />
+            <path d="M12 11v10" />
           </>
         ) : null}
         {section === "categories" ? (
@@ -121,12 +129,20 @@ export function AdminShell({ title, description, current, children }: AdminShell
 
   return (
     <section className="admin-surface">
-      <div className="grid min-h-screen xl:grid-cols-[304px_1fr]">
+      <div className="grid min-h-screen xl:grid-cols-[332px_1fr]">
         <aside className="border-b border-[#e9eef7] bg-white xl:border-b-0 xl:border-r">
-          <div className="px-8 py-7">
-            <Link href="/admin" className="flex items-center gap-3 rounded-3xl">
-              <span className="flex h-11 w-11 items-center justify-center rounded-[1.35rem] bg-[#0f172a] text-white shadow-[0_14px_34px_rgba(15,23,42,0.14)]">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="px-10 py-8">
+            <Link href="/admin" className="flex items-center gap-4 rounded-3xl">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.35rem] bg-[#0f172a] text-white shadow-[0_14px_34px_rgba(15,23,42,0.14)]">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M6 10V8a6 6 0 0 1 12 0v2" />
                   <rect x="4" y="10" width="16" height="10" rx="2.5" />
                   <path d="M9.5 14h5" />
@@ -139,7 +155,7 @@ export function AdminShell({ title, description, current, children }: AdminShell
             </Link>
           </div>
 
-          <nav className="space-y-1.5 px-6 pb-8">
+          <nav className="space-y-1.5 px-8 pb-8">
             {adminSections.map((section) => {
               const active = current === section.key || pathname === section.href;
               const tone = navToneMap[section.key];
@@ -148,7 +164,7 @@ export function AdminShell({ title, description, current, children }: AdminShell
                 <Link
                   key={section.key}
                   href={section.href}
-                  className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     active
                       ? `bg-white text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.06)] ${tone.activeGlow}`
                       : "text-slate-500 hover:bg-white hover:text-slate-950"
@@ -164,7 +180,13 @@ export function AdminShell({ title, description, current, children }: AdminShell
 
         <div className="min-w-0">
           <header className="border-b border-[#e9eef7] bg-[#fbfcff]">
-            <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+            <div
+              className={`px-5 py-5 lg:px-8 ${
+                showSearch
+                  ? "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+                  : "flex min-h-[84px] items-center justify-end"
+              }`}
+            >
               {showSearch ? (
                 <div className="w-full max-w-[460px]">
                   <div className="relative w-full">
@@ -178,18 +200,6 @@ export function AdminShell({ title, description, current, children }: AdminShell
                   </div>
                 </div>
               ) : null}
-
-              <div className="flex items-center justify-end gap-5">
-                <div className="flex items-center gap-3 rounded-full bg-white px-2 py-1.5 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#ff7ac3] to-[#8b5cf6] text-sm font-semibold text-white">
-                    AU
-                  </div>
-                  <div className="pr-2">
-                    <p className="text-sm font-semibold text-slate-950">Администратор</p>
-                    <p className="text-xs text-slate-400">admin@modaily.com</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </header>
 

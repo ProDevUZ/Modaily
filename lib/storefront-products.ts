@@ -22,6 +22,12 @@ type LocalizedProductFields = {
   usageUz?: string | null;
   usageRu?: string | null;
   usageEn?: string | null;
+  storeLocationUz?: string | null;
+  storeLocationRu?: string | null;
+  storeLocationEn?: string | null;
+  storeContactsUz?: string | null;
+  storeContactsRu?: string | null;
+  storeContactsEn?: string | null;
 };
 
 type ProductCategory = {
@@ -44,6 +50,7 @@ type ProductWithCategory = {
   colorFrom: string | null;
   colorTo: string | null;
   imageUrl: string | null;
+  storeImageUrl: string | null;
   category: ProductCategory;
 } & LocalizedProductFields;
 
@@ -97,17 +104,28 @@ export type StorefrontProductReview = {
   createdAt: string;
 };
 
+export type StorefrontProductStore = {
+  imageUrl: string;
+  location: string;
+  contacts: string;
+};
+
 export type StorefrontProductDetail = StorefrontProduct & {
   feature: string;
   ingredients: string;
   usage: string;
+  store: StorefrontProductStore | null;
   images: StorefrontProductGalleryImage[];
   reviews: StorefrontProductReview[];
   reviewCount: number;
   averageRating: number;
 };
 
-function localizedProductValue(product: LocalizedProductFields, locale: Locale, field: "name" | "shortDescription" | "description" | "feature" | "ingredients" | "usage") {
+function localizedProductValue(
+  product: LocalizedProductFields,
+  locale: Locale,
+  field: "name" | "shortDescription" | "description" | "feature" | "ingredients" | "usage" | "storeLocation" | "storeContacts"
+) {
   if (field === "name") {
     return locale === "uz" ? product.nameUz : locale === "ru" ? product.nameRu || product.nameEn : product.nameEn;
   }
@@ -142,6 +160,22 @@ function localizedProductValue(product: LocalizedProductFields, locale: Locale, 
       : locale === "ru"
         ? product.ingredientsRu || product.ingredientsEn || ""
         : product.ingredientsEn || "";
+  }
+
+  if (field === "storeLocation") {
+    return locale === "uz"
+      ? product.storeLocationUz || product.storeLocationEn || ""
+      : locale === "ru"
+        ? product.storeLocationRu || product.storeLocationEn || ""
+        : product.storeLocationEn || "";
+  }
+
+  if (field === "storeContacts") {
+    return locale === "uz"
+      ? product.storeContactsUz || product.storeContactsEn || ""
+      : locale === "ru"
+        ? product.storeContactsRu || product.storeContactsEn || ""
+        : product.storeContactsEn || "";
   }
 
   return locale === "uz"
@@ -234,6 +268,18 @@ function calculateAverageRating(reviews: ProductReviewRecord[]) {
 
   const total = reviews.reduce((sum, review) => sum + review.rating, 0);
   return Math.round((total / reviews.length) * 10) / 10;
+}
+
+function buildStoreInfo(product: ProductWithCategory, locale: Locale): StorefrontProductStore | null {
+  const location = localizedProductValue(product, locale, "storeLocation");
+  const contacts = localizedProductValue(product, locale, "storeContacts");
+  const imageUrl = product.storeImageUrl || "";
+
+  return {
+    imageUrl,
+    location,
+    contacts
+  };
 }
 
 export async function getStorefrontProducts(locale: Locale) {
@@ -330,6 +376,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
     feature: localizedProductValue(product, locale, "feature"),
     ingredients: localizedProductValue(product, locale, "ingredients"),
     usage: localizedProductValue(product, locale, "usage"),
+    store: buildStoreInfo(product, locale),
     images,
     reviews,
     reviewCount: reviews.length,

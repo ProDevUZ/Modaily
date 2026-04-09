@@ -78,11 +78,7 @@ export default async function AdminOverviewPage() {
   ];
 
   return (
-    <AdminShell
-      current="overview"
-      title="Дашборд"
-      description="Ключевые показатели и быстрые переходы по панели Modaily."
-    >
+    <AdminShell current="overview" title="Дашборд" description="Ключевые показатели и быстрые переходы по панели Modaily.">
       <div className="grid gap-5 xl:grid-cols-4">
         {stats.map((item) => (
           <AdminStatCard

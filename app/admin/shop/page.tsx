@@ -4,12 +4,12 @@ export default function AdminShopPage() {
   return (
     <AdminPlaceholderPage
       current="shop"
-      title="Shop"
-      description="Shop moduli storefront boshqaruvi uchun ajratilgan. Featured sections, banners va merchandising shu bo‘limga yig‘iladi."
+      title="Магазин"
+      description="Этот модуль зарезервирован под отдельное управление витриной, подборками и merchandising-блоками."
       points={[
-        "Homepage sections and featured product slots",
-        "Hero banners and seasonal campaign controls",
-        "Collections and curated landing pages"
+        "Главная витрина и featured-подборки",
+        "Промо-баннеры и сезонные кампании",
+        "Коллекции и специальные посадочные страницы"
       ]}
     />
   );
