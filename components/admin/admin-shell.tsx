@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { adminSections, type AdminSectionKey } from "@/lib/admin-navigation";
 
@@ -124,8 +124,24 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
 }
 
 export function AdminShell({ title, description, current, children }: AdminShellProps) {
+  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const showSearch = current === "products" || current === "categories";
+  const searchValue = searchParams.get("q") || "";
+
+  function handleSearchChange(value: string) {
+    const nextParams = new URLSearchParams(searchParams.toString());
+
+    if (value.trim()) {
+      nextParams.set("q", value);
+    } else {
+      nextParams.delete("q");
+    }
+
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }
 
   return (
     <section className="admin-surface">
@@ -196,7 +212,12 @@ export function AdminShell({ title, description, current, children }: AdminShell
                         <path d="m20 20-3.5-3.5" />
                       </svg>
                     </span>
-                    <input className="admin-input bg-white pl-12 placeholder:text-slate-300" placeholder="Поиск..." />
+                    <input
+                      className="admin-input bg-white pl-12 placeholder:text-slate-300"
+                      placeholder="Поиск..."
+                      value={searchValue}
+                      onChange={(event) => handleSearchChange(event.target.value)}
+                    />
                   </div>
                 </div>
               ) : null}

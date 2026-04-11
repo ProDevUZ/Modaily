@@ -159,15 +159,17 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
         </div>
       </div>
 
-      <div className="border-b border-black/8">
-        <div className="mx-auto hidden h-[104px] max-w-[1440px] items-center lg:flex">
-          <div className="grid h-[40px] w-full grid-cols-[231px_1fr_auto] items-center">
-            <Link
-              href={`/${locale}`}
-              className="brand-wordmark inline-flex h-[25px] w-[200px] items-center overflow-hidden whitespace-nowrap text-[29px] uppercase leading-[25px] text-[var(--brand)]"
-            >
-              {siteSettings.brandName}
-            </Link>
+      <div>
+        <div className="mx-auto hidden h-[104px] max-w-[1440px] items-center px-6 lg:flex">
+          <div className="grid h-[40px] w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-8">
+            <div className="flex items-center justify-start">
+              <Link
+                href={`/${locale}`}
+                className="brand-wordmark inline-flex h-[25px] w-[200px] items-center overflow-hidden whitespace-nowrap text-[29px] uppercase leading-[25px] text-[var(--brand)]"
+              >
+                {siteSettings.brandName}
+              </Link>
+            </div>
 
             <nav className="flex items-center justify-center gap-[55px] text-[22px] font-normal leading-none text-black [font-family:var(--font-body)]">
               {navItems.map((item) => (
@@ -177,7 +179,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
               ))}
             </nav>
 
-            <div className="flex items-center justify-end gap-4 justify-self-end">
+            <div className="flex items-center justify-end gap-4">
               {!siteSettings.hideCommerce && isLoggedIn && profile ? (
                 <div className="relative">
                   <button

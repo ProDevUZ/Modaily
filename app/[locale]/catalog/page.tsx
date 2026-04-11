@@ -52,19 +52,21 @@ export default async function CatalogPage({ params }: PageProps) {
 
   return (
     <section className="bg-white pt-8 pb-10 md:pt-10 md:pb-12">
-      <div className="w-full px-4 md:px-8 xl:pl-[10px] xl:pr-[130px]">
-        <div className="mb-10">
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-[22px] font-normal leading-none text-black/55 md:text-[30px]">
-              {catalogDisplayHeading[locale]}
-            </h1>
-          </div>
-
-          <div className="mt-5 h-px w-full bg-black/8" />
-          <div className="-mt-px flex justify-center">
-            <div className="h-[3px] w-[352px] bg-[#ba0c2f]" />
-          </div>
+      <div className="mx-auto mb-10 w-full max-w-[1720px] px-5 text-center md:px-8 xl:pl-7 xl:pr-10">
+        <div className="flex flex-col items-center">
+          <h1 className="text-[22px] font-normal leading-none text-black/55 md:text-[30px]">
+            {catalogDisplayHeading[locale]}
+          </h1>
         </div>
+
+        <div className="mx-auto mt-5 flex w-full max-w-[1180px] items-center justify-center gap-0">
+          <div className="h-px flex-1 bg-black/10" />
+          <div className="h-[3px] w-[352px] bg-[#ba0c2f]" />
+          <div className="h-px flex-1 bg-black/10" />
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-[1720px] px-5 md:px-8 xl:pl-7 xl:pr-10">
         <CatalogBrowser locale={locale} products={products} hideCommerce={siteSettings.hideCommerce} />
       </div>
     </section>

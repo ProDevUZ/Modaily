@@ -23,13 +23,14 @@ npm run dev
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:3000`.
+The app will be available at `http://localhost:3001`.
 
 On container startup it will:
 
 1. apply the Prisma schema with `db push`
 2. seed initial data if the database is empty
-3. start the Next.js server
+3. sync demo media and product images
+4. start the Next.js dev server from the current working tree
 
 Docker stores SQLite data in a named volume mounted at `/data`, so schema files inside the image are no longer overridden by runtime data.
 

@@ -29,14 +29,14 @@ export function ProductCard({
   const productHref = `/${locale}/catalog/${product.slug}`;
 
   return (
-    <article className={`group ${isCatalog ? "flex h-full flex-col" : ""}`}>
+    <article className={`group ${isCatalog ? "flex h-full flex-col [container-type:inline-size]" : ""}`}>
       <Link href={productHref} className="block">
         <div
           className={`overflow-hidden bg-[#f5f5f2] ${
             isCatalog
               ? compactMobile
                 ? "flex aspect-[120/154] items-center justify-center"
-                : "flex aspect-[188/228] items-center justify-center"
+                : "flex aspect-[186/214] items-center justify-center"
               : ""
           }`}
         >
@@ -47,22 +47,20 @@ export function ProductCard({
             className={
               isCatalog
                 ? compactMobile
-                  ? "h-[82%] w-full object-contain px-3 transition duration-500 group-hover:scale-[1.03]"
-                  : "h-[84%] w-full object-contain px-7 transition duration-500 group-hover:scale-[1.03]"
+                  ? "h-[82%] w-[82%] object-contain transition duration-500 group-hover:scale-[1.03]"
+                  : "h-[84%] w-[82%] object-contain transition duration-500 group-hover:scale-[1.03]"
                 : "h-[320px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             }
           />
         </div>
       </Link>
 
-      <div className={isCatalog ? compactMobile ? "flex flex-1 flex-col pt-2" : "flex flex-1 flex-col pt-4" : "pt-4"}>
+      <div className={isCatalog ? "flex flex-1 flex-col pt-[10cqi]" : "pt-4"}>
         <Link href={productHref}>
           <h3
-            className={`uppercase text-black transition group-hover:text-[#ba0c2f] ${
+            className={`product-card-title text-black transition group-hover:text-[#ba0c2f] ${
               isCatalog
-                ? compactMobile
-                  ? "min-h-[48px] text-[11px] leading-[1.2]"
-                  : "min-h-[74px] text-[17px] leading-[1.4]"
+                ? "max-w-[84%] min-h-[2.45em] text-[clamp(15.75px,6.93cqi,22px)]"
                 : "text-[1.05rem] leading-6"
             }`}
           >
@@ -77,7 +75,7 @@ export function ProductCard({
           </>
         ) : null}
 
-        <div className={isCatalog ? compactMobile ? "mt-auto space-y-2 pt-2" : "mt-auto space-y-3 pt-4" : "mt-4 flex items-center justify-between gap-4"}>
+        <div className={isCatalog ? "mt-auto space-y-[8cqi] pt-[8cqi]" : "mt-4 flex items-center justify-between gap-4"}>
           {!isCatalog && !hideCommerce ? (
             <p className="text-[1.15rem] text-black">
               {dictionary.currency.symbol === "$"
@@ -109,8 +107,8 @@ export function ProductCard({
               href={productHref}
               className={
                 compactMobile
-                  ? "inline-flex h-[30px] w-full items-center justify-center rounded-none border border-black/65 px-2 text-[9px] font-normal uppercase tracking-[0.02em] text-black transition hover:bg-black hover:text-white"
-                  : "inline-flex h-[43px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[12px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
+                  ? "catalog-card-action inline-flex h-[clamp(34px,12.3cqi,40px)] w-full items-center justify-center rounded-none border border-black/65 px-2 text-[clamp(10px,4cqi,12px)] text-black transition hover:bg-black hover:text-white"
+                  : "catalog-card-action inline-flex h-[clamp(36px,12.3cqi,42px)] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[clamp(10px,4cqi,13px)] text-black transition hover:bg-black hover:text-white"
               }
             >
               {dictionary.actions.details}

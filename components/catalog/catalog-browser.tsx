@@ -87,7 +87,7 @@ function CheckboxRow({
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 text-[18px] leading-none text-black/60">
+    <label className="flex cursor-pointer items-center gap-3 text-[18px] leading-none">
       <span
         className={`flex h-[22px] w-[22px] items-center justify-center rounded-[6px] border text-[14px] transition ${
           checked ? "border-[#ba0c2f] bg-[#ba0c2f] text-white" : "border-black/35 bg-white text-transparent"
@@ -96,7 +96,7 @@ function CheckboxRow({
         ✓
       </span>
       <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
-      <span>{label}</span>
+      <span className={`transition ${checked ? "text-black/90" : "text-black/60"}`}>{label}</span>
     </label>
   );
 }
@@ -298,7 +298,7 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
   );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[252px_minmax(0,1fr)] xl:gap-[10px]">
+    <div className="grid gap-6 xl:grid-cols-[264px_minmax(0,1fr)] xl:gap-8">
       {hideCommerce ? (
         <div className="space-y-4 xl:hidden">
           <div className="grid grid-cols-[auto_1fr] gap-3">
@@ -342,7 +342,7 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
         </div>
       ) : null}
 
-      <aside className={`xl:pr-0 ${hideCommerce ? "hidden xl:block" : ""}`}>
+      <aside className={`xl:pr-2 ${hideCommerce ? "hidden xl:block" : ""}`}>
         <div className="rounded-[14px] bg-[#f6f6f4] px-[18px] py-[14px]">
           <div className="flex items-center gap-3">
             <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -363,17 +363,13 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
         </div>
       </aside>
 
-      <div>
-        <div className="mb-4 text-[14px] text-black/45">
-          {filteredProducts.length} {copy.allResults}
-        </div>
-
+      <div className="min-w-0">
         {filteredProducts.length > 0 ? (
           <div
             className={
               hideCommerce
                 ? "grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-[20px] xl:gap-y-[24px]"
-                : "grid gap-x-5 gap-y-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-[20px] xl:gap-y-[24px]"
+                : "grid gap-x-5 gap-y-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-9"
             }
           >
             {filteredProducts.map((product) => (

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 
 import {
   type AdminCategory,
@@ -133,6 +134,7 @@ function buildInitialForm(categoryId: string) {
 }
 
 export function ProductManager() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [form, setForm] = useState<ProductFormState>(emptyForm);
@@ -143,6 +145,33 @@ export function ProductManager() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [uploadingStoreImage, setUploadingStoreImage] = useState(false);
+  const searchQuery = (searchParams.get("q") || "").trim().toLowerCase();
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery) {
+      return products;
+    }
+
+    return products.filter((product) =>
+      [
+        product.sku,
+        product.slug,
+        product.nameUz,
+        product.nameRu,
+        product.nameEn,
+        product.shortDescriptionUz,
+        product.shortDescriptionRu,
+        product.shortDescriptionEn,
+        product.category?.nameUz,
+        product.category?.nameRu,
+        product.category?.nameEn
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery)
+    );
+  }, [products, searchQuery]);
 
   async function loadData() {
     setLoading(true);
@@ -626,13 +655,16 @@ export function ProductManager() {
       <div className="admin-panel p-6">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-2xl font-semibold text-slate-950">Products</h3>
-          <span className="admin-badge">{products.length}</span>
+          <span className="admin-badge">{filteredProducts.length}</span>
         </div>
 
         <div className="mt-5 space-y-4">
           {loading ? <p className="text-sm text-slate-500">Loading products...</p> : null}
           {!loading && products.length === 0 ? <p className="text-sm text-slate-500">No products yet.</p> : null}
-          {products.map((product) => (
+          {!loading && products.length > 0 && filteredProducts.length === 0 ? (
+            <p className="text-sm text-slate-500">No products found for this search.</p>
+          ) : null}
+          {filteredProducts.map((product) => (
             <article key={product.id} className="admin-panel-muted p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="flex gap-4">

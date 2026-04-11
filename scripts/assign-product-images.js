@@ -2,13 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-const coverImages = [
-  "/images/Galary/Product1.png",
-  "/images/Galary/Product2.png",
-  "/images/Galary/Product3.png",
-  "/images/Galary/Product4.png",
-  "/images/Galary/Product5.png"
-];
+const coverImage = "/images/Galary/Product2.png";
 
 const galleryPool = [
   "/images/Galary/1.png",
@@ -36,10 +30,6 @@ function hashString(value) {
   return hash;
 }
 
-function pickCover(slug) {
-  return coverImages[hashString(slug) % coverImages.length];
-}
-
 function pickGallery(slug) {
   const offset = hashString(`${slug}-gallery`) % galleryPool.length;
   const rotated = galleryPool.slice(offset).concat(galleryPool.slice(0, offset));
@@ -61,7 +51,6 @@ async function main() {
   });
 
   for (const product of products) {
-    const coverImage = pickCover(product.slug);
     const galleryImages = pickGallery(product.slug);
 
     await prisma.product.update({
