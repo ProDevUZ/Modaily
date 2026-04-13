@@ -55,13 +55,13 @@ export function ProductCard({
         </div>
       </Link>
 
-      <div className={isCatalog ? "flex flex-1 flex-col pt-[10cqi]" : "pt-4"}>
+      <div className={isCatalog ? "flex flex-1 flex-col pt-[8.5cqi]" : "pt-3.5"}>
         <Link href={productHref}>
           <h3
             className={`product-card-title text-black transition group-hover:text-[#ba0c2f] ${
               isCatalog
-                ? "max-w-[84%] min-h-[2.45em] text-[clamp(15.75px,6.93cqi,22px)]"
-                : "text-[1.05rem] leading-6"
+                ? "max-w-[84%] min-h-[2.45em] text-[clamp(13.5px,5.9cqi,18.75px)]"
+                : "text-[0.92rem] leading-5"
             }`}
           >
             {product.name}
@@ -70,14 +70,14 @@ export function ProductCard({
 
         {!isCatalog ? (
           <>
-            <p className="mt-1 text-sm text-black/45">{product.size}</p>
-            <p className="mt-3 line-clamp-2 text-sm leading-6 text-black/55">{product.shortDescription}</p>
+            <p className="mt-1 text-[12px] text-black/45">{product.size}</p>
+            <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-black/55">{product.shortDescription}</p>
           </>
         ) : null}
 
-        <div className={isCatalog ? "mt-auto space-y-[8cqi] pt-[8cqi]" : "mt-4 flex items-center justify-between gap-4"}>
+        <div className={isCatalog ? "mt-auto space-y-[6.8cqi] pt-[6.8cqi]" : "mt-3.5 flex items-center justify-between gap-3"}>
           {!isCatalog && !hideCommerce ? (
-            <p className="text-[1.15rem] text-black">
+            <p className="text-[1rem] text-black">
               {dictionary.currency.symbol === "$"
                 ? `${formatPrice(product.price)} СЃСѓРј`
                 : `${dictionary.currency.symbol}${product.price}`}
@@ -89,7 +89,7 @@ export function ProductCard({
               locale={locale}
               product={product}
               label={dictionary.actions.addToCart}
-              className="inline-flex h-11 items-center justify-center rounded-[8px] border border-black px-4 text-xs font-medium uppercase tracking-[0.14em] text-black transition hover:bg-black hover:text-white"
+              className="inline-flex h-10 items-center justify-center rounded-[8px] border border-black px-4 text-[11px] font-medium uppercase tracking-[0.12em] text-black transition hover:bg-black hover:text-white"
             />
           ) : null}
 
@@ -98,7 +98,7 @@ export function ProductCard({
               locale={locale}
               product={product}
               label={dictionary.actions.addToCart}
-              className="inline-flex h-[43px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[12px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
+              className="inline-flex h-[37px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[10px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
             />
           ) : null}
 
@@ -107,8 +107,8 @@ export function ProductCard({
               href={productHref}
               className={
                 compactMobile
-                  ? "catalog-card-action inline-flex h-[clamp(34px,12.3cqi,40px)] w-full items-center justify-center rounded-none border border-black/65 px-2 text-[clamp(10px,4cqi,12px)] text-black transition hover:bg-black hover:text-white"
-                  : "catalog-card-action inline-flex h-[clamp(36px,12.3cqi,42px)] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[clamp(10px,4cqi,13px)] text-black transition hover:bg-black hover:text-white"
+                  ? "catalog-card-action inline-flex h-[clamp(30px,10.5cqi,34px)] w-full items-center justify-center rounded-none border border-black/65 px-2 text-[clamp(9px,3.5cqi,10px)] text-black transition hover:bg-black hover:text-white"
+                  : "catalog-card-action inline-flex h-[clamp(31px,10.5cqi,36px)] w-full items-center justify-center rounded-none border border-black/65 px-3 text-[clamp(9px,3.5cqi,11px)] text-black transition hover:bg-black hover:text-white"
               }
             >
               {dictionary.actions.details}

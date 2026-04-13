@@ -1,8 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
+import { createSqliteAdapter } from "../lib/prisma-adapter";
 import { products as baseProducts } from "../lib/products";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: createSqliteAdapter()
+});
 
 type SkinType = "dry" | "combination" | "oily" | "sensitive";
 type CategorySlug = "serum" | "penka" | "moisturizer" | "toner";

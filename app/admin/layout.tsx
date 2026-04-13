@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  description: "Separate admin control panel for Modaily management."
+  title: "Панель управления",
+  description: "Отдельная панель управления Modaily."
 };
 
 export default function AdminLayout({

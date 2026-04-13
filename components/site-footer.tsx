@@ -94,7 +94,7 @@ function ContactIcon({
       aria-label={label}
       target={external ? "_blank" : undefined}
       rel={external ? "noreferrer" : undefined}
-      className="flex h-8 w-8 items-center justify-center rounded-full border border-white/50 text-white transition hover:bg-white/10"
+      className="flex h-7 w-7 items-center justify-center rounded-full border border-white/50 text-white transition hover:bg-white/10"
     >
       {children}
     </a>
@@ -110,16 +110,16 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
   return (
     <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="text-white">
       <footer>
-        <div className="mx-auto max-w-[1560px] px-6 py-8 lg:px-10 lg:py-10 xl:px-12 xl:py-12">
+        <div className="mx-auto max-w-[1560px] px-6 py-7 lg:px-10 lg:py-9 xl:px-12 xl:py-10">
           <div className="lg:hidden">
-            <div className="border-t border-white/35 px-5 pt-8 pb-6 text-center">
-              <p className="brand-wordmark text-[42px] uppercase leading-none text-white">
+            <div className="border-t border-white/35 px-5 pt-7 pb-5 text-center">
+              <p className="brand-wordmark text-[36px] uppercase leading-none text-white">
                 {siteSettings.brandName}
               </p>
 
-              <div className="mx-auto mt-5 h-[2px] w-[34px] rounded-full bg-white/75" />
+              <div className="mx-auto mt-4 h-[2px] w-[30px] rounded-full bg-white/75" />
 
-              <nav className="mt-5 flex items-center justify-center gap-6 text-[15px] text-white">
+              <nav className="mt-4 flex items-center justify-center gap-5 text-[13px] text-white">
                 <Link href={`/${locale}`} className="transition hover:text-white/80">
                   {dictionary.nav.home}
                 </Link>
@@ -134,18 +134,18 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                 </Link>
               </nav>
 
-              <div className="mt-8 text-left">
-                <p className="text-[14px] font-medium text-white">{labels.stores}</p>
-                <p className="mt-3 max-w-[260px] text-[14px] leading-8 text-white/90">
+              <div className="mt-7 text-left">
+                <p className="text-[12px] font-medium text-white">{labels.stores}</p>
+                <p className="mt-3 max-w-[240px] text-[12px] leading-7 text-white/90">
                   {siteSettings.footerAddress}
                 </p>
               </div>
 
-              <div className="mt-7 border-t border-white/30 pt-5">
-                <div className="flex items-center justify-center gap-4">
+              <div className="mt-6 border-t border-white/30 pt-4">
+                <div className="flex items-center justify-center gap-3.5">
                   {phoneHref ? (
                     <ContactIcon href={phoneHref} label="Phone">
-                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                         <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
                       </svg>
                     </ContactIcon>
@@ -153,7 +153,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
 
                   {instagramHref ? (
                     <ContactIcon href={instagramHref} label="Instagram" external>
-                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                         <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
                         <circle cx="12" cy="12" r="3.6" />
                         <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
@@ -163,7 +163,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
 
                   {telegramHref ? (
                     <ContactIcon href={telegramHref} label="Telegram" external>
-                      <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                         <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
                       </svg>
                     </ContactIcon>
@@ -171,25 +171,25 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                 </div>
               </div>
 
-              <p className="mt-7 text-center text-[12px] text-white/85">
+              <p className="mt-6 text-center text-[11px] text-white/85">
                 © 2026 {siteSettings.brandName}. All rights reserved.
               </p>
             </div>
           </div>
 
           <div className="hidden lg:block">
-            <div className="border-t border-white/35 pt-10 lg:pt-12">
-              <div className="grid gap-10 lg:grid-cols-[1.42fr_0.56fr_0.94fr] lg:gap-14 xl:gap-20">
+            <div className="border-t border-white/35 pt-9 lg:pt-10">
+              <div className="grid gap-9 lg:grid-cols-[1.42fr_0.56fr_0.94fr] lg:gap-12 xl:gap-16">
                 <div className="pt-2">
-                  <p className="brand-wordmark text-[4.1rem] uppercase leading-none text-white lg:text-[4.7rem]">
+                  <p className="brand-wordmark text-[3.5rem] uppercase leading-none text-white lg:text-[4rem]">
                     {siteSettings.brandName}
                   </p>
 
-                  <div className="mt-12 space-y-5 text-[1.05rem] text-white/92 lg:text-[1.08rem]">
+                  <div className="mt-10 space-y-4 text-[0.92rem] text-white/92 lg:text-[0.94rem]">
                     {phoneHref ? (
                       <a href={phoneHref} className="flex items-center gap-4 transition hover:text-white">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
+                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                             <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
                           </svg>
                         </span>
@@ -197,11 +197,11 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                       </a>
                     ) : null}
 
-                    <div className="flex flex-wrap items-center gap-x-8 gap-y-4 text-[1.05rem] text-white/92 lg:text-[1.08rem]">
+                    <div className="flex flex-wrap items-center gap-x-7 gap-y-3 text-[0.92rem] text-white/92 lg:text-[0.94rem]">
                       {telegramHref ? (
                         <a href={telegramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                               <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
                             </svg>
                           </span>
@@ -211,8 +211,8 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
 
                       {instagramHref ? (
                         <a href={instagramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35">
-                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
+                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
                               <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
                               <circle cx="12" cy="12" r="3.6" />
                               <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
@@ -226,8 +226,8 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                 </div>
 
                 <div className="pt-1">
-                  <p className="text-[1.12rem] font-medium text-white">{labels.pages}</p>
-                  <div className="mt-8 space-y-5 text-[1.05rem] text-white/88">
+                  <p className="text-[0.96rem] font-medium text-white">{labels.pages}</p>
+                  <div className="mt-7 space-y-4 text-[0.92rem] text-white/88">
                     <Link href={`/${locale}`} className="block transition hover:text-white">
                       {dictionary.nav.home}
                     </Link>
@@ -244,18 +244,18 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                 </div>
 
                 <div className="pt-1">
-                  <p className="text-[1.12rem] font-medium text-white">{labels.stores}</p>
-                  <p className="mt-8 max-w-[420px] text-[1.05rem] leading-8 text-white/88">
+                  <p className="text-[0.96rem] font-medium text-white">{labels.stores}</p>
+                  <p className="mt-7 max-w-[360px] text-[0.92rem] leading-7 text-white/88">
                     {siteSettings.footerAddress}
                   </p>
                 </div>
               </div>
 
-              <p className="mt-14 text-center text-[1rem] text-white/55">
-                © 2026 <span className="brand-wordmark align-baseline text-[1rem] uppercase">{siteSettings.brandName}</span>. All rights reserved.
+              <p className="mt-12 text-center text-[0.88rem] text-white/55">
+                © 2026 <span className="brand-wordmark align-baseline text-[0.88rem] uppercase">{siteSettings.brandName}</span>. All rights reserved.
               </p>
 
-              <div className="mt-8 border-t border-white/30" />
+              <div className="mt-7 border-t border-white/30" />
             </div>
           </div>
         </div>

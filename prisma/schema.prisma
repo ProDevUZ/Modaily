@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -77,6 +76,7 @@ model Product {
   updatedAt          DateTime @updatedAt
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   galleryImages      ProductGalleryImage[]
+  heroEntries        HomeHero[] @relation("HomeHeroProduct")
   reviews            ProductReview[]
 }
 
@@ -159,8 +159,10 @@ model HomeHero {
   secondaryCtaEn   String?
   secondaryCtaLink String?
   imageUrl         String?
+  heroProductId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  heroProduct      Product? @relation("HomeHeroProduct", fields: [heroProductId], references: [id], onDelete: SetNull)
 }
 
 model HomePromoCard {

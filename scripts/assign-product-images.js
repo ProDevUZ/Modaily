@@ -1,6 +1,6 @@
-const { PrismaClient } = require("@prisma/client");
+const { createPrismaClient } = require("./create-prisma-client");
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const coverImage = "/images/Galary/Product2.png";
 

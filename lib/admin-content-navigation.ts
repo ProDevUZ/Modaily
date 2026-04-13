@@ -3,7 +3,7 @@ export const adminContentSections = [
     key: "hero",
     href: "/admin/content/hero",
     label: "Хиро",
-    description: "Главный первый блок"
+    description: "Главный экран витрины"
   },
   {
     key: "about",

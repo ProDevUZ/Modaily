@@ -135,6 +135,7 @@ export type AdminHomeHero = {
   secondaryCtaEn: string | null;
   secondaryCtaLink: string | null;
   imageUrl: string | null;
+  heroProductId: string | null;
   createdAt: string;
   updatedAt: string;
 };

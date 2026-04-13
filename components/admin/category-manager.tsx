@@ -52,7 +52,7 @@ export function CategoryManager() {
     try {
       setCategories(await requestJson<AdminCategory[]>("/api/categories"));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load categories.");
+      setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить категории.");
     } finally {
       setLoading(false);
     }
@@ -78,21 +78,21 @@ export function CategoryManager() {
 
       setEditingId(null);
       setForm(emptyForm);
-      setMessage(editingId ? "Category updated." : "Category created.");
+      setMessage(editingId ? "Категория обновлена." : "Категория создана.");
       await loadCategories();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not save category.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить категорию.");
     }
   }
 
   async function handleDelete(category: AdminCategory) {
     if ((category._count?.products || 0) > 0) {
       setMessage(null);
-      setError("This category still has products. Move those products to another category first.");
+      setError("В этой категории еще есть товары. Сначала перенесите их в другую категорию.");
       return;
     }
 
-    if (!window.confirm("Delete this category?")) {
+    if (!window.confirm("Удалить эту категорию?")) {
       return;
     }
 
@@ -102,10 +102,10 @@ export function CategoryManager() {
         setEditingId(null);
         setForm(emptyForm);
       }
-      setMessage("Category deleted.");
+      setMessage("Категория удалена.");
       await loadCategories();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Could not delete category.");
+      setError(deleteError instanceof Error ? deleteError.message : "Не удалось удалить категорию.");
     }
   }
 
@@ -113,7 +113,7 @@ export function CategoryManager() {
     <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
       <form onSubmit={handleSubmit} className="admin-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Edit category" : "Create category"}</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Редактирование категории" : "Создание категории"}</h3>
           {editingId ? (
             <button
               type="button"
@@ -123,32 +123,32 @@ export function CategoryManager() {
                 setForm(emptyForm);
               }}
             >
-              Cancel
+              Отмена
             </button>
           ) : null}
         </div>
 
         <div className="mt-5 space-y-4">
-          <FieldGroup hint="Slug: category URL va ichki texnik identifikator.">
-            <input className="admin-input" aria-label="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+          <FieldGroup hint="Слаг категории для URL и внутренней технической идентификации.">
+            <input className="admin-input" aria-label="Слаг" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Name UZ: uzbek storefront ko‘rinishidagi category nomi.">
-            <input className="admin-input" aria-label="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+          <FieldGroup hint="Название категории для витрины на узбекском языке.">
+            <input className="admin-input" aria-label="Название UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Name RU: rus tilidagi category nomi.">
-            <input className="admin-input" aria-label="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+          <FieldGroup hint="Название категории для витрины на русском языке.">
+            <input className="admin-input" aria-label="Название RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Name EN: english storefront category nomi.">
-            <input className="admin-input" aria-label="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
+          <FieldGroup hint="Название категории для витрины на английском языке.">
+            <input className="admin-input" aria-label="Название EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Description UZ: category uchun uzbekcha qisqa izoh.">
-            <textarea className="admin-textarea" aria-label="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+          <FieldGroup hint="Короткое описание категории на узбекском языке.">
+            <textarea className="admin-textarea" aria-label="Описание UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Description RU: category uchun ruscha qisqa izoh.">
-            <textarea className="admin-textarea" aria-label="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+          <FieldGroup hint="Короткое описание категории на русском языке.">
+            <textarea className="admin-textarea" aria-label="Описание RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Description EN: category uchun inglizcha qisqa izoh.">
-            <textarea className="admin-textarea" aria-label="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
+          <FieldGroup hint="Короткое описание категории на английском языке.">
+            <textarea className="admin-textarea" aria-label="Описание EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
           </FieldGroup>
         </div>
 
@@ -156,29 +156,29 @@ export function CategoryManager() {
         {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
         <button type="submit" className="admin-button-primary mt-6 w-full">
-          {editingId ? "Update category" : "Create category"}
+          {editingId ? "Обновить категорию" : "Создать категорию"}
         </button>
       </form>
 
       <div className="admin-panel p-6">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-2xl font-semibold text-slate-950">Categories</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">Категории</h3>
           <span className="admin-badge">{categories.length}</span>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {loading ? <p className="text-sm text-slate-500">Loading categories...</p> : null}
-          {!loading && categories.length === 0 ? <p className="text-sm text-slate-500">No categories yet.</p> : null}
+          {loading ? <p className="text-sm text-slate-500">Загружаем категории...</p> : null}
+          {!loading && categories.length === 0 ? <p className="text-sm text-slate-500">Категорий пока нет.</p> : null}
           {categories.map((category) => (
             <article key={category.id} className="admin-panel-muted p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">{category.slug}</p>
-                  <h4 className="mt-2 text-lg font-semibold text-slate-950">{category.nameEn}</h4>
+                  <h4 className="mt-2 text-lg font-semibold text-slate-950">{category.nameRu || category.nameEn || category.nameUz}</h4>
                   <p className="mt-1 text-sm text-slate-600">{category.nameUz}</p>
-                  <p className="text-sm text-slate-600">{category.nameRu}</p>
+                  <p className="text-sm text-slate-600">{category.nameEn}</p>
                 </div>
-                <span className="admin-badge">{category._count?.products || 0} products</span>
+                <span className="admin-badge">{category._count?.products || 0} товаров</span>
               </div>
               <div className="mt-4 flex gap-2">
                 <button
@@ -197,21 +197,21 @@ export function CategoryManager() {
                     });
                   }}
                 >
-                  Edit
+                  Редактировать
                 </button>
                 <button
                   type="button"
                   className="admin-button-danger disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:hover:bg-slate-100"
                   onClick={() => handleDelete(category)}
                   disabled={(category._count?.products || 0) > 0}
-                  title={(category._count?.products || 0) > 0 ? "Move products out of this category before deleting it." : "Delete category"}
+                  title={(category._count?.products || 0) > 0 ? "Сначала перенесите товары в другую категорию." : "Удалить категорию"}
                 >
-                  Delete
+                  Удалить
                 </button>
               </div>
               {(category._count?.products || 0) > 0 ? (
                 <p className="mt-3 text-xs text-slate-500">
-                  Delete is locked while this category has linked products.
+                  Удаление недоступно, пока в этой категории есть связанные товары.
                 </p>
               ) : null}
             </article>

@@ -8,7 +8,7 @@ import { VideoGallery } from "@/components/home/video-gallery";
 import { FooterGradientBackground } from "@/components/footer-gradient-background";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
-import { getStorefrontProducts } from "@/lib/storefront-products";
+import { getStorefrontProducts, type StorefrontProduct } from "@/lib/storefront-products";
 import { getHomePageContent } from "@/lib/storefront-content";
 
 export const dynamic = "force-dynamic";
@@ -228,7 +228,7 @@ export default async function HomePage({ params }: PageProps) {
   const bestsellerProducts =
     content.bestsellers.length > 0
       ? content.bestsellers
-      : catalogProducts.slice(0, 4).map((product) => ({
+      : catalogProducts.slice(0, 4).map((product: StorefrontProduct) => ({
           id: product.id,
           slug: product.slug,
           name: product.name,
@@ -246,7 +246,11 @@ export default async function HomePage({ params }: PageProps) {
   return (
     <div className="bg-white text-black">
       <section className="pt-0">
-        <div className="grid h-[696px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:hidden">
+        <Link
+          href={content.hero.primaryCtaLink}
+          aria-label={content.hero.primaryCta || copy.learnMore}
+          className="grid h-[696px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:hidden"
+        >
           <FallbackImage
             src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
             fallbackSrc="/images/home/mainpage.jpg"
@@ -257,23 +261,24 @@ export default async function HomePage({ params }: PageProps) {
           <div className="col-start-1 row-start-1 flex h-[696px] items-end px-[38px] pb-[31px]">
             <div className="w-full max-w-[338px]">
               <p className="text-[17px] leading-none tracking-[-0.02em] text-black/52">{content.hero.badge || "Novinka"}</p>
-              <h1 className="hero-title mt-[11px] text-[35px] uppercase leading-[1.02] tracking-[-0.045em] text-[#1f1f1f]">
+              <h1 className="hero-title mt-[11px] text-[35px] uppercase leading-[1.5] tracking-[-0.045em] text-[#1f1f1f]">
                 {content.hero.title}
               </h1>
               <p className="mt-[14px] max-w-[332px] text-[15px] leading-[1.55] text-black/76">
                 {content.hero.description}
               </p>
-              <Link
-                href={content.hero.primaryCtaLink}
-                className="mt-[28px] inline-flex h-[50px] w-[254px] items-center justify-center bg-[var(--brand)] text-[13px] uppercase tracking-[0.19em] text-white"
-              >
+              <span className="mt-[28px] inline-flex h-[50px] w-[254px] items-center justify-center bg-[var(--brand)] text-[13px] uppercase tracking-[0.19em] text-white">
                 {content.hero.primaryCta || copy.learnMore}
-              </Link>
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="hidden min-h-[460px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:grid md:min-h-[520px] xl:min-h-[555px]">
+        <Link
+          href={content.hero.primaryCtaLink}
+          aria-label={content.hero.primaryCta || copy.learnMore}
+          className="hidden min-h-[460px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:grid md:min-h-[520px] xl:min-h-[555px]"
+        >
           <FallbackImage
             src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
             fallbackSrc="/images/home/mainpage.jpg"
@@ -286,29 +291,32 @@ export default async function HomePage({ params }: PageProps) {
               <p className="text-[16px] tracking-[0.01em] text-black/44 md:text-[18px]">
                 {content.hero.badge || "Novinka"}
               </p>
-              <h1 className="hero-title mt-3 max-w-[8.2ch] text-[52px] uppercase leading-[0.94] tracking-[-0.02em] text-[#565656]">
+              <h1 className="hero-title mt-3 max-w-[13.5ch] text-balance text-[52px] uppercase leading-[1.5] tracking-[-0.02em] text-[#565656]">
                 {content.hero.title}
               </h1>
-              <p className="mt-7 max-w-[690px] text-[17px] leading-[1.46] text-black/58 sm:text-[19px] lg:mt-8 lg:text-[22px]">
+              <p className="mt-7 max-w-[46ch] text-[17px] leading-[1.46] text-black/58 sm:text-[19px] lg:mt-8 lg:text-[22px]">
                 {content.hero.description}
               </p>
-              <Link
-                href={content.hero.primaryCtaLink}
-                className="mt-8 inline-flex h-[48px] w-[218px] items-center justify-center bg-[var(--brand)] text-[13px] font-medium uppercase tracking-[0.18em] text-white sm:h-[52px] sm:w-[250px] lg:mt-9 lg:h-[57px] lg:w-[271px]"
-              >
+              <span className="mt-8 inline-flex h-[48px] w-[218px] items-center justify-center bg-[var(--brand)] text-[13px] font-medium uppercase tracking-[0.18em] text-white sm:h-[52px] sm:w-[250px] lg:mt-9 lg:h-[57px] lg:w-[271px]">
                 {content.hero.primaryCta || copy.learnMore}
-              </Link>
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
       </section>
 
       <section className="px-[38px] py-9 lg:px-12 lg:py-12">
         <div className="mx-auto max-w-[1680px]">
           <div className="hidden items-center justify-between lg:flex">
             <h2 className="text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
-            <Link href={`/${locale}/catalog`} className="text-[18px] text-[var(--brand)]">
-              {copy.moreProducts} __
+            <Link
+              href={`/${locale}/catalog`}
+              className="inline-flex items-center gap-[10px] border-b-[1.5px] border-[var(--brand)] pb-[4px] text-[18px] leading-none text-[var(--brand)]"
+            >
+              <span>{copy.moreProducts}</span>
+              <span aria-hidden="true" className="translate-y-[-1px] text-[25px] leading-none">
+                →
+              </span>
             </Link>
           </div>
 
@@ -316,18 +324,19 @@ export default async function HomePage({ params }: PageProps) {
             <h2 className="text-[33px] leading-none tracking-[-0.05em] text-black">{copy.bestsellers}</h2>
           </div>
 
-          <div className="mt-5 h-[4px] w-full rounded-full bg-[#e5e8ec] lg:mt-8 lg:h-[3px] lg:bg-black/8">
-            <div className="h-full w-[71%] rounded-full bg-[#282828] lg:bg-black" />
-          </div>
-
-          <Link href={`/${locale}/catalog`} className="mt-5 inline-flex items-center gap-2 border-b border-[var(--brand)] pb-1 text-[15px] leading-none text-[var(--brand)] lg:hidden">
+          <Link
+            href={`/${locale}/catalog`}
+            className="mt-5 inline-flex items-center gap-2 border-b-[1.5px] border-[var(--brand)] pb-[3px] text-[15px] leading-none text-[var(--brand)] lg:hidden"
+          >
             <span>{copy.moreProducts}</span>
-            <span aria-hidden="true">→</span>
+            <span aria-hidden="true" className="translate-y-[-1px] text-[20px] leading-none">
+              →
+            </span>
           </Link>
 
-          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-[10px]">
             {bestsellerProducts.slice(0, 4).map((product) => (
-              <article key={product.id}>
+              <article key={product.id} className="mx-auto w-full max-w-[90%]">
                 <div className="flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
                   <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
                 </div>

@@ -23,7 +23,7 @@ export async function generateStaticParams() {
   const slugs = await getStorefrontProductSlugs();
 
   return locales.flatMap((locale) =>
-    slugs.map((slug) => ({
+    slugs.map((slug: string) => ({
       locale,
       slug
     }))

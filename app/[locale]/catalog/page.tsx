@@ -51,23 +51,25 @@ export default async function CatalogPage({ params }: PageProps) {
   const siteSettings = await getLocalizedSiteSettings(locale);
 
   return (
-    <section className="bg-white pt-8 pb-10 md:pt-10 md:pb-12">
-      <div className="mx-auto mb-10 w-full max-w-[1720px] px-5 text-center md:px-8 xl:pl-7 xl:pr-10">
+    <section className="bg-white pt-7 pb-9 md:pt-8 md:pb-10">
+      <div className="mx-auto mb-8 w-full max-w-[1720px] px-5 text-center md:px-8 xl:pl-7 xl:pr-10">
         <div className="flex flex-col items-center">
-          <h1 className="text-[22px] font-normal leading-none text-black/55 md:text-[30px]">
+          <h1 className="text-[19px] font-normal leading-none text-black/55 md:text-[26px]">
             {catalogDisplayHeading[locale]}
           </h1>
         </div>
 
-        <div className="mx-auto mt-5 flex w-full max-w-[1180px] items-center justify-center gap-0">
+        <div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-center gap-0">
           <div className="h-px flex-1 bg-black/10" />
-          <div className="h-[3px] w-[352px] bg-[#ba0c2f]" />
+          <div className="h-[3px] w-[300px] bg-[#ba0c2f]" />
           <div className="h-px flex-1 bg-black/10" />
         </div>
       </div>
 
       <div className="mx-auto w-full max-w-[1720px] px-5 md:px-8 xl:pl-7 xl:pr-10">
-        <CatalogBrowser locale={locale} products={products} hideCommerce={siteSettings.hideCommerce} />
+        <div className="w-full xl:mr-auto xl:max-w-[1450px]">
+          <CatalogBrowser locale={locale} products={products} hideCommerce={siteSettings.hideCommerce} />
+        </div>
       </div>
     </section>
   );

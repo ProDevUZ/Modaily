@@ -37,6 +37,17 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
+  if (parsed.data.heroProductId) {
+    const linkedProduct = await prisma.product.findUnique({
+      where: { id: parsed.data.heroProductId },
+      select: { id: true }
+    });
+
+    if (!linkedProduct) {
+      return NextResponse.json({ error: "Selected hero product was not found." }, { status: 400 });
+    }
+  }
+
   const updated = await prisma.homeHero.update({
     where: { id: current.id },
     data: parsed.data

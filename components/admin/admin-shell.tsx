@@ -9,6 +9,7 @@ type AdminShellProps = {
   title: string;
   description: string;
   current: AdminSectionKey;
+  subHeader?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -123,7 +124,7 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
   );
 }
 
-export function AdminShell({ title, description, current, children }: AdminShellProps) {
+export function AdminShell({ title, description, current, subHeader, children }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -199,12 +200,17 @@ export function AdminShell({ title, description, current, children }: AdminShell
             <div
               className={`px-5 py-5 lg:px-8 ${
                 showSearch
-                  ? "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-                  : "flex min-h-[84px] items-center justify-end"
+                  ? "flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+                  : "space-y-3"
               }`}
             >
+              <div className="max-w-[1100px]">
+                <h1 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">{title}</h1>
+                <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>
+              </div>
+
               {showSearch ? (
-                <div className="w-full max-w-[460px]">
+                <div className="w-full max-w-[460px] lg:shrink-0">
                   <div className="relative w-full">
                     <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
                       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -224,14 +230,14 @@ export function AdminShell({ title, description, current, children }: AdminShell
             </div>
           </header>
 
-          <main className="px-5 py-6 lg:px-8">
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">{title}</h1>
-                <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>
-              </div>
-              {children}
+          {subHeader ? (
+            <div className="border-b border-[#e8eef8] bg-white/72 backdrop-blur-xl">
+              <div className="px-5 py-4 lg:px-8">{subHeader}</div>
             </div>
+          ) : null}
+
+          <main className="px-5 py-6 lg:px-8">
+            <div className="space-y-6">{children}</div>
           </main>
         </div>
       </div>

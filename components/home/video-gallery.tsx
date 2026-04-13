@@ -48,6 +48,30 @@ function PlayButton({ playing }: { playing: boolean }) {
   );
 }
 
+function VideoPreviewSurface({ item, index }: { item: VideoItem; index: number }) {
+  if (item.imageUrl?.trim()) {
+    return (
+      <FallbackImage
+        src={item.imageUrl}
+        fallbackSrc="/images/home/mainpage.jpg"
+        alt={item.title || `Video ${index + 1}`}
+        className="absolute inset-0 h-[420px] w-full object-cover md:h-[720px]"
+      />
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 flex h-[420px] w-full items-center justify-center bg-[linear-gradient(180deg,#f3f1ed_0%,#ece7df_100%)] md:h-[720px]">
+      <div className="flex flex-col items-center gap-4 text-center text-[#8b7d75]">
+        <span className="text-[11px] uppercase tracking-[0.34em] text-[#ba0c2f]/70">Video Preview</span>
+        <span className="max-w-[14ch] text-[15px] font-medium leading-6 text-[#7a6f68]">
+          {item.title || `Video ${index + 1}`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function VideoCard({
   item,
   index,
@@ -111,19 +135,22 @@ function VideoCard({
       aria-label={item.title || `Video ${index + 1}`}
     >
       {item.videoUrl ? (
-        <video
-          ref={videoRef}
-          src={item.videoUrl}
-          poster={item.imageUrl || undefined}
-          preload="metadata"
-          playsInline
-          loop
-          muted
-          className="h-[420px] w-full object-cover md:h-[720px]"
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onEnded={() => setPlaying(false)}
-        />
+        <>
+          <video
+            ref={videoRef}
+            src={item.videoUrl}
+            poster={item.imageUrl || undefined}
+            preload="metadata"
+            playsInline
+            loop
+            muted
+            className="h-[420px] w-full object-cover md:h-[720px]"
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => setPlaying(false)}
+          />
+          {(!isActive || !playing) ? <VideoPreviewSurface item={item} index={index} /> : null}
+        </>
       ) : (
         <FallbackImage
           src={item.imageUrl || "https://placehold.co/375x667"}

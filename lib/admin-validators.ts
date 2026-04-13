@@ -114,6 +114,7 @@ export type HomeHeroPayload = {
   secondaryCtaEn: string | null;
   secondaryCtaLink: string | null;
   imageUrl: string | null;
+  heroProductId: string | null;
 };
 
 export type HomePromoCardPayload = {
@@ -448,7 +449,8 @@ export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHer
       secondaryCtaRu: asOptionalString(payload.secondaryCtaRu),
       secondaryCtaEn: asOptionalString(payload.secondaryCtaEn),
       secondaryCtaLink: asOptionalString(payload.secondaryCtaLink),
-      imageUrl: asOptionalString(payload.imageUrl)
+      imageUrl: asOptionalString(payload.imageUrl),
+      heroProductId: asOptionalString(payload.heroProductId)
     }
   };
 }

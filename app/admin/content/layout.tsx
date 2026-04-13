@@ -5,13 +5,11 @@ export default function AdminContentLayout({ children }: { children: React.React
   return (
     <AdminShell
       current="content"
-      title="Content CMS"
-      description="Homepage editorial bloklari va storefront content endi alohida sahifalarga bo'lingan."
+      title="Контент-центр"
+      description="Профессиональная панель управления блоками главной страницы, медиа и текстами витрины. Здесь собраны все сценарии, которые команда контента меняет чаще всего."
+      subHeader={<ContentTabs />}
     >
-      <div className="space-y-6">
-        <ContentTabs />
-        {children}
-      </div>
+      {children}
     </AdminShell>
   );
 }

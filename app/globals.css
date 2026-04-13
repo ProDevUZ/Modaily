@@ -184,13 +184,23 @@ select {
 }
 
 .admin-panel {
-  @apply rounded-[1.75rem] border bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)];
-  border-color: #edf1f7;
+  @apply rounded-[1.75rem] border bg-white;
+  border-color: #e6edf8;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 253, 255, 0.98) 100%);
+  box-shadow:
+    0 20px 48px rgba(15, 23, 42, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset;
 }
 
 .admin-panel-muted {
-  @apply rounded-[1.5rem] border bg-[#f8fafc];
-  border-color: #edf1f7;
+  @apply rounded-[1.5rem] border;
+  border-color: #e7eef8;
+  background:
+    linear-gradient(180deg, rgba(252, 253, 255, 0.94) 0%, rgba(246, 249, 253, 0.98) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 14px 28px rgba(148, 163, 184, 0.07);
 }
 
 .admin-input {
@@ -216,21 +226,27 @@ select {
 
 .admin-button-primary {
   @apply inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold text-white transition;
-  background: var(--brand);
+  background:
+    linear-gradient(135deg, #d11e43 0%, #ba0c2f 52%, #8f0f28 100%);
+  box-shadow: 0 18px 30px rgba(186, 12, 47, 0.2);
 }
 
 .admin-button-primary:hover {
-  background: #980926;
+  background:
+    linear-gradient(135deg, #c7183d 0%, #aa0b2b 52%, #860d24 100%);
+  transform: translateY(-1px);
 }
 
 .admin-button-secondary {
   @apply inline-flex items-center justify-center rounded-2xl border bg-white px-4 py-2 text-sm font-semibold transition;
   border-color: #dbe3f0;
   color: #31456a;
+  box-shadow: 0 10px 20px rgba(148, 163, 184, 0.08);
 }
 
 .admin-button-secondary:hover {
   background: #f5f8ff;
+  transform: translateY(-1px);
 }
 
 .admin-button-danger {
@@ -252,6 +268,139 @@ select {
 .admin-form-hint {
   @apply mt-2 px-1 text-[11px] leading-4;
   color: #8391ab;
+}
+
+.admin-workspace-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(226, 233, 247, 0.95);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 251, 255, 0.98) 100%);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.85) inset;
+}
+
+.admin-workspace-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(226, 233, 247, 0.14) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(226, 233, 247, 0.1) 1px, transparent 1px);
+  background-size: 84px 84px;
+  mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 82%);
+  pointer-events: none;
+}
+
+.admin-workspace-hero::after {
+  content: "";
+  position: absolute;
+  inset: -18% -6% auto auto;
+  width: 280px;
+  height: 280px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(186, 12, 47, 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.admin-stat-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(223, 232, 244, 0.95);
+  border-radius: 1.4rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 255, 0.98) 100%);
+  box-shadow:
+    0 14px 28px rgba(148, 163, 184, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
+}
+
+.admin-content-rail {
+  display: flex;
+  align-items: center;
+}
+
+.admin-content-tab {
+  position: relative;
+  border-radius: 999px;
+  color: #55657f;
+}
+
+.admin-content-tab::after {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.45rem;
+  height: 2px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background 180ms ease;
+}
+
+.admin-content-tab-active {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(249, 251, 255, 0.98) 100%);
+  color: #0f172a;
+  box-shadow:
+    0 10px 18px rgba(148, 163, 184, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+.admin-content-tab-active::after {
+  background: linear-gradient(90deg, rgba(209, 30, 67, 0.92) 0%, rgba(186, 12, 47, 0.92) 100%);
+}
+
+.admin-tab-card {
+  border: 1px solid rgba(230, 237, 248, 0.96);
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 255, 0.96) 100%);
+  box-shadow:
+    0 14px 32px rgba(148, 163, 184, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
+}
+
+.admin-tab-card-active {
+  border-color: rgba(186, 12, 47, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(255, 225, 232, 0.9), transparent 32%),
+    linear-gradient(180deg, rgba(255, 250, 251, 0.96) 0%, rgba(255, 244, 247, 0.98) 100%);
+  box-shadow:
+    0 22px 42px rgba(186, 12, 47, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.78) inset;
+}
+
+.admin-segment-tab {
+  border: 1px solid rgba(220, 228, 241, 0.98);
+  border-radius: 1.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(247, 249, 252, 0.98) 100%);
+}
+
+.admin-segment-tab-active {
+  border-color: rgba(186, 12, 47, 0.22);
+  background:
+    linear-gradient(135deg, rgba(209, 30, 67, 0.08) 0%, rgba(186, 12, 47, 0.12) 100%),
+    #fff7fa;
+  box-shadow: 0 14px 28px rgba(186, 12, 47, 0.1);
+}
+
+.admin-panel-header {
+  border-bottom: 1px solid rgba(232, 238, 247, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(249, 251, 255, 0.84) 100%);
+}
+
+.admin-list-card {
+  border: 1px solid rgba(228, 235, 246, 0.98);
+  border-radius: 1.35rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(249, 251, 255, 0.98) 100%);
+  box-shadow:
+    0 12px 24px rgba(148, 163, 184, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
 }
 
 .brand-footer-surface {

@@ -250,7 +250,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             <Link
               href={`/${locale}/catalog/${product.slug}/store`}
               aria-label={copy.actions.whereToBuy}
-              className={`where-to-buy-pin group fixed bottom-5 right-4 z-[60] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-all duration-700 hover:scale-[1.06] sm:bottom-8 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 ${showWhereToBuy ? "pointer-events-auto translate-y-0 rotate-[-6deg] opacity-100" : "pointer-events-none translate-y-4 rotate-[2deg] opacity-0"}`}
+              className={`where-to-buy-pin group fixed bottom-6 right-4 z-[120] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-all duration-700 hover:scale-[1.06] sm:bottom-10 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 lg:bottom-12 ${showWhereToBuy ? "pointer-events-auto translate-y-0 rotate-[-6deg] opacity-100" : "pointer-events-none translate-y-4 rotate-[2deg] opacity-0"}`}
             >
               <span className="where-to-buy-pin-tail pointer-events-none absolute left-1/2 top-[67px] h-[26px] w-[26px] -translate-x-1/2 rotate-45 rounded-[7px] border-r border-b border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] sm:top-[79px] sm:h-[30px] sm:w-[30px]" />
               <span className="pointer-events-none absolute inset-[1px] rounded-[999px] bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.12))]" />
@@ -459,7 +459,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </Link>
           </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-6 grid gap-y-5 gap-x-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
             {recommendations.map((item) => (
               <Link key={item.id} href={`/${locale}/catalog/${item.slug}`} className="group overflow-hidden rounded-[0.25rem] bg-white">
                 <div className="overflow-hidden bg-[#f5f5f2]">

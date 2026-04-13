@@ -19,7 +19,7 @@ export function SettingsManager() {
         const payload = await requestJson<AdminSiteSettings>("/api/content/site-settings");
         setSettings(payload);
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : "Nastroykalarni yuklab bo'lmadi.");
+        setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить настройки.");
       } finally {
         setLoading(false);
       }
@@ -47,16 +47,16 @@ export function SettingsManager() {
         body: JSON.stringify(settings)
       });
 
-      setMessage("Nastroykalar saqlandi.");
+      setMessage("Настройки сохранены.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Nastroykalarni saqlab bo'lmadi.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить настройки.");
     }
   }
 
   return (
     <form onSubmit={handleSubmit} className="admin-panel max-w-[620px] p-6">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-2xl font-semibold text-slate-950">Global nastroykalar</h3>
+        <h3 className="text-2xl font-semibold text-slate-950">Глобальные настройки</h3>
       </div>
 
       <div className="mt-5 space-y-4">
@@ -68,14 +68,14 @@ export function SettingsManager() {
               setSettings((current) => (current ? { ...current, hideCommerce: event.target.checked } : current))
             }
           />
-          Hidden mode yoqilsin
+          Включить скрытый режим
         </label>
         <p className="admin-form-hint">
-          Bu yoqilsa vitrineda narx, savatcha va buyurtma elementlari yashiriladi.
+          При включении этого режима на витрине скрываются цены, корзина и элементы оформления заказа.
         </p>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Telefon raqami</label>
+          <label className="block text-sm font-semibold text-slate-800">Номер телефона</label>
           <input
             className="admin-input mt-2"
             value={settings?.footerPhone || ""}
@@ -84,11 +84,11 @@ export function SettingsManager() {
             }
             placeholder="+998 90 123 45 67"
           />
-          <p className="admin-form-hint">Footer ichidagi telefon va tel ssilka uchun ishlatiladi.</p>
+          <p className="admin-form-hint">Используется для телефона и ссылки `tel:` в футере.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Instagram nomi</label>
+          <label className="block text-sm font-semibold text-slate-800">Подпись Instagram</label>
           <input
             className="admin-input mt-2"
             value={settings?.footerInstagram || ""}
@@ -97,11 +97,11 @@ export function SettingsManager() {
             }
             placeholder="@modaily_cis"
           />
-          <p className="admin-form-hint">Footer ichida ko'rinadigan Instagram nomi.</p>
+          <p className="admin-form-hint">Текст, который отображается рядом с Instagram в футере.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Instagram ssilka</label>
+          <label className="block text-sm font-semibold text-slate-800">Ссылка Instagram</label>
           <input
             className="admin-input mt-2"
             value={settings?.footerInstagramLink || ""}
@@ -112,11 +112,11 @@ export function SettingsManager() {
             }
             placeholder="https://instagram.com/modaily_cis"
           />
-          <p className="admin-form-hint">Instagram ikon bosilganda shu ssilka ochiladi.</p>
+          <p className="admin-form-hint">Открывается при клике на иконку Instagram.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Telegram nomi</label>
+          <label className="block text-sm font-semibold text-slate-800">Подпись Telegram</label>
           <input
             className="admin-input mt-2"
             value={settings?.footerTelegram || ""}
@@ -125,11 +125,11 @@ export function SettingsManager() {
             }
             placeholder="@modaily_cis"
           />
-          <p className="admin-form-hint">Footer ichida ko'rinadigan Telegram nomi.</p>
+          <p className="admin-form-hint">Текст, который отображается рядом с Telegram в футере.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Telegram ssilka</label>
+          <label className="block text-sm font-semibold text-slate-800">Ссылка Telegram</label>
           <input
             className="admin-input mt-2"
             value={settings?.footerTelegramLink || ""}
@@ -140,11 +140,11 @@ export function SettingsManager() {
             }
             placeholder="https://t.me/modaily_cis"
           />
-          <p className="admin-form-hint">Telegram ikon bosilganda shu ssilka ochiladi.</p>
+          <p className="admin-form-hint">Открывается при клике на иконку Telegram.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Do'kon manzili</label>
+          <label className="block text-sm font-semibold text-slate-800">Адрес магазина</label>
           <input
             className="admin-input mt-2"
             value={settings?.storeAddress || ""}
@@ -153,11 +153,11 @@ export function SettingsManager() {
             }
             placeholder="Yunusobod, Toshkent, ko'cha va uy raqam"
           />
-          <p className="admin-form-hint">Flagship store sahifasida ko'rinadigan ko'cha nomi va uy raqam.</p>
+          <p className="admin-form-hint">Отображается на странице фирменного магазина.</p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-800">Map ssilka</label>
+          <label className="block text-sm font-semibold text-slate-800">Ссылка на карту</label>
           <input
             className="admin-input mt-2"
             value={settings?.storeMapLink || ""}
@@ -166,16 +166,16 @@ export function SettingsManager() {
             }
             placeholder="https://maps.google.com/..."
           />
-          <p className="admin-form-hint">Otkryt v karte tugmasi shu ssilkani ochadi.</p>
+          <p className="admin-form-hint">Кнопка открытия карты ведет по этой ссылке.</p>
         </div>
       </div>
 
-      {loading ? <p className="mt-4 text-sm text-slate-500">Nastroykalar yuklanmoqda...</p> : null}
+      {loading ? <p className="mt-4 text-sm text-slate-500">Загружаем настройки...</p> : null}
       {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
       {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
       <button type="submit" className="admin-button-primary mt-6 w-full" disabled={!settings}>
-        Saqlash
+        Сохранить
       </button>
     </form>
   );

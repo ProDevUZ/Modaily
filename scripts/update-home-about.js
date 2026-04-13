@@ -1,6 +1,6 @@
-const { PrismaClient } = require("@prisma/client");
+const { createPrismaClient } = require("./create-prisma-client");
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 const data = {
   titleUz: "O MODAILY",

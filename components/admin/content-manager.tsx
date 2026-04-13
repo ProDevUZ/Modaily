@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
-import { type AdminContentSectionKey } from "@/lib/admin-content-navigation";
+import { adminContentSections, type AdminContentSectionKey } from "@/lib/admin-content-navigation";
 import {
   type AdminGalleryItem,
   type AdminHomeAbout,
@@ -21,6 +21,10 @@ type AboutForm = Omit<AdminHomeAbout, "id" | "createdAt" | "updatedAt">;
 type PromoForm = Omit<AdminHomePromoCard, "id" | "createdAt" | "updatedAt">;
 type GalleryForm = Omit<AdminGalleryItem, "id" | "createdAt" | "updatedAt">;
 type TestimonialForm = Omit<AdminTestimonial, "id" | "createdAt" | "updatedAt">;
+
+function getProductOptionLabel(product: AdminProduct) {
+  return product.nameRu || product.nameEn || product.nameUz;
+}
 
 const emptyPromoForm: PromoForm = {
   titleUz: "",
@@ -69,12 +73,108 @@ const emptyTestimonialForm: TestimonialForm = {
   active: true
 };
 
-function SectionCard({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+const workspaceMeta: Record<
+  AdminContentSectionKey,
+  { eyebrow: string; title: string; description: string; tips: [string, string, string] }
+> = {
+  hero: {
+    eyebrow: "Главный экран",
+    title: "Рабочая зона хиро-блока",
+    description: "Первое впечатление о витрине формируется именно здесь. Текст, изображение и привязанный товар собраны в одном месте.",
+    tips: [
+      "Короткий и сильный заголовок делает хиро-блок заметно профессиональнее.",
+      "После загрузки изображения его можно быстро проверить через предпросмотр в админке.",
+      "Выбор товара автоматически привязывает кнопку «Подробно»."
+    ]
+  },
+  about: {
+    eyebrow: "История бренда",
+    title: "Редактор блока «О бренде»",
+    description: "Здесь собирается история бренда и длинный текстовый контент. В этом блоке особенно важны читабельность и структура.",
+    tips: [
+      "Проверяйте каждый языковой блок отдельно.",
+      "Для длинных абзацев сохраняйте единый тон и ритм текста.",
+      "После обновления изображения изменения на витрине появляются почти сразу."
+    ]
+  },
+  promo: {
+    eyebrow: "Редакционные блоки",
+    title: "Менеджер промо-карточек",
+    description: "Панель для быстрого создания, редактирования и сортировки промо-карточек после блока бестселлеров.",
+    tips: [
+      "Через порядок сортировки удобно управлять точным порядком карточек.",
+      "Флаг активности помогает временно скрывать промо-блоки без удаления.",
+      "Предпросмотр изображения помогает быстро проверить визуальный баланс карточки."
+    ]
+  },
+  gallery: {
+    eyebrow: "Медиатека",
+    title: "Менеджер контента галереи",
+    description: "Панель управления изображениями и видео для медиаблоков главной страницы.",
+    tips: [
+      "Режимы изображений и видео разделены на отдельные сценарии работы.",
+      "Порядок сортировки определяет последовательность изображений и видеоблоков.",
+      "Ссылка на загруженный файл сохраняется, поэтому его легко использовать повторно."
+    ]
+  },
+  testimonials: {
+    eyebrow: "Социальное доказательство",
+    title: "Центр управления отзывами",
+    description: "Из этого раздела управляются контент, порядок и статусы карточек с отзывами.",
+    tips: [
+      "Имя автора, товар и текст отзыва должны звучать в одном тоне.",
+      "Рейтинг и порядок сортировки напрямую влияют на визуальный баланс блока.",
+      "Активные отзывы сразу попадают на витрину."
+    ]
+  },
+  settings: {
+    eyebrow: "Глобальный контент",
+    title: "Рабочая зона настроек витрины",
+    description: "Центральная панель для анонса, футера и общего контента витрины.",
+    tips: [
+      "Контакты в футере всегда должны быть актуальными.",
+      "Анонс и контент футера должны быть согласованы во всех локалях.",
+      "Название бренда и сервисный контент глобально управляются именно здесь."
+    ]
+  },
+  bestseller: {
+    eyebrow: "Мерчандайзинг главной",
+    title: "Обзор блока бестселлеров",
+    description: "Ассортимент бестселлеров управляется через раздел товаров, а здесь собраны быстрый обзор и переходы.",
+    tips: [
+      "Флаг бестселлера и порядок на главной настраиваются в разделе товаров.",
+      "Этот раздел удобен для быстрого контроля мерчандайзинга на главной.",
+      "При необходимости отсюда можно быстро перейти в раздел товаров."
+    ]
+  }
+};
+
+function SectionCard({
+  title,
+  description,
+  children,
+  eyebrow = "Редактор контента",
+  actions
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  eyebrow?: string;
+  actions?: React.ReactNode;
+}) {
   return (
-    <section className="admin-panel p-6">
-      <h2 className="text-2xl font-semibold text-slate-950">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
-      <div className="mt-5">{children}</div>
+    <section className="admin-panel overflow-hidden">
+      <div className="admin-panel-header px-6 py-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-400">{eyebrow}</p>
+            <h2 className="mt-2 text-[1.65rem] font-semibold tracking-tight text-slate-950">{title}</h2>
+            <p className="mt-2 max-w-[62ch] text-sm leading-6 text-slate-500">{description}</p>
+          </div>
+          {actions ? <div className="shrink-0">{actions}</div> : null}
+        </div>
+      </div>
+      <div className="p-6">{children}</div>
     </section>
   );
 }
@@ -114,6 +214,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [heroUploadPending, setHeroUploadPending] = useState(false);
   const [promoUploadPending, setPromoUploadPending] = useState(false);
   const [galleryUploadPending, setGalleryUploadPending] = useState(false);
   const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
@@ -143,7 +244,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setTestimonials(dashboard.testimonials);
       setProducts(productPayload);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load content.");
+      setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить контент.");
     } finally {
       setLoading(false);
     }
@@ -165,7 +266,37 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setMessage(successMessage);
       await loadData();
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save content.");
+      setError(saveError instanceof Error ? saveError.message : "Не удалось сохранить контент.");
+    }
+  }
+
+  async function handleHeroImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setHeroUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
+        method: "POST",
+        body: formData
+      });
+
+      setHero((current) => (current ? { ...current, imageUrl: payload.url } : current));
+      setMessage("Изображение hero загружено.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение hero.");
+    } finally {
+      setHeroUploadPending(false);
+      event.target.value = "";
     }
   }
 
@@ -187,10 +318,10 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       });
       setEditingPromoId(null);
       setPromoForm(emptyPromoForm);
-      setMessage(editingPromoId ? "Promo updated." : "Promo created.");
+      setMessage(editingPromoId ? "Промо-карточка обновлена." : "Промо-карточка создана.");
       await loadData();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not save promo.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить промо-карточку.");
     }
   }
 
@@ -218,9 +349,9 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         ...current,
         imageUrl: payload.url
       }));
-      setMessage("Promo image uploaded.");
+      setMessage("Изображение промо-карточки загружено.");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Promo image upload failed.");
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение промо-карточки.");
     } finally {
       setPromoUploadPending(false);
       event.target.value = "";
@@ -237,10 +368,10 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       });
       setEditingGalleryId(null);
       setGalleryForm({ ...emptyGalleryForm, type: activeGalleryType });
-      setMessage(editingGalleryId ? "Gallery item updated." : "Gallery item created.");
+      setMessage(editingGalleryId ? "Элемент галереи обновлен." : "Элемент галереи создан.");
       await loadData();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not save gallery item.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить элемент галереи.");
     }
   }
 
@@ -268,9 +399,9 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         ...current,
         imageUrl: payload.url
       }));
-      setMessage("Gallery image uploaded.");
+      setMessage("Изображение галереи загружено.");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Gallery image upload failed.");
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение галереи.");
     } finally {
       setGalleryUploadPending(false);
       event.target.value = "";
@@ -301,9 +432,9 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         ...current,
         videoUrl: payload.url
       }));
-      setMessage("Gallery video uploaded.");
+      setMessage("Видео галереи загружено.");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Gallery video upload failed.");
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить видео галереи.");
     } finally {
       setGalleryVideoUploadPending(false);
       event.target.value = "";
@@ -320,15 +451,15 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       });
       setEditingTestimonialId(null);
       setTestimonialForm(emptyTestimonialForm);
-      setMessage(editingTestimonialId ? "Testimonial updated." : "Testimonial created.");
+      setMessage(editingTestimonialId ? "Отзыв обновлен." : "Отзыв создан.");
       await loadData();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not save testimonial.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить отзыв.");
     }
   }
 
   async function handleDelete(endpoint: string, successMessage: string, reset: () => void) {
-    if (!window.confirm("Delete this item?")) {
+    if (!window.confirm("Удалить этот элемент?")) {
       return;
     }
 
@@ -338,14 +469,30 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setMessage(successMessage);
       await loadData();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Could not delete item.");
+      setError(deleteError instanceof Error ? deleteError.message : "Не удалось удалить элемент.");
     }
   }
 
   const bestsellers = products.filter((product) => product.isBestseller).sort((a, b) => a.homeSortOrder - b.homeSortOrder);
+  const heroProductOptions = [...products]
+    .filter((product) => product.active || product.id === hero?.heroProductId)
+    .sort((first, second) => getProductOptionLabel(first).localeCompare(getProductOptionLabel(second), "ru"));
   const activeGalleryType = galleryMode === "video" ? "VIDEO" : "IMAGE";
+  const activeGalleryLabel = galleryMode === "video" ? "Видео" : "Изображение";
   const filteredGalleryItems = galleryItems.filter((item) => item.type === activeGalleryType);
-
+  const selectedHeroProduct = hero?.heroProductId ? products.find((product) => product.id === hero.heroProductId) ?? null : null;
+  const sectionMeta = workspaceMeta[section];
+  const sectionDefinition = adminContentSections.find((entry) => entry.key === section);
+  const managedCount =
+    section === "promo"
+      ? promoCards.length
+      : section === "gallery"
+        ? filteredGalleryItems.length
+        : section === "testimonials"
+          ? testimonials.length
+          : section === "bestseller"
+            ? bestsellers.length
+            : 1;
   useEffect(() => {
     if (section === "gallery" && !editingGalleryId) {
       setGalleryForm((current) => ({ ...current, type: activeGalleryType }));
@@ -354,33 +501,59 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
   return (
     <div className="space-y-6">
-      {error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p> : null}
-      {message ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">{message}</p> : null}
-      {loading ? <p className="text-sm text-slate-500">Loading content dashboard...</p> : null}
+      <section className="admin-workspace-hero px-6 py-6 lg:px-8 lg:py-7">
+        <div className="max-w-[76ch]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-[#f5f8fd] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-500">
+              {sectionMeta.eyebrow}
+            </span>
+            {sectionDefinition ? (
+              <span className="inline-flex items-center rounded-full bg-[var(--brand)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--brand)]">
+                {sectionDefinition.label}
+              </span>
+            ) : null}
+          </div>
+
+          <h2 className="mt-4 max-w-[16ch] text-[2.15rem] font-semibold tracking-[-0.05em] text-slate-950 sm:max-w-none lg:text-[2.55rem]">
+            {sectionMeta.title}
+          </h2>
+          <p className="mt-3 max-w-[68ch] text-[15px] leading-7 text-slate-500">{sectionMeta.description}</p>
+
+          {sectionDefinition?.description ? (
+            <p className="mt-4 text-sm leading-6 text-slate-400">{sectionDefinition.description}</p>
+          ) : null}
+        </div>
+      </section>
+
+      {error ? <p className="rounded-[1.35rem] border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 shadow-[0_10px_20px_rgba(248,113,113,0.08)]">{error}</p> : null}
+      {message ? <p className="rounded-[1.35rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600 shadow-[0_10px_20px_rgba(16,185,129,0.08)]">{message}</p> : null}
+      {loading ? <p className="rounded-[1.35rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">Загружаем контент-панель...</p> : null}
+
+      <div className="space-y-6">
 
       {section === "bestseller" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Bestseller" description="Bestseller mahsulot tanlovi Product CRUD ichidagi flag va sort order orqali boshqariladi.">
-          <div className="admin-panel-muted flex items-center justify-between gap-4 p-4">
+        <SectionCard title="Бестселлеры" description="Состав блока бестселлеров управляется через раздел товаров: флагом бестселлера и порядком на главной.">
+          <div className="admin-list-card flex items-center justify-between gap-4 p-4">
             <div>
-              <p className="text-sm font-semibold text-slate-950">Selected products</p>
-              <p className="mt-1 text-sm text-slate-500">{bestsellers.length} ta mahsulot tanlangan.</p>
+              <p className="text-sm font-semibold text-slate-950">Выбранные товары</p>
+              <p className="mt-1 text-sm text-slate-500">Сейчас выбрано {bestsellers.length} товаров.</p>
             </div>
             <Link href="/admin/products" className="admin-button-secondary">
-              Open Products
+              Открыть товары
             </Link>
           </div>
           <div className="mt-4 space-y-3">
             {bestsellers.map((product) => (
-              <div key={product.id} className="admin-panel-muted flex items-center justify-between gap-3 px-4 py-3">
+              <div key={product.id} className="admin-list-card flex items-center justify-between gap-3 px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{product.nameEn}</p>
+                  <p className="text-sm font-semibold text-slate-900">{getProductOptionLabel(product)}</p>
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{product.sku}</p>
                 </div>
                 <span className="admin-badge">#{product.homeSortOrder}</span>
               </div>
             ))}
-            {bestsellers.length === 0 ? <p className="text-sm text-slate-500">No bestseller products yet.</p> : null}
+            {bestsellers.length === 0 ? <p className="text-sm text-slate-500">Пока нет товаров, отмеченных как бестселлеры.</p> : null}
           </div>
         </SectionCard>
         </div>
@@ -388,30 +561,30 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "settings" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Site Settings" description="Top bar, footer va kontaktlar uchun global content.">
+        <SectionCard title="Настройки витрины" description="Глобальный контент для верхней плашки, футера и контактных блоков.">
           {siteSettings ? (
             <form
               className="grid gap-4 md:grid-cols-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                void saveSingleton("/api/content/site-settings", siteSettings, "Site settings updated.");
+                void saveSingleton("/api/content/site-settings", siteSettings, "Настройки витрины обновлены.");
               }}
             >
-              <Field value={siteSettings.brandName} onChange={(value) => setSiteSettings((current) => (current ? { ...current, brandName: value } : current))} placeholder="Brand name" />
-              <Field value={siteSettings.announcementLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementLink: value } : current))} placeholder="Announcement link" />
-              <Field value={siteSettings.announcementTextUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextUz: value } : current))} placeholder="Announcement UZ" />
-              <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Announcement RU" />
-              <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Announcement EN" />
-              <Field value={siteSettings.footerPhone} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerPhone: value } : current))} placeholder="Footer phone" />
-              <Field value={siteSettings.footerTelegram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegram: value } : current))} placeholder="Telegram label" />
-              <Field value={siteSettings.footerInstagram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagram: value } : current))} placeholder="Instagram label" />
-              <Field value={siteSettings.footerTelegramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegramLink: value } : current))} placeholder="Telegram link" />
-              <Field value={siteSettings.footerInstagramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagramLink: value } : current))} placeholder="Instagram link" />
-              <Area value={siteSettings.footerAddressUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressUz: value } : current))} placeholder="Footer address UZ" />
-              <Area value={siteSettings.footerAddressRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressRu: value } : current))} placeholder="Footer address RU" />
-              <Area value={siteSettings.footerAddressEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressEn: value } : current))} placeholder="Footer address EN" />
+              <Field value={siteSettings.brandName} onChange={(value) => setSiteSettings((current) => (current ? { ...current, brandName: value } : current))} placeholder="Название бренда" />
+              <Field value={siteSettings.announcementLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementLink: value } : current))} placeholder="Ссылка анонса" />
+              <Field value={siteSettings.announcementTextUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextUz: value } : current))} placeholder="Текст анонса UZ" />
+              <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Текст анонса RU" />
+              <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Текст анонса EN" />
+              <Field value={siteSettings.footerPhone} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerPhone: value } : current))} placeholder="Телефон в футере" />
+              <Field value={siteSettings.footerTelegram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegram: value } : current))} placeholder="Подпись Telegram" />
+              <Field value={siteSettings.footerInstagram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagram: value } : current))} placeholder="Подпись Instagram" />
+              <Field value={siteSettings.footerTelegramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegramLink: value } : current))} placeholder="Ссылка Telegram" />
+              <Field value={siteSettings.footerInstagramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagramLink: value } : current))} placeholder="Ссылка Instagram" />
+              <Area value={siteSettings.footerAddressUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressUz: value } : current))} placeholder="Адрес в футере UZ" />
+              <Area value={siteSettings.footerAddressRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressRu: value } : current))} placeholder="Адрес в футере RU" />
+              <Area value={siteSettings.footerAddressEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressEn: value } : current))} placeholder="Адрес в футере EN" />
               <button type="submit" className="admin-button-primary md:col-span-2">
-                Save site settings
+                Сохранить настройки витрины
               </button>
             </form>
           ) : null}
@@ -421,32 +594,85 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "hero" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Hero" description="Main page birinchi katta blok.">
+        <SectionCard title="Хиро-блок" description="Первый и самый заметный блок главной страницы.">
           {hero ? (
             <form
-              className="grid gap-4 md:grid-cols-2"
+              className="grid gap-5"
               onSubmit={(event) => {
                 event.preventDefault();
-                void saveSingleton("/api/content/home-hero", hero, "Hero updated.");
+                void saveSingleton("/api/content/home-hero", hero, "Хиро-блок обновлен.");
               }}
             >
-              <Field value={hero.badgeUz} onChange={(value) => setHero((current) => (current ? { ...current, badgeUz: value } : current))} placeholder="Badge UZ" />
-              <Field value={hero.badgeRu} onChange={(value) => setHero((current) => (current ? { ...current, badgeRu: value } : current))} placeholder="Badge RU" />
-              <Field value={hero.badgeEn} onChange={(value) => setHero((current) => (current ? { ...current, badgeEn: value } : current))} placeholder="Badge EN" />
-              <Field value={hero.imageUrl} onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="Image URL" />
-              <Field value={hero.titleUz} onChange={(value) => setHero((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Title UZ" />
-              <Field value={hero.titleRu} onChange={(value) => setHero((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Title RU" />
-              <Field value={hero.titleEn} onChange={(value) => setHero((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Title EN" />
-              <Field value={hero.primaryCtaLink} onChange={(value) => setHero((current) => (current ? { ...current, primaryCtaLink: value } : current))} placeholder="Primary link" />
-              <Area value={hero.descriptionUz} onChange={(value) => setHero((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Description UZ" />
-              <Area value={hero.descriptionRu} onChange={(value) => setHero((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Description RU" />
-              <Area value={hero.descriptionEn} onChange={(value) => setHero((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Description EN" />
-              <Field value={hero.secondaryCtaLink} onChange={(value) => setHero((current) => (current ? { ...current, secondaryCtaLink: value } : current))} placeholder="Secondary link" />
-              <Field value={hero.primaryCtaUz} onChange={(value) => setHero((current) => (current ? { ...current, primaryCtaUz: value } : current))} placeholder="Primary CTA UZ" />
-              <Field value={hero.primaryCtaRu} onChange={(value) => setHero((current) => (current ? { ...current, primaryCtaRu: value } : current))} placeholder="Primary CTA RU" />
-              <Field value={hero.primaryCtaEn} onChange={(value) => setHero((current) => (current ? { ...current, primaryCtaEn: value } : current))} placeholder="Primary CTA EN" />
-              <button type="submit" className="admin-button-primary md:col-span-2">
-                Save hero
+              <div className="admin-panel-muted p-4">
+                <p className="text-sm font-semibold text-slate-950">Заголовок хиро-блока</p>
+                <p className="mt-1 text-xs text-slate-500">Введите заголовок для версий UZ, RU и EN.</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-3">
+                  <Field value={hero.titleUz} onChange={(value) => setHero((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Заголовок UZ" />
+                  <Field value={hero.titleRu} onChange={(value) => setHero((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Заголовок RU" />
+                  <Field value={hero.titleEn} onChange={(value) => setHero((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Заголовок EN" />
+                </div>
+              </div>
+
+              <div className="admin-panel-muted p-4">
+                <p className="text-sm font-semibold text-slate-950">Краткое описание</p>
+                <p className="mt-1 text-xs text-slate-500">Короткий текст внутри хиро-блока. Пользовательский интерфейс при этом не меняется.</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-3">
+                  <Area value={hero.descriptionUz} onChange={(value) => setHero((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
+                  <Area value={hero.descriptionRu} onChange={(value) => setHero((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Описание RU" />
+                  <Area value={hero.descriptionEn} onChange={(value) => setHero((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Описание EN" />
+                </div>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+                <div className="admin-panel-muted p-4">
+                  <p className="text-sm font-semibold text-slate-950">Изображение хиро-блока</p>
+                  <p className="mt-1 text-xs text-slate-500">Загрузите новое изображение или проверьте текущий предпросмотр.</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <label className={`admin-button-secondary ${heroUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                      {heroUploadPending ? "Загрузка..." : "Выбрать файл"}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        className="hidden"
+                        onChange={handleHeroImageUpload}
+                        disabled={heroUploadPending}
+                      />
+                    </label>
+                    <div className="min-w-[240px] flex-1">
+                      <Field value={hero.imageUrl} onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
+                    </div>
+                  </div>
+                  {hero.imageUrl ? (
+                    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={hero.imageUrl} alt="Предпросмотр хиро-блока" className="h-44 w-full object-cover" />
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="admin-panel-muted p-4">
+                  <p className="text-sm font-semibold text-slate-950">Товар для хиро-блока</p>
+                  <p className="mt-1 text-xs text-slate-500">Кнопка «Подробно» будет вести на страницу выбранного товара.</p>
+                  <div className="mt-4">
+                    <select
+                      className="admin-select"
+                      value={hero.heroProductId ?? ""}
+                      onChange={(event) => setHero((current) => (current ? { ...current, heroProductId: event.target.value || null } : current))}
+                    >
+                      <option value="">Выберите товар</option>
+                      {heroProductOptions.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {getProductOptionLabel(product)}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="admin-form-hint">Выбранный товар откроется по клику на кнопку hero-блока.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="admin-button-primary">
+                Сохранить хиро-блок
               </button>
             </form>
           ) : null}
@@ -456,33 +682,33 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "about" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="About" description="Brand story va product lineup bloki.">
+        <SectionCard title="О бренде" description="Блок с историей бренда и контентом о линейке продуктов.">
           {about ? (
             <form
               className="grid gap-4 md:grid-cols-2"
               onSubmit={(event) => {
                 event.preventDefault();
-                void saveSingleton("/api/content/home-about", about, "About updated.");
+                void saveSingleton("/api/content/home-about", about, "Блок «О бренде» обновлен.");
               }}
             >
-              <Field value={about.titleUz} onChange={(value) => setAbout((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Title UZ" />
-              <Field value={about.titleRu} onChange={(value) => setAbout((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Title RU" />
-              <Field value={about.titleEn} onChange={(value) => setAbout((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Title EN" />
-              <Field value={about.imageUrl} onChange={(value) => setAbout((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="Image URL" />
-              <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Description UZ" />
-              <Area value={about.descriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Description RU" />
-              <Area value={about.descriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Description EN" />
-              <Field value={about.secondaryTitleUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleUz: value } : current))} placeholder="Secondary title UZ" />
-              <Field value={about.secondaryTitleRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleRu: value } : current))} placeholder="Secondary title RU" />
-              <Field value={about.secondaryTitleEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleEn: value } : current))} placeholder="Secondary title EN" />
-              <Area value={about.secondaryDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionUz: value } : current))} placeholder="Secondary description UZ" />
-              <Area value={about.secondaryDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionRu: value } : current))} placeholder="Secondary description RU" />
-              <Area value={about.secondaryDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionEn: value } : current))} placeholder="Secondary description EN" />
-              <Area value={about.bottomDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionUz: value } : current))} placeholder="Bottom paragraph UZ" />
-              <Area value={about.bottomDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionRu: value } : current))} placeholder="Bottom paragraph RU" />
-              <Area value={about.bottomDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionEn: value } : current))} placeholder="Bottom paragraph EN" />
+              <Field value={about.titleUz} onChange={(value) => setAbout((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Заголовок UZ" />
+              <Field value={about.titleRu} onChange={(value) => setAbout((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Заголовок RU" />
+              <Field value={about.titleEn} onChange={(value) => setAbout((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Заголовок EN" />
+              <Field value={about.imageUrl} onChange={(value) => setAbout((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
+              <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
+              <Area value={about.descriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Описание RU" />
+              <Area value={about.descriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Описание EN" />
+              <Field value={about.secondaryTitleUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleUz: value } : current))} placeholder="Второй заголовок UZ" />
+              <Field value={about.secondaryTitleRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleRu: value } : current))} placeholder="Второй заголовок RU" />
+              <Field value={about.secondaryTitleEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleEn: value } : current))} placeholder="Второй заголовок EN" />
+              <Area value={about.secondaryDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionUz: value } : current))} placeholder="Второе описание UZ" />
+              <Area value={about.secondaryDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionRu: value } : current))} placeholder="Второе описание RU" />
+              <Area value={about.secondaryDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionEn: value } : current))} placeholder="Второе описание EN" />
+              <Area value={about.bottomDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionUz: value } : current))} placeholder="Нижний абзац UZ" />
+              <Area value={about.bottomDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionRu: value } : current))} placeholder="Нижний абзац RU" />
+              <Area value={about.bottomDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionEn: value } : current))} placeholder="Нижний абзац EN" />
               <button type="submit" className="admin-button-primary md:col-span-2">
-                Save about
+                Сохранить блок «О бренде»
               </button>
             </form>
           ) : null}
@@ -492,57 +718,67 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "promo" ? (
         <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
-        <SectionCard title="Promo Cards" description="Bestsellerdan keyingi editorial bannerlar.">
+        <SectionCard title="Промо-карточки" description="Редакционные баннеры после блока бестселлеров.">
           <form onSubmit={handlePromoSubmit} className="grid gap-4 md:grid-cols-2">
-            <Field value={promoForm.titleUz} onChange={(value) => setPromoForm((current) => ({ ...current, titleUz: value }))} placeholder="Title UZ" />
-            <Field value={promoForm.titleRu} onChange={(value) => setPromoForm((current) => ({ ...current, titleRu: value }))} placeholder="Title RU" />
-            <Field value={promoForm.titleEn} onChange={(value) => setPromoForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
+            <Field value={promoForm.titleUz} onChange={(value) => setPromoForm((current) => ({ ...current, titleUz: value }))} placeholder="Заголовок UZ" />
+            <Field value={promoForm.titleRu} onChange={(value) => setPromoForm((current) => ({ ...current, titleRu: value }))} placeholder="Заголовок RU" />
+            <Field value={promoForm.titleEn} onChange={(value) => setPromoForm((current) => ({ ...current, titleEn: value }))} placeholder="Заголовок EN" />
             <div className="space-y-3 md:col-span-2">
               <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-950">Upload image</p>
-                  <p className="mt-1 text-xs text-slate-500">JPG, PNG, WebP, AVIF. Up to 20 MB. Shown in the homepage promo cards block.</p>
+                  <p className="text-sm font-semibold text-slate-950">Загрузка изображения</p>
+                  <p className="mt-1 text-xs text-slate-500">JPG, PNG, WebP, AVIF. До 20 МБ. Рекомендуемый размер: 584×356 px или любое горизонтальное изображение с таким же соотношением сторон, чтобы картинка полностью заполняла промо-блок на главной странице.</p>
                 </div>
-                <span className="admin-button-secondary">{promoUploadPending ? "Uploading..." : "Choose file"}</span>
+                <span className="admin-button-secondary">{promoUploadPending ? "Загрузка..." : "Выбрать файл"}</span>
                 <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handlePromoImageUpload} disabled={promoUploadPending} />
               </label>
 
               {promoForm.imageUrl ? (
                 <div className="admin-panel-muted flex items-center gap-4 px-4 py-3">
-                  <img src={promoForm.imageUrl} alt="Promo preview" className="h-20 w-32 rounded-2xl object-cover" />
+                  <img src={promoForm.imageUrl} alt="Предпросмотр промо-карточки" className="h-20 w-32 rounded-2xl object-cover" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-950">{promoForm.imageUrl}</p>
-                    <p className="mt-1 text-xs text-slate-500">Uploaded image will be used in the editorial promo card.</p>
+                    <p className="mt-1 text-xs text-slate-500">Изображение будет показано в промо-карточке на главной странице. Лучше использовать формат 584×356 px, чтобы блок заполнялся без обрезки.</p>
                   </div>
                 </div>
               ) : null}
             </div>
-            <Area value={promoForm.descriptionUz} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionUz: value }))} placeholder="Description UZ" />
-            <Area value={promoForm.descriptionRu} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionRu: value }))} placeholder="Description RU" />
-            <Area value={promoForm.descriptionEn} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionEn: value }))} placeholder="Description EN" />
-            <Field value={String(promoForm.sortOrder)} onChange={(value) => setPromoForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
+            <Area value={promoForm.descriptionUz} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionUz: value }))} placeholder="Описание UZ" />
+            <Area value={promoForm.descriptionRu} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionRu: value }))} placeholder="Описание RU" />
+            <Area value={promoForm.descriptionEn} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionEn: value }))} placeholder="Описание EN" />
+            <Field value={String(promoForm.sortOrder)} onChange={(value) => setPromoForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Порядок сортировки" type="number" />
             <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={promoForm.active} onChange={(event) => setPromoForm((current) => ({ ...current, active: event.target.checked }))} />
-              Active card
+              Карточка активна
             </label>
             <div className="admin-panel-muted px-4 py-3 text-sm text-slate-500 md:col-span-2">
-              Promo tugmasi avtomatik katalogga olib boradi. Button label va link alohida kiritilmaydi.
+              Кнопка промо-блока автоматически ведет в каталог. Подпись и ссылка отдельно не задаются.
             </div>
             <button type="submit" className="admin-button-primary md:col-span-2">
-              {editingPromoId ? "Update promo card" : "Create promo card"}
+              {editingPromoId ? "Обновить промо-карточку" : "Создать промо-карточку"}
             </button>
           </form>
         </SectionCard>
 
-        <SectionCard title="Promo List" description="Joriy promo kartalar.">
+        <SectionCard title="Список промо-карточек" description="Текущие промо-карточки.">
           <div className="space-y-4">
             {promoCards.map((card) => (
-              <article key={card.id} className="admin-panel-muted p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Promo #{card.sortOrder}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-950">{card.titleRu}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{card.imageUrl || "No image"}</p>
+              <article key={card.id} className="admin-list-card p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="h-20 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                      {card.imageUrl ? <img src={card.imageUrl} alt={card.titleRu} className="h-full w-full object-cover" /> : null}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Промо #{card.sortOrder}</p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${card.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+                          {card.active ? "Активно" : "Черновик"}
+                        </span>
+                      </div>
+                      <h3 className="mt-2 truncate text-lg font-semibold text-slate-950">{card.titleRu}</h3>
+                      <p className="mt-1 truncate text-sm text-slate-500">{card.imageUrl || "Изображение не загружено"}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -567,23 +803,23 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         });
                       }}
                     >
-                      Edit
+                      Редактировать
                     </button>
                     <button
                       type="button"
                       className="admin-button-danger"
-                      onClick={() => void handleDelete(`/api/content/home-promo-cards/${card.id}`, "Promo card deleted.", () => {
+                      onClick={() => void handleDelete(`/api/content/home-promo-cards/${card.id}`, "Промо-карточка удалена.", () => {
                         setEditingPromoId(null);
                         setPromoForm(emptyPromoForm);
                       })}
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
               </article>
             ))}
-            {promoCards.length === 0 ? <p className="text-sm text-slate-500">No promo cards yet.</p> : null}
+            {promoCards.length === 0 ? <p className="text-sm text-slate-500">Промо-карточек пока нет.</p> : null}
           </div>
         </SectionCard>
         </div>
@@ -592,31 +828,31 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       {section === "gallery" ? (
         <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
         <SectionCard
-          title={galleryMode === "video" ? "Video" : "Image"}
-          description={galleryMode === "video" ? "Video reels section shu bo'limdan boshqariladi." : "Main page Galereya qismidagi 2 qatorli horizontal image marquee shu bo'limdan boshqariladi."}
+          title={galleryMode === "video" ? "Видео" : "Изображения"}
+          description={galleryMode === "video" ? "В этом разделе управляются видео для медиаблока на главной странице." : "В этом разделе управляются изображения для двухрядной галереи на главной странице."}
         >
           <form onSubmit={handleGallerySubmit} className="grid gap-4 md:grid-cols-2">
             <div className="admin-panel-muted flex items-center justify-between px-4 py-3 md:col-span-2">
-              <span className="text-sm font-semibold text-slate-900">Content type</span>
-              <span className="admin-badge">{activeGalleryType}</span>
+              <span className="text-sm font-semibold text-slate-900">Тип контента</span>
+              <span className="admin-badge">{activeGalleryLabel}</span>
             </div>
             {galleryMode === "image" ? (
               <div className="space-y-3 md:col-span-2">
                 <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-950">Upload image</p>
-                    <p className="mt-1 text-xs text-slate-500">Only image files. Up to 20 MB. Original quality is preserved.</p>
+                    <p className="text-sm font-semibold text-slate-950">Загрузка изображения</p>
+                    <p className="mt-1 text-xs text-slate-500">Только изображения. До 20 МБ. Исходное качество сохраняется.</p>
                   </div>
-                  <span className="admin-button-secondary">{galleryUploadPending ? "Uploading..." : "Choose file"}</span>
+                  <span className="admin-button-secondary">{galleryUploadPending ? "Загрузка..." : "Выбрать файл"}</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleGalleryImageUpload} disabled={galleryUploadPending} />
                 </label>
 
                 {galleryForm.imageUrl ? (
                   <div className="admin-panel-muted flex items-center gap-4 px-4 py-3">
-                    <img src={galleryForm.imageUrl} alt="Gallery preview" className="h-20 w-20 rounded-2xl object-cover" />
+                    <img src={galleryForm.imageUrl} alt="Предпросмотр изображения галереи" className="h-20 w-20 rounded-2xl object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-slate-950">{galleryForm.imageUrl}</p>
-                      <p className="mt-1 text-xs text-slate-500">Uploaded image will be shown in homepage gallery.</p>
+                      <p className="mt-1 text-xs text-slate-500">Это изображение будет показано в галерее на главной странице.</p>
                     </div>
                   </div>
                 ) : null}
@@ -625,11 +861,44 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
               <div className="space-y-3 md:col-span-2">
                 <div className="admin-panel-muted flex items-center justify-between gap-4 px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold text-slate-950">Upload video</p>
-                    <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. Up to 250 MB. Uploaded video will be used in the homepage reels block.</p>
+                    <p className="text-sm font-semibold text-slate-950">Обложка видео</p>
+                    <p className="mt-1 text-xs text-slate-500">Рекомендуется вертикальное изображение 9:16. Эта обложка будет видна до запуска видео, поэтому без нее карточка может выглядеть пустой.</p>
+                  </div>
+                  <label className={`admin-button-secondary ${galleryUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                    {galleryUploadPending ? "Загрузка..." : "Выбрать обложку"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      className="hidden"
+                      onChange={handleGalleryImageUpload}
+                      disabled={galleryUploadPending}
+                    />
+                  </label>
+                </div>
+
+                <Field
+                  value={galleryForm.imageUrl}
+                  onChange={(value) => setGalleryForm((current) => ({ ...current, imageUrl: value }))}
+                  placeholder="Ссылка на обложку видео"
+                />
+
+                {galleryForm.imageUrl ? (
+                  <div className="admin-panel-muted flex items-center gap-4 px-4 py-3">
+                    <img src={galleryForm.imageUrl} alt="Предпросмотр обложки видео" className="h-24 w-16 rounded-2xl object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-950">{galleryForm.imageUrl}</p>
+                      <p className="mt-1 text-xs text-slate-500">Эта обложка будет показана в видеогалерее до нажатия на play.</p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="admin-panel-muted flex items-center justify-between gap-4 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Загрузка видео</p>
+                    <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. До 250 МБ. Видео будет использовано в медиаблоке на главной странице.</p>
                   </div>
                   <label className={`admin-button-secondary ${galleryVideoUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
-                    {galleryVideoUploadPending ? "Uploading..." : "Choose video"}
+                    {galleryVideoUploadPending ? "Загрузка..." : "Выбрать видео"}
                     <input
                       type="file"
                       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
@@ -640,45 +909,70 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                   </label>
                 </div>
 
-                <Field value={galleryForm.videoUrl} onChange={(value) => setGalleryForm((current) => ({ ...current, videoUrl: value }))} placeholder="Video URL" />
+                <Field value={galleryForm.videoUrl} onChange={(value) => setGalleryForm((current) => ({ ...current, videoUrl: value }))} placeholder="Ссылка на видео" />
 
                 {galleryForm.videoUrl ? (
                   <div className="admin-panel-muted space-y-2 px-4 py-3">
                     <p className="truncate text-sm font-semibold text-slate-950">{galleryForm.videoUrl}</p>
-                    <p className="text-xs text-slate-500">Uploaded video will be linked from the homepage video reels block.</p>
+                    <p className="text-xs text-slate-500">Эта ссылка будет использоваться в видеоблоке на главной странице.</p>
                   </div>
                 ) : null}
               </div>
             )}
-            <Field value={String(galleryForm.sortOrder)} onChange={(value) => setGalleryForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
+            <Field value={String(galleryForm.sortOrder)} onChange={(value) => setGalleryForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Порядок сортировки" type="number" />
             {galleryMode === "image" ? (
               <>
-                <Field value={galleryForm.titleUz} onChange={(value) => setGalleryForm((current) => ({ ...current, titleUz: value }))} placeholder="Title UZ" />
-                <Field value={galleryForm.titleRu} onChange={(value) => setGalleryForm((current) => ({ ...current, titleRu: value }))} placeholder="Title RU" />
-                <Field value={galleryForm.titleEn} onChange={(value) => setGalleryForm((current) => ({ ...current, titleEn: value }))} placeholder="Title EN" />
+                <Field value={galleryForm.titleUz} onChange={(value) => setGalleryForm((current) => ({ ...current, titleUz: value }))} placeholder="Заголовок UZ" />
+                <Field value={galleryForm.titleRu} onChange={(value) => setGalleryForm((current) => ({ ...current, titleRu: value }))} placeholder="Заголовок RU" />
+                <Field value={galleryForm.titleEn} onChange={(value) => setGalleryForm((current) => ({ ...current, titleEn: value }))} placeholder="Заголовок EN" />
               </>
             ) : null}
             <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={galleryForm.active} onChange={(event) => setGalleryForm((current) => ({ ...current, active: event.target.checked }))} />
-              Active item
+              Элемент активен
             </label>
             <button type="submit" className="admin-button-primary md:col-span-2">
-              {editingGalleryId ? `Update ${galleryMode === "video" ? "video" : "gallery"} item` : `Create ${galleryMode === "video" ? "video" : "gallery"} item`}
+              {editingGalleryId
+                ? galleryMode === "video"
+                  ? "Обновить видеоэлемент"
+                  : "Обновить элемент галереи"
+                : galleryMode === "video"
+                  ? "Создать видеоэлемент"
+                  : "Создать элемент галереи"}
             </button>
           </form>
         </SectionCard>
 
-        <SectionCard title={galleryMode === "video" ? "Video List" : "Image List"} description={galleryMode === "video" ? "Video reels preview elementlari." : "Main page gallery carousel rasmlari."}>
+        <SectionCard title={galleryMode === "video" ? "Список видео" : "Список изображений"} description={galleryMode === "video" ? "Текущие видеоэлементы медиаблока." : "Текущие изображения для галереи на главной странице."}>
           <div className="space-y-4">
             {filteredGalleryItems.map((item) => (
-              <article key={item.id} className="admin-panel-muted p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{item.type} #{item.sortOrder}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-950">
-                      {galleryMode === "video" ? `Video reel ${item.sortOrder}` : item.titleRu || item.titleEn || "Untitled"}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-500">{galleryMode === "video" ? item.videoUrl || "No video URL" : item.imageUrl}</p>
+              <article key={item.id} className="admin-list-card p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="h-20 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                      {galleryMode === "image" ? <img src={item.imageUrl} alt={item.titleRu || item.titleEn || "Изображение галереи"} className="h-full w-full object-cover" /> : null}
+                      {galleryMode === "video" ? (
+                        item.imageUrl ? (
+                          <img src={item.imageUrl} alt={`Обложка видео ${item.sortOrder}`} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-slate-950 text-xs font-semibold uppercase tracking-[0.26em] text-white">
+                            Видео
+                          </div>
+                        )
+                      ) : null}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{item.type === "VIDEO" ? "Видео" : "Изображение"} #{item.sortOrder}</p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+                          {item.active ? "Активно" : "Черновик"}
+                        </span>
+                      </div>
+                      <h3 className="mt-2 truncate text-lg font-semibold text-slate-950">
+                        {galleryMode === "video" ? `Видеоэлемент ${item.sortOrder}` : item.titleRu || item.titleEn || "Без названия"}
+                      </h3>
+                      <p className="mt-1 truncate text-sm text-slate-500">{galleryMode === "video" ? item.videoUrl || "Ссылка на видео не указана" : item.imageUrl}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -701,23 +995,23 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         });
                       }}
                     >
-                      Edit
+                      Редактировать
                     </button>
                     <button
                       type="button"
                       className="admin-button-danger"
-                      onClick={() => void handleDelete(`/api/content/gallery-items/${item.id}`, "Gallery item deleted.", () => {
+                      onClick={() => void handleDelete(`/api/content/gallery-items/${item.id}`, "Элемент галереи удален.", () => {
                         setEditingGalleryId(null);
                         setGalleryForm({ ...emptyGalleryForm, type: activeGalleryType });
                       })}
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
               </article>
             ))}
-            {filteredGalleryItems.length === 0 ? <p className="text-sm text-slate-500">No {galleryMode === "video" ? "video" : "image"} items yet.</p> : null}
+            {filteredGalleryItems.length === 0 ? <p className="text-sm text-slate-500">{galleryMode === "video" ? "Видеоэлементов" : "Изображений"} пока нет.</p> : null}
           </div>
         </SectionCard>
         </div>
@@ -725,40 +1019,53 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "testimonials" ? (
         <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
-        <SectionCard title="Testimonials" description="Reviews section kartalari.">
+        <SectionCard title="Отзывы" description="Карточки отзывов для главной страницы.">
           <form onSubmit={handleTestimonialSubmit} className="grid gap-4 md:grid-cols-2">
-            <Field value={testimonialForm.authorName} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorName: value }))} placeholder="Author name" />
-            <Field value={testimonialForm.avatarUrl} onChange={(value) => setTestimonialForm((current) => ({ ...current, avatarUrl: value }))} placeholder="Avatar URL" />
-            <Field value={testimonialForm.authorRoleUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleUz: value }))} placeholder="Role UZ" />
-            <Field value={testimonialForm.authorRoleRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleRu: value }))} placeholder="Role RU" />
-            <Field value={testimonialForm.authorRoleEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleEn: value }))} placeholder="Role EN" />
-            <Field value={String(testimonialForm.rating)} onChange={(value) => setTestimonialForm((current) => ({ ...current, rating: Number(value) || 5 }))} placeholder="Rating" type="number" />
-            <Field value={testimonialForm.productNameUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameUz: value }))} placeholder="Product UZ" />
-            <Field value={testimonialForm.productNameRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameRu: value }))} placeholder="Product RU" />
-            <Field value={testimonialForm.productNameEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameEn: value }))} placeholder="Product EN" />
-            <Field value={String(testimonialForm.sortOrder)} onChange={(value) => setTestimonialForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Sort order" type="number" />
-            <Area value={testimonialForm.bodyUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyUz: value }))} placeholder="Review UZ" />
-            <Area value={testimonialForm.bodyRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyRu: value }))} placeholder="Review RU" />
-            <Area value={testimonialForm.bodyEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyEn: value }))} placeholder="Review EN" />
+            <Field value={testimonialForm.authorName} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorName: value }))} placeholder="Имя автора" />
+            <Field value={testimonialForm.avatarUrl} onChange={(value) => setTestimonialForm((current) => ({ ...current, avatarUrl: value }))} placeholder="Ссылка на аватар" />
+            <Field value={testimonialForm.authorRoleUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleUz: value }))} placeholder="Роль UZ" />
+            <Field value={testimonialForm.authorRoleRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleRu: value }))} placeholder="Роль RU" />
+            <Field value={testimonialForm.authorRoleEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleEn: value }))} placeholder="Роль EN" />
+            <Field value={String(testimonialForm.rating)} onChange={(value) => setTestimonialForm((current) => ({ ...current, rating: Number(value) || 5 }))} placeholder="Оценка" type="number" />
+            <Field value={testimonialForm.productNameUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameUz: value }))} placeholder="Название товара UZ" />
+            <Field value={testimonialForm.productNameRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameRu: value }))} placeholder="Название товара RU" />
+            <Field value={testimonialForm.productNameEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameEn: value }))} placeholder="Название товара EN" />
+            <Field value={String(testimonialForm.sortOrder)} onChange={(value) => setTestimonialForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Порядок сортировки" type="number" />
+            <Area value={testimonialForm.bodyUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyUz: value }))} placeholder="Отзыв UZ" />
+            <Area value={testimonialForm.bodyRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyRu: value }))} placeholder="Отзыв RU" />
+            <Area value={testimonialForm.bodyEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyEn: value }))} placeholder="Отзыв EN" />
             <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={testimonialForm.active} onChange={(event) => setTestimonialForm((current) => ({ ...current, active: event.target.checked }))} />
-              Active review
+              Отзыв активен
             </label>
             <button type="submit" className="admin-button-primary md:col-span-2">
-              {editingTestimonialId ? "Update testimonial" : "Create testimonial"}
+              {editingTestimonialId ? "Обновить отзыв" : "Создать отзыв"}
             </button>
           </form>
         </SectionCard>
 
-        <SectionCard title="Testimonial List" description="Joriy otzivlar ro‘yxati.">
+        <SectionCard title="Список отзывов" description="Текущий список отзывов.">
           <div className="space-y-4">
             {testimonials.map((item) => (
-              <article key={item.id} className="admin-panel-muted p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Review #{item.sortOrder}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-950">{item.authorName}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{item.productNameRu || item.productNameEn || "No product label"}</p>
+              <article key={item.id} className="admin-list-card p-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#fff3f6] text-lg font-semibold text-[var(--brand)]">
+                      {item.avatarUrl ? <img src={item.avatarUrl} alt={item.authorName} className="h-full w-full object-cover" /> : item.authorName.slice(0, 1)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Отзыв #{item.sortOrder}</p>
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600">
+                          {item.rating}/5
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+                          {item.active ? "Активно" : "Черновик"}
+                        </span>
+                      </div>
+                      <h3 className="mt-2 truncate text-lg font-semibold text-slate-950">{item.authorName}</h3>
+                      <p className="mt-1 truncate text-sm text-slate-500">{item.productNameRu || item.productNameEn || "Товар не указан"}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -784,27 +1091,29 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         });
                       }}
                     >
-                      Edit
+                      Редактировать
                     </button>
                     <button
                       type="button"
                       className="admin-button-danger"
-                      onClick={() => void handleDelete(`/api/content/testimonials/${item.id}`, "Testimonial deleted.", () => {
+                      onClick={() => void handleDelete(`/api/content/testimonials/${item.id}`, "Отзыв удален.", () => {
                         setEditingTestimonialId(null);
                         setTestimonialForm(emptyTestimonialForm);
                       })}
                     >
-                      Delete
+                      Удалить
                     </button>
                   </div>
                 </div>
               </article>
             ))}
-            {testimonials.length === 0 ? <p className="text-sm text-slate-500">No testimonials yet.</p> : null}
+            {testimonials.length === 0 ? <p className="text-sm text-slate-500">Отзывов пока нет.</p> : null}
           </div>
         </SectionCard>
         </div>
       ) : null}
+
+      </div>
     </div>
   );
 }

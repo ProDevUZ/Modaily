@@ -48,7 +48,17 @@ export async function getLocalizedSiteSettings(locale: Locale) {
 export async function getHomePageContent(locale: Locale) {
   noStore();
   const [heroRow, aboutRow, promoRows, galleryRows, testimonialRows, bestsellers] = await Promise.all([
-    prisma.homeHero.findFirst({ orderBy: { createdAt: "asc" } }),
+    prisma.homeHero.findFirst({
+      orderBy: { createdAt: "asc" },
+      include: {
+        heroProduct: {
+          select: {
+            slug: true,
+            active: true
+          }
+        }
+      }
+    }),
     prisma.homeAboutSection.findFirst({ orderBy: { createdAt: "asc" } }),
     prisma.homePromoCard.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.galleryItem.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
@@ -62,6 +72,10 @@ export async function getHomePageContent(locale: Locale) {
 
   const hero = heroRow ?? defaultHomeHero;
   const about = aboutRow ?? defaultHomeAbout;
+  const heroPrimaryCtaLink =
+    heroRow?.heroProduct?.active && heroRow.heroProduct.slug
+      ? `/${locale}/catalog/${heroRow.heroProduct.slug}`
+      : hero.primaryCtaLink || `/${locale}/catalog`;
 
   return {
     hero: {
@@ -69,7 +83,7 @@ export async function getHomePageContent(locale: Locale) {
       title: localizedValue(hero, "title", locale),
       description: localizedValue(hero, "description", locale),
       primaryCta: localizedValue(hero, "primaryCta", locale),
-      primaryCtaLink: hero.primaryCtaLink || `/${locale}/catalog`,
+      primaryCtaLink: heroPrimaryCtaLink,
       secondaryCta: localizedValue(hero, "secondaryCta", locale),
       secondaryCtaLink: hero.secondaryCtaLink || `/${locale}/catalog`,
       imageUrl: hero.imageUrl || ""

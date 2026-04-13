@@ -1,9 +1,12 @@
 import { PrismaClient } from "@prisma/client";
 
 import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "../lib/content-defaults";
+import { createSqliteAdapter } from "../lib/prisma-adapter";
 import { products } from "../lib/products";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: createSqliteAdapter()
+});
 
 function slugify(value: string) {
   return value

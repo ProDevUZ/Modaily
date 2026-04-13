@@ -63,16 +63,16 @@ function FilterSection({ title, children, defaultOpen = true }: FilterSectionPro
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="border-t border-black/10 py-4 first:border-t-0 first:pt-0">
+    <section className="border-t border-black/10 py-3.5 first:border-t-0 first:pt-0">
       <button
         type="button"
         className="flex w-full items-center justify-between gap-3 text-left"
         onClick={() => setOpen((current) => !current)}
       >
-        <span className="text-[19px] font-normal leading-none text-black/80">{title}</span>
-        <span className={`text-[18px] leading-none text-black/55 transition ${open ? "rotate-180" : ""}`}>⌃</span>
+        <span className="text-[16px] font-normal leading-none text-black/80">{title}</span>
+        <span className={`text-[15px] leading-none text-black/55 transition ${open ? "rotate-180" : ""}`}>⌃</span>
       </button>
-      {open ? <div className="pt-4">{children}</div> : null}
+      {open ? <div className="pt-3.5">{children}</div> : null}
     </section>
   );
 }
@@ -87,9 +87,9 @@ function CheckboxRow({
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 text-[18px] leading-none">
+    <label className="flex cursor-pointer items-center gap-2.5 text-[15px] leading-none">
       <span
-        className={`flex h-[22px] w-[22px] items-center justify-center rounded-[6px] border text-[14px] transition ${
+        className={`flex h-[19px] w-[19px] items-center justify-center rounded-[5px] border text-[12px] transition ${
           checked ? "border-[#ba0c2f] bg-[#ba0c2f] text-white" : "border-black/35 bg-white text-transparent"
         }`}
       >
@@ -298,16 +298,16 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
   );
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[264px_minmax(0,1fr)] xl:gap-8">
+    <div className="grid gap-5 xl:grid-cols-[228px_minmax(0,1fr)] xl:gap-7">
       {hideCommerce ? (
         <div className="space-y-4 xl:hidden">
           <div className="grid grid-cols-[auto_1fr] gap-3">
             <button
               type="button"
               onClick={() => setMobileFiltersOpen((current) => !current)}
-              className="inline-flex h-[44px] items-center gap-2 rounded-[14px] border border-[#f0f0ee] bg-white px-4 text-[14px] text-[var(--brand)]"
+              className="inline-flex h-[38px] items-center gap-2 rounded-[12px] border border-[#f0f0ee] bg-white px-3.5 text-[12px] text-[var(--brand)]"
             >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M4 7h8" />
                 <path d="M16 7h4" />
                 <path d="M10 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" />
@@ -318,9 +318,9 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
               <span>{locale === "ru" ? "Фильтр" : locale === "en" ? "Filter" : "Filter"}</span>
             </button>
 
-            <div className="rounded-[14px] bg-[#f6f6f4] px-[18px] py-[12px]">
-              <div className="flex items-center gap-3">
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <div className="rounded-[12px] bg-[#f6f6f4] px-[16px] py-[10px]">
+              <div className="flex items-center gap-2.5">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <circle cx="11" cy="11" r="6.5" />
                   <path d="m16 16 4 4" />
                 </svg>
@@ -328,14 +328,14 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder={copy.search}
-                  className="w-full bg-transparent text-[16px] text-black outline-none placeholder:text-black/35"
+                  className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-black/35"
                 />
               </div>
             </div>
           </div>
 
           {mobileFiltersOpen ? (
-            <div className="rounded-[18px] border border-black/8 bg-white p-5 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <div className="rounded-[16px] border border-black/8 bg-white p-4.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
               {filtersContent}
             </div>
           ) : null}
@@ -343,9 +343,9 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
       ) : null}
 
       <aside className={`xl:pr-2 ${hideCommerce ? "hidden xl:block" : ""}`}>
-        <div className="rounded-[14px] bg-[#f6f6f4] px-[18px] py-[14px]">
-          <div className="flex items-center gap-3">
-            <svg viewBox="0 0 24 24" className="h-6 w-6 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <div className="rounded-[12px] bg-[#f6f6f4] px-[16px] py-[12px]">
+          <div className="flex items-center gap-2.5">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="11" cy="11" r="6.5" />
               <path d="m16 16 4 4" />
             </svg>
@@ -353,12 +353,12 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder={copy.search}
-              className="w-full bg-transparent text-[17px] text-black outline-none placeholder:text-black/35"
+              className="w-full bg-transparent text-[14px] text-black outline-none placeholder:text-black/35"
             />
           </div>
         </div>
 
-        <div className="mt-7">
+        <div className="mt-6">
           {filtersContent}
         </div>
       </aside>
@@ -368,8 +368,8 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
           <div
             className={
               hideCommerce
-                ? "grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-[20px] xl:gap-y-[24px]"
-                : "grid gap-x-5 gap-y-8 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-9"
+                ? "grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3 xl:gap-y-[20px]"
+                : "grid gap-x-4 gap-y-7 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3 xl:gap-y-8"
             }
           >
             {filteredProducts.map((product) => (
@@ -384,7 +384,7 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
             ))}
           </div>
         ) : (
-          <div className="rounded-[1.25rem] border border-dashed border-black/12 bg-[#faf9f7] p-8 text-sm text-black/55">
+          <div className="rounded-[1.1rem] border border-dashed border-black/12 bg-[#faf9f7] p-7 text-[13px] text-black/55">
             {copy.empty}
           </div>
         )}

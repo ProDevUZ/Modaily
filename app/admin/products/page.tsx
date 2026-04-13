@@ -6,7 +6,7 @@ export default function AdminProductsPage() {
     <AdminShell
       current="products"
       title="Товары"
-      description="Управление SKU, slug, категориями, ценой, остатком и контентом UZ/RU/EN в едином разделе."
+      description="Управление SKU, слагом, категориями, ценой, остатком и контентом UZ/RU/EN в едином разделе."
     >
       <ProductManager />
     </AdminShell>

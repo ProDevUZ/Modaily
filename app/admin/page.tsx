@@ -7,13 +7,13 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 const chartPoints = [
-  { month: "Jan", value: 12 },
-  { month: "Feb", value: 19 },
-  { month: "Mar", value: 15 },
-  { month: "Apr", value: 25 },
-  { month: "May", value: 22 },
-  { month: "Jun", value: 30 },
-  { month: "Jul", value: 28 }
+  { month: "Янв", value: 12 },
+  { month: "Фев", value: 19 },
+  { month: "Мар", value: 15 },
+  { month: "Апр", value: 25 },
+  { month: "Май", value: 22 },
+  { month: "Июн", value: 30 },
+  { month: "Июл", value: 28 }
 ];
 
 function buildChartPath() {
@@ -165,12 +165,12 @@ export default async function AdminOverviewPage() {
 
           <div className="admin-panel p-6">
             <h2 className="text-3xl font-semibold text-slate-950">Статус структуры</h2>
-            <p className="mt-2 text-base text-slate-500">Текущее состояние панели, каталога и CMS.</p>
+            <p className="mt-2 text-base text-slate-500">Текущее состояние панели, каталога и контентных модулей.</p>
             <div className="mt-6 space-y-4">
               {[
                 "Дашборд и верхняя навигация",
-                "CRUD для товаров и категорий",
-                `Контент CMS: ${promoCount} промо, ${galleryCount} медиа, ${testimonialCount} отзывов`,
+                "Управление товарами и категориями",
+                `Контент-блоки: ${promoCount} промо, ${galleryCount} медиа, ${testimonialCount} отзывов`,
                 `Текущая база клиентов: ${userCount} записей`
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3 rounded-2xl bg-[#f8fafc] px-4 py-3">

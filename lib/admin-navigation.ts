@@ -21,7 +21,7 @@ export const adminSections = [
     key: "content",
     href: "/admin/content",
     label: "Контент",
-    summary: "CMS главной страницы и медиа-блоков"
+    summary: "Контент главной страницы и медиаблоков"
   },
   {
     key: "settings",

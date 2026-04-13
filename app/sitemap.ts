@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const productPages = locales.flatMap((locale) =>
-    productSlugs.map((slug) => ({
+    productSlugs.map((slug: string) => ({
       url: `${baseUrl}/${locale}/catalog/${slug}`,
       lastModified: now
     }))

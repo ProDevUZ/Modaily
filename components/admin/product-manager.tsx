@@ -21,11 +21,18 @@ type ProductSubmitError = {
 
 const MAX_GALLERY_IMAGES = 6;
 const SKIN_TYPE_OPTIONS = [
-  { value: "dry", label: "Quruq / Dry" },
-  { value: "combination", label: "Kombi / Combination" },
-  { value: "oily", label: "Yog'li / Oily" },
-  { value: "sensitive", label: "Sezuvchan / Sensitive" }
+  { value: "dry", label: "Сухая" },
+  { value: "combination", label: "Комбинированная" },
+  { value: "oily", label: "Жирная" },
+  { value: "sensitive", label: "Чувствительная" }
 ] as const;
+
+const SKIN_TYPE_LABELS: Record<string, string> = {
+  dry: "Сухая",
+  combination: "Комбинированная",
+  oily: "Жирная",
+  sensitive: "Чувствительная"
+};
 
 type ProductFormState = {
   sku: string;
@@ -133,6 +140,32 @@ function buildInitialForm(categoryId: string) {
   };
 }
 
+function getProductDisplayName(product: AdminProduct) {
+  return product.nameRu || product.nameEn || product.nameUz;
+}
+
+function getCategoryDisplayName(category?: AdminCategory | null) {
+  if (!category) {
+    return "Без категории";
+  }
+
+  return category.nameRu || category.nameEn || category.nameUz;
+}
+
+function formatSkinTypes(skinTypes?: string | null) {
+  if (!skinTypes) {
+    return null;
+  }
+
+  const labels = skinTypes
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => SKIN_TYPE_LABELS[entry] || entry);
+
+  return labels.length > 0 ? labels.join(", ") : null;
+}
+
 export function ProductManager() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
@@ -188,7 +221,7 @@ export function ProductManager() {
         categoryId: current.categoryId || categoriesPayload[0]?.id || ""
       }));
     } catch (loadError) {
-      setError({ message: loadError instanceof Error ? loadError.message : "Could not load products." });
+      setError({ message: loadError instanceof Error ? loadError.message : "Не удалось загрузить товары." });
     } finally {
       setLoading(false);
     }
@@ -229,9 +262,9 @@ export function ProductManager() {
         ...current,
         imageUrl: payload.url
       }));
-      setMessage("Cover image uploaded.");
+      setMessage("Обложка загружена.");
     } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Could not upload cover image." });
+      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить обложку." });
     } finally {
       setUploadingCover(false);
       event.target.value = "";
@@ -271,9 +304,9 @@ export function ProductManager() {
         };
       });
 
-      setMessage("Gallery images uploaded.");
+      setMessage("Изображения галереи загружены.");
     } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Could not upload gallery images." });
+      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображения галереи." });
     } finally {
       setUploadingGallery(false);
       event.target.value = "";
@@ -297,9 +330,9 @@ export function ProductManager() {
         ...current,
         storeImageUrl: payload.url
       }));
-      setMessage("Store image uploaded.");
+      setMessage("Изображение магазина загружено.");
     } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Could not upload store image." });
+      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение магазина." });
     } finally {
       setUploadingStoreImage(false);
       event.target.value = "";
@@ -333,13 +366,13 @@ export function ProductManager() {
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string; hint?: string } | null;
         throw {
-          message: payload?.error || (editingId ? "Product could not be updated." : "Product could not be created."),
+          message: payload?.error || (editingId ? "Не удалось обновить товар." : "Не удалось создать товар."),
           hint: payload?.hint || null
         } satisfies ProductSubmitError;
       }
 
       resetForm();
-      setMessage(editingId ? "Product updated." : "Product created.");
+      setMessage(editingId ? "Товар обновлен." : "Товар создан.");
       await loadData();
     } catch (submitError) {
       if (
@@ -353,13 +386,13 @@ export function ProductManager() {
           hint: "hint" in submitError && typeof submitError.hint === "string" ? submitError.hint : null
         });
       } else {
-        setError({ message: editingId ? "Product could not be updated." : "Product could not be created." });
+        setError({ message: editingId ? "Не удалось обновить товар." : "Не удалось создать товар." });
       }
     }
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this product?")) {
+    if (!window.confirm("Удалить этот товар?")) {
       return;
     }
 
@@ -370,10 +403,10 @@ export function ProductManager() {
         resetForm();
       }
 
-      setMessage("Product deleted.");
+      setMessage("Товар удален.");
       await loadData();
     } catch (deleteError) {
-      setError({ message: deleteError instanceof Error ? deleteError.message : "Could not delete product." });
+      setError({ message: deleteError instanceof Error ? deleteError.message : "Не удалось удалить товар." });
     }
   }
 
@@ -381,83 +414,83 @@ export function ProductManager() {
     <div className="grid gap-6 xl:grid-cols-[560px_1fr]">
       <form onSubmit={handleSubmit} className="admin-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Edit product" : "Create product"}</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Редактирование товара" : "Создание товара"}</h3>
           {editingId ? (
             <button type="button" className="text-sm font-semibold text-slate-500" onClick={resetForm}>
-              Cancel
+              Отмена
             </button>
           ) : null}
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <FieldGroup hint="Internal product code used in admin and warehouse.">
+          <FieldGroup hint="Внутренний код товара для админки и склада.">
             <input className="admin-input" aria-label="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Product URL segment used in the storefront link.">
-            <input className="admin-input" aria-label="Slug" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
+          <FieldGroup hint="Сегмент URL, который используется в ссылке на товар.">
+            <input className="admin-input" aria-label="Слаг" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="Product name shown in Uzbek storefront pages.">
-            <input className="admin-input" aria-label="Name UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
+          <FieldGroup hint="Название товара для витрины на узбекском языке.">
+            <input className="admin-input" aria-label="Название UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Product name shown in Russian storefront pages.">
-            <input className="admin-input" aria-label="Name RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
+          <FieldGroup hint="Название товара для витрины на русском языке.">
+            <input className="admin-input" aria-label="Название RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Product name shown in English storefront pages.">
-            <input className="admin-input" aria-label="Name EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Short teaser text for Uzbek cards and previews.">
-            <textarea className="admin-textarea" aria-label="Short description UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Short teaser text for Russian cards and previews.">
-            <textarea className="admin-textarea" aria-label="Short description RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Short teaser text for English cards and previews.">
-            <textarea className="admin-textarea" aria-label="Short description EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
+          <FieldGroup className="md:col-span-2" hint="Название товара для витрины на английском языке.">
+            <input className="admin-input" aria-label="Название EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="Main product description for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-28" aria-label="Description UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
+          <FieldGroup hint="Короткий текст для карточек и превью на узбекском языке.">
+            <textarea className="admin-textarea" aria-label="Короткое описание UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Main product description for Russian detail page.">
-            <textarea className="admin-textarea min-h-28" aria-label="Description RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
+          <FieldGroup hint="Короткий текст для карточек и превью на русском языке.">
+            <textarea className="admin-textarea" aria-label="Короткое описание RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Main product description for English detail page.">
-            <textarea className="admin-textarea min-h-28" aria-label="Description EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Feature copy shown in Uzbek accordion section.">
-            <textarea className="admin-textarea min-h-24" aria-label="Features UZ" value={form.featureUz} onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Feature copy shown in Russian accordion section.">
-            <textarea className="admin-textarea min-h-24" aria-label="Features RU" value={form.featureRu} onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Feature copy shown in English accordion section.">
-            <textarea className="admin-textarea min-h-24" aria-label="Features EN" value={form.featureEn} onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))} />
+          <FieldGroup className="md:col-span-2" hint="Короткий текст для карточек и превью на английском языке.">
+            <textarea className="admin-textarea" aria-label="Короткое описание EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="Key ingredients text for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ingredients UZ" value={form.ingredientsUz} onChange={(event) => setForm((current) => ({ ...current, ingredientsUz: event.target.value }))} />
+          <FieldGroup hint="Основное описание товара для детальной страницы на узбекском языке.">
+            <textarea className="admin-textarea min-h-28" aria-label="Описание UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Key ingredients text for Russian detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ingredients RU" value={form.ingredientsRu} onChange={(event) => setForm((current) => ({ ...current, ingredientsRu: event.target.value }))} />
+          <FieldGroup hint="Основное описание товара для детальной страницы на русском языке.">
+            <textarea className="admin-textarea min-h-28" aria-label="Описание RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Key ingredients text for English detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ingredients EN" value={form.ingredientsEn} onChange={(event) => setForm((current) => ({ ...current, ingredientsEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="How-to-use text for Uzbek detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Usage UZ" value={form.usageUz} onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="How-to-use text for Russian detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Usage RU" value={form.usageRu} onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="How-to-use text for English detail page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Usage EN" value={form.usageEn} onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))} />
+          <FieldGroup className="md:col-span-2" hint="Основное описание товара для детальной страницы на английском языке.">
+            <textarea className="admin-textarea min-h-28" aria-label="Описание EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup className="md:col-span-2" hint="Optional skin types used in catalog filters. One or multiple can be selected.">
+          <FieldGroup hint="Текст о свойствах товара в аккордеоне на узбекском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Свойства UZ" value={form.featureUz} onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Текст о свойствах товара в аккордеоне на русском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Свойства RU" value={form.featureRu} onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup className="md:col-span-2" hint="Текст о свойствах товара в аккордеоне на английском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Свойства EN" value={form.featureEn} onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))} />
+          </FieldGroup>
+
+          <FieldGroup hint="Текст с ключевыми ингредиентами для детальной страницы на узбекском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты UZ" value={form.ingredientsUz} onChange={(event) => setForm((current) => ({ ...current, ingredientsUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Текст с ключевыми ингредиентами для детальной страницы на русском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты RU" value={form.ingredientsRu} onChange={(event) => setForm((current) => ({ ...current, ingredientsRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup className="md:col-span-2" hint="Текст с ключевыми ингредиентами для детальной страницы на английском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты EN" value={form.ingredientsEn} onChange={(event) => setForm((current) => ({ ...current, ingredientsEn: event.target.value }))} />
+          </FieldGroup>
+
+          <FieldGroup hint="Инструкция по применению для детальной страницы на узбекском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Применение UZ" value={form.usageUz} onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Инструкция по применению для детальной страницы на русском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Применение RU" value={form.usageRu} onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup className="md:col-span-2" hint="Инструкция по применению для детальной страницы на английском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Применение EN" value={form.usageEn} onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))} />
+          </FieldGroup>
+
+          <FieldGroup className="md:col-span-2" hint="Необязательные типы кожи для фильтров каталога. Можно выбрать один или несколько вариантов.">
             <div className="grid gap-3 sm:grid-cols-2">
               {SKIN_TYPE_OPTIONS.map((option) => {
                 const checked = form.skinTypes.includes(option.value);
@@ -483,30 +516,30 @@ export function ProductManager() {
             </div>
           </FieldGroup>
 
-          <FieldGroup className="md:col-span-2" hint="Main cover image shown in cards and first gallery slot. Upload JPG, PNG or WebP up to 5 MB.">
+          <FieldGroup className="md:col-span-2" hint="Основная обложка для карточек и первого слота галереи. JPG, PNG или WebP до 5 МБ.">
             <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Cover image</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.imageUrl || "No cover image uploaded yet"}</p>
+                  <p className="text-sm font-semibold text-slate-700">Обложка</p>
+                  <p className="mt-1 text-xs text-slate-400">{form.imageUrl || "Обложка пока не загружена"}</p>
                 </div>
                 <label className="admin-button-secondary cursor-pointer text-center">
-                  {uploadingCover ? "Uploading..." : "Upload cover"}
+                  {uploadingCover ? "Загрузка..." : "Загрузить обложку"}
                   <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
                 </label>
               </div>
             </div>
           </FieldGroup>
 
-          <FieldGroup className="md:col-span-2" hint="Additional gallery images for product page. Optional, 2-5 images is fine, maximum 6 images total.">
+          <FieldGroup className="md:col-span-2" hint="Дополнительные изображения для страницы товара. Оптимально 2-5 изображений, максимум 6.">
             <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Product gallery</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.galleryImages.length}/{MAX_GALLERY_IMAGES} uploaded</p>
+                  <p className="text-sm font-semibold text-slate-700">Галерея товара</p>
+                  <p className="mt-1 text-xs text-slate-400">{form.galleryImages.length}/{MAX_GALLERY_IMAGES} загружено</p>
                 </div>
                 <label className={`admin-button-secondary cursor-pointer text-center ${form.galleryImages.length >= MAX_GALLERY_IMAGES ? "pointer-events-none opacity-50" : ""}`}>
-                  {uploadingGallery ? "Uploading..." : "Upload gallery images"}
+                  {uploadingGallery ? "Загрузка..." : "Загрузить изображения"}
                   <input
                     type="file"
                     accept=".jpg,.jpeg,.png,.webp"
@@ -522,9 +555,9 @@ export function ProductManager() {
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {form.galleryImages.map((image, index) => (
                     <div key={`${image.imageUrl}-${index}`} className="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white">
-                      <img src={image.imageUrl} alt={`Gallery ${index + 1}`} className="h-40 w-full object-cover" />
+                      <img src={image.imageUrl} alt={`Галерея ${index + 1}`} className="h-40 w-full object-cover" />
                       <div className="flex items-center justify-between gap-3 p-3">
-                        <p className="truncate text-xs text-slate-500">Image {index + 1}</p>
+                        <p className="truncate text-xs text-slate-500">Изображение {index + 1}</p>
                         <button
                           type="button"
                           className="text-xs font-semibold text-red-600"
@@ -540,115 +573,115 @@ export function ProductManager() {
                             }))
                           }
                         >
-                          Remove
+                          Удалить
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-slate-400">No gallery images uploaded yet.</p>
+                <p className="mt-4 text-sm text-slate-400">Изображения галереи пока не загружены.</p>
               )}
             </div>
           </FieldGroup>
 
-          <FieldGroup className="md:col-span-2" hint="Optional store photo for the separate where-to-buy page. Upload JPG, PNG or WebP up to 5 MB.">
+          <FieldGroup className="md:col-span-2" hint="Дополнительное фото магазина для страницы «Где купить». JPG, PNG или WebP до 5 МБ.">
             <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Store image</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.storeImageUrl || "No store image uploaded yet"}</p>
+                  <p className="text-sm font-semibold text-slate-700">Изображение магазина</p>
+                  <p className="mt-1 text-xs text-slate-400">{form.storeImageUrl || "Изображение магазина пока не загружено"}</p>
                 </div>
                 <label className="admin-button-secondary cursor-pointer text-center">
-                  {uploadingStoreImage ? "Uploading..." : "Upload store image"}
+                  {uploadingStoreImage ? "Загрузка..." : "Загрузить изображение"}
                   <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleStoreImageUpload} disabled={uploadingStoreImage} />
                 </label>
               </div>
             </div>
           </FieldGroup>
 
-          <FieldGroup hint="Store location shown in Uzbek where-to-buy page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store location UZ" value={form.storeLocationUz} onChange={(event) => setForm((current) => ({ ...current, storeLocationUz: event.target.value }))} />
+          <FieldGroup hint="Адрес магазина для страницы «Где купить» на узбекском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина UZ" value={form.storeLocationUz} onChange={(event) => setForm((current) => ({ ...current, storeLocationUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Store location shown in Russian where-to-buy page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store location RU" value={form.storeLocationRu} onChange={(event) => setForm((current) => ({ ...current, storeLocationRu: event.target.value }))} />
+          <FieldGroup hint="Адрес магазина для страницы «Где купить» на русском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина RU" value={form.storeLocationRu} onChange={(event) => setForm((current) => ({ ...current, storeLocationRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Store location shown in English where-to-buy page.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store location EN" value={form.storeLocationEn} onChange={(event) => setForm((current) => ({ ...current, storeLocationEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Store contacts shown in Uzbek where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store contacts UZ" value={form.storeContactsUz} onChange={(event) => setForm((current) => ({ ...current, storeContactsUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Store contacts shown in Russian where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store contacts RU" value={form.storeContactsRu} onChange={(event) => setForm((current) => ({ ...current, storeContactsRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Store contacts shown in English where-to-buy page. Use separate lines for phone, Telegram or Instagram.">
-            <textarea className="admin-textarea min-h-24" aria-label="Store contacts EN" value={form.storeContactsEn} onChange={(event) => setForm((current) => ({ ...current, storeContactsEn: event.target.value }))} />
+          <FieldGroup className="md:col-span-2" hint="Адрес магазина для страницы «Где купить» на английском языке.">
+            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина EN" value={form.storeLocationEn} onChange={(event) => setForm((current) => ({ ...current, storeLocationEn: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="Package size or product volume, for example 150 ml.">
-            <input className="admin-input" aria-label="Size" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
+          <FieldGroup hint="Контакты магазина для страницы «Где купить» на узбекском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
+            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина UZ" value={form.storeContactsUz} onChange={(event) => setForm((current) => ({ ...current, storeContactsUz: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Selling price shown in storefront cards and checkout.">
-            <input className="admin-input" aria-label="Price" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
+          <FieldGroup hint="Контакты магазина для страницы «Где купить» на русском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
+            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина RU" value={form.storeContactsRu} onChange={(event) => setForm((current) => ({ ...current, storeContactsRu: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Available quantity currently in stock.">
-            <input className="admin-input" aria-label="Stock" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Homepage order inside bestseller section. Lower number comes first.">
-            <input className="admin-input" aria-label="Home sort order" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
+          <FieldGroup className="md:col-span-2" hint="Контакты магазина для страницы «Где купить» на английском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
+            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина EN" value={form.storeContactsEn} onChange={(event) => setForm((current) => ({ ...current, storeContactsEn: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="Category this product belongs to in the catalog.">
+          <FieldGroup hint="Размер упаковки или объем товара, например 150 ml.">
+            <input className="admin-input" aria-label="Размер" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Цена продажи, которая показывается в карточках и при оформлении заказа.">
+            <input className="admin-input" aria-label="Цена" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Доступное количество на складе.">
+            <input className="admin-input" aria-label="Остаток" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
+          </FieldGroup>
+          <FieldGroup hint="Порядок на главной странице внутри блока бестселлеров. Меньшее число показывается раньше.">
+            <input className="admin-input" aria-label="Порядок на главной" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
+          </FieldGroup>
+
+          <FieldGroup hint="Категория, к которой относится товар в каталоге.">
             <select className="admin-select" value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
-              <option value="">Select category</option>
+              <option value="">Выберите категорию</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.nameEn}
+                  {category.nameRu || category.nameEn || category.nameUz}
                 </option>
               ))}
             </select>
           </FieldGroup>
-          <FieldGroup hint="Gradient start color used for placeholders and cards.">
-            <input className="admin-input" aria-label="Color from" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
+          <FieldGroup hint="Начальный цвет градиента для заглушек и карточек.">
+            <input className="admin-input" aria-label="Цвет от" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Gradient end color used for placeholders and cards.">
-            <input className="admin-input" aria-label="Color to" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
+          <FieldGroup hint="Конечный цвет градиента для заглушек и карточек.">
+            <input className="admin-input" aria-label="Цвет до" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
           </FieldGroup>
 
-          <FieldGroup hint="If disabled, the product stays in admin but is hidden from shoppers.">
+          <FieldGroup hint="Если выключено, товар остается в админке, но скрывается от покупателей.">
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
               <input type="checkbox" checked={form.active} onChange={(event) => setForm((current) => ({ ...current, active: event.target.checked }))} />
-              Active product
+              Товар активен
             </label>
           </FieldGroup>
-          <FieldGroup hint="Enable this to show the product in the homepage bestseller block.">
+          <FieldGroup hint="Включите, чтобы показывать товар в блоке бестселлеров на главной странице.">
             <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
               <input type="checkbox" checked={form.isBestseller} onChange={(event) => setForm((current) => ({ ...current, isBestseller: event.target.checked }))} />
-              Show in bestseller section
+              Показывать в блоке бестселлеров
             </label>
           </FieldGroup>
 
           <div className="md:col-span-2 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Cover preview</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Предпросмотр обложки</p>
             <div className="mt-3 flex h-48 items-center justify-center rounded-[1.2rem] bg-white">
-              {form.imageUrl ? <img src={form.imageUrl} alt="Product preview" className="h-40 w-40 object-contain" /> : <p className="text-sm text-slate-400">No image selected</p>}
+              {form.imageUrl ? <img src={form.imageUrl} alt="Предпросмотр товара" className="h-40 w-40 object-contain" /> : <p className="text-sm text-slate-400">Изображение не выбрано</p>}
             </div>
-            <p className="mt-3 text-[11px] leading-4 text-slate-400">The cover image is used in product cards, search and the first slot of the detail gallery.</p>
+            <p className="mt-3 text-[11px] leading-4 text-slate-400">Обложка используется в карточках товара, поиске и первом слоте детальной галереи.</p>
           </div>
         </div>
 
         {error ? (
           <p className="mt-4 text-sm font-semibold text-red-600">
             {error.message}
-            {error.hint ? <span className="ml-2 font-normal text-red-500/90">Hint: {error.hint}</span> : null}
+            {error.hint ? <span className="ml-2 font-normal text-red-500/90">Подсказка: {error.hint}</span> : null}
           </p>
         ) : null}
         {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
         <button type="submit" className="admin-button-primary mt-6 w-full">
-          {editingId ? "Update product" : "Create product"}
+          {editingId ? "Обновить товар" : "Создать товар"}
         </button>
       </form>
 
@@ -659,31 +692,31 @@ export function ProductManager() {
         </div>
 
         <div className="mt-5 space-y-4">
-          {loading ? <p className="text-sm text-slate-500">Loading products...</p> : null}
-          {!loading && products.length === 0 ? <p className="text-sm text-slate-500">No products yet.</p> : null}
+          {loading ? <p className="text-sm text-slate-500">Загружаем товары...</p> : null}
+          {!loading && products.length === 0 ? <p className="text-sm text-slate-500">Товаров пока нет.</p> : null}
           {!loading && products.length > 0 && filteredProducts.length === 0 ? (
-            <p className="text-sm text-slate-500">No products found for this search.</p>
+            <p className="text-sm text-slate-500">По этому запросу товары не найдены.</p>
           ) : null}
           {filteredProducts.map((product) => (
             <article key={product.id} className="admin-panel-muted p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="flex gap-4">
                   <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-white">
-                    {product.imageUrl ? <img src={product.imageUrl} alt={product.nameEn} className="h-16 w-16 object-contain" /> : <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">No image</span>}
+                    {product.imageUrl ? <img src={product.imageUrl} alt={getProductDisplayName(product)} className="h-16 w-16 object-contain" /> : <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Нет фото</span>}
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
                       {product.sku} | {product.slug}
                     </p>
-                    <h4 className="mt-2 text-lg font-semibold text-slate-950">{product.nameEn}</h4>
-                    <p className="mt-1 text-sm text-slate-600">{product.category?.nameEn || "Uncategorized"}</p>
+                    <h4 className="mt-2 text-lg font-semibold text-slate-950">{getProductDisplayName(product)}</h4>
+                    <p className="mt-1 text-sm text-slate-600">{getCategoryDisplayName(product.category)}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      ${product.price} | Stock {product.stock} | {product.active ? "Active" : "Draft"} | Bestseller{" "}
-                      {product.isBestseller ? `Yes (#${product.homeSortOrder})` : "No"}
+                      {product.price.toLocaleString("ru-RU")} сум | Остаток {product.stock} | {product.active ? "Активен" : "Черновик"} | Бестселлер{" "}
+                      {product.isBestseller ? `Да (#${product.homeSortOrder})` : "Нет"}
                     </p>
                     <p className="mt-1 text-xs text-slate-400">
-                      Gallery {product.galleryImages?.length || 0} | Reviews {product._count?.reviews || 0}
-                      {product.skinTypes ? ` | Skin ${product.skinTypes}` : ""}
+                      Галерея {product.galleryImages?.length || 0} | Отзывы {product._count?.reviews || 0}
+                      {formatSkinTypes(product.skinTypes) ? ` | Тип кожи: ${formatSkinTypes(product.skinTypes)}` : ""}
                     </p>
                   </div>
                 </div>
@@ -739,10 +772,10 @@ export function ProductManager() {
                       });
                     }}
                   >
-                    Edit
+                    Редактировать
                   </button>
                   <button type="button" className="admin-button-danger" onClick={() => handleDelete(product.id)}>
-                    Delete
+                    Удалить
                   </button>
                 </div>
               </div>

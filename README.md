@@ -9,12 +9,14 @@ Modaily is a multilingual skincare e-commerce storefront built with Next.js, Pri
 
 ## Local run
 
+Node 24 and `pnpm` are the recommended local toolchain for this repo.
+
 ```bash
-npm install
-npm run prisma:generate
-npm run db:push
-npm run db:seed
-npm run dev
+pnpm install
+pnpm prisma:generate
+pnpm db:push
+pnpm db:seed
+pnpm dev
 ```
 
 ## Docker run

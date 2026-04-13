@@ -48,7 +48,7 @@ export function UserManager() {
     try {
       setUsers(await requestJson<AdminUser[]>("/api/users"));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Could not load users.");
+      setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить пользователей.");
     } finally {
       setLoading(false);
     }
@@ -74,15 +74,15 @@ export function UserManager() {
 
       setEditingId(null);
       setForm(emptyForm);
-      setMessage(editingId ? "User updated." : "User created.");
+      setMessage(editingId ? "Пользователь обновлен." : "Пользователь создан.");
       await loadUsers();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Could not save user.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить пользователя.");
     }
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this user?")) {
+    if (!window.confirm("Удалить этого пользователя?")) {
       return;
     }
 
@@ -92,10 +92,10 @@ export function UserManager() {
         setEditingId(null);
         setForm(emptyForm);
       }
-      setMessage("User deleted.");
+      setMessage("Пользователь удален.");
       await loadUsers();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Could not delete user.");
+      setError(deleteError instanceof Error ? deleteError.message : "Не удалось удалить пользователя.");
     }
   }
 
@@ -103,7 +103,7 @@ export function UserManager() {
     <div className="grid gap-6 xl:grid-cols-[390px_1fr]">
       <form onSubmit={handleSubmit} className="admin-panel p-6">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Edit user" : "Create user"}</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Редактирование пользователя" : "Создание пользователя"}</h3>
           {editingId ? (
             <button
               type="button"
@@ -113,26 +113,26 @@ export function UserManager() {
                 setForm(emptyForm);
               }}
             >
-              Cancel
+              Отмена
             </button>
           ) : null}
         </div>
 
         <div className="mt-5 space-y-4">
-          <FieldGroup hint="Full name: customerning to‘liq ismi.">
-            <input className="admin-input" aria-label="Full name" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
+          <FieldGroup hint="Полное имя клиента.">
+            <input className="admin-input" aria-label="Полное имя" value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Email: aloqa va login uchun email manzil.">
-            <input className="admin-input" aria-label="Email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+          <FieldGroup hint="Электронная почта для связи и входа.">
+            <input className="admin-input" aria-label="Электронная почта" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Phone: asosiy telefon raqam.">
-            <input className="admin-input" aria-label="Phone" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
+          <FieldGroup hint="Основной номер телефона.">
+            <input className="admin-input" aria-label="Телефон" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="City: foydalanuvchi shahri yoki hududi.">
-            <input className="admin-input" aria-label="City" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
+          <FieldGroup hint="Город или регион пользователя.">
+            <input className="admin-input" aria-label="Город" value={form.city} onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} />
           </FieldGroup>
-          <FieldGroup hint="Notes: ichki admin eslatmalari va CRM qaydlari.">
-            <textarea className="admin-textarea min-h-28" aria-label="Notes" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
+          <FieldGroup hint="Внутренние заметки администратора и записи CRM.">
+            <textarea className="admin-textarea min-h-28" aria-label="Заметки" value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} />
           </FieldGroup>
         </div>
 
@@ -140,19 +140,19 @@ export function UserManager() {
         {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
 
         <button type="submit" className="admin-button-primary mt-6 w-full">
-          {editingId ? "Update user" : "Create user"}
+          {editingId ? "Обновить пользователя" : "Создать пользователя"}
         </button>
       </form>
 
       <div className="admin-panel p-6">
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-2xl font-semibold text-slate-950">Users</h3>
+          <h3 className="text-2xl font-semibold text-slate-950">Пользователи</h3>
           <span className="admin-badge">{users.length}</span>
         </div>
 
         <div className="mt-5 space-y-4">
-          {loading ? <p className="text-sm text-slate-500">Loading users...</p> : null}
-          {!loading && users.length === 0 ? <p className="text-sm text-slate-500">No users yet.</p> : null}
+          {loading ? <p className="text-sm text-slate-500">Загружаем пользователей...</p> : null}
+          {!loading && users.length === 0 ? <p className="text-sm text-slate-500">Пользователей пока нет.</p> : null}
           {users.map((user) => (
             <article key={user.id} className="admin-panel-muted p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -160,7 +160,7 @@ export function UserManager() {
                   <h4 className="text-lg font-semibold text-slate-950">{user.fullName}</h4>
                   <p className="mt-1 text-sm text-slate-600">{user.email}</p>
                   <p className="mt-2 text-sm text-slate-500">
-                    {[user.phone, user.city].filter(Boolean).join(" | ") || "No extra details"}
+                    {[user.phone, user.city].filter(Boolean).join(" | ") || "Нет дополнительных данных"}
                   </p>
                   {user.notes ? <p className="mt-3 text-sm leading-6 text-slate-600">{user.notes}</p> : null}
                 </div>
@@ -179,10 +179,10 @@ export function UserManager() {
                       });
                     }}
                   >
-                    Edit
+                    Редактировать
                   </button>
                   <button type="button" className="admin-button-danger" onClick={() => handleDelete(user.id)}>
-                    Delete
+                    Удалить
                   </button>
                 </div>
               </div>

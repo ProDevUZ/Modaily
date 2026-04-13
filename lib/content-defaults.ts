@@ -45,7 +45,8 @@ export const defaultHomeHero = {
   secondaryCtaRu: "Каталог",
   secondaryCtaEn: "Catalog",
   secondaryCtaLink: "/ru/catalog",
-  imageUrl: "/images/home/mainpage.jpg"
+  imageUrl: "/images/home/mainpage.jpg",
+  heroProductId: null
 };
 
 export const defaultHomeAbout = {
