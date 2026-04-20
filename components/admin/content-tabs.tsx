@@ -21,7 +21,7 @@ export function ContentTabs() {
 
         <nav className="flex min-w-max items-center gap-1.5 rounded-full border border-[#e4ebf6] bg-white/92 p-1.5 shadow-[0_18px_30px_rgba(148,163,184,0.1)]">
         {adminContentSections.map((section, index) => {
-          const active = section.key === "gallery" ? pathname.startsWith("/admin/content/gallery") : pathname === section.href;
+          const active = section.key === "gallery" ? pathname.startsWith("/admin123/content/gallery") : pathname === section.href;
 
           return (
             <Link

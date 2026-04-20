@@ -10,6 +10,12 @@ export type UserPayload = {
   notes: string | null;
 };
 
+export type ContactMessagePayload = {
+  fullName: string;
+  phone: string;
+  message: string | null;
+};
+
 export type CategoryPayload = {
   slug: string;
   nameUz: string;
@@ -51,10 +57,13 @@ export type ProductPayload = {
   skinTypes: string | null;
   size: string | null;
   price: number;
+  discountAmount: number;
   hidePrice: boolean;
   stock: number;
   active: boolean;
   isBestseller: boolean;
+  isHit: boolean;
+  isNew: boolean;
   homeSortOrder: number;
   imageUrl: string | null;
   colorFrom: string | null;
@@ -87,6 +96,22 @@ export type SiteSettingsPayload = {
   footerAddressUz: string | null;
   footerAddressRu: string | null;
   footerAddressEn: string | null;
+  aboutTitleUz: string | null;
+  aboutTitleRu: string | null;
+  aboutTitleEn: string | null;
+  aboutDescriptionUz: string | null;
+  aboutDescriptionRu: string | null;
+  aboutDescriptionEn: string | null;
+  aboutBrandTitleUz: string | null;
+  aboutBrandTitleRu: string | null;
+  aboutBrandTitleEn: string | null;
+  aboutPanelDescriptionUz: string | null;
+  aboutPanelDescriptionRu: string | null;
+  aboutPanelDescriptionEn: string | null;
+  aboutPanelSecondaryDescriptionUz: string | null;
+  aboutPanelSecondaryDescriptionRu: string | null;
+  aboutPanelSecondaryDescriptionEn: string | null;
+  aboutImageUrl: string | null;
   newsletterTitleUz: string | null;
   newsletterTitleRu: string | null;
   newsletterTitleEn: string | null;
@@ -183,6 +208,28 @@ export type TestimonialPayload = {
   active: boolean;
 };
 
+export type BlogPostSectionPayload = {
+  title: string;
+  description: string;
+  sortOrder: number;
+};
+
+export type BlogPostPayload = {
+  cardTitle: string;
+  excerpt: string;
+  coverImage: string;
+  publishDate: Date;
+  category: string;
+  slug: string;
+  featured: boolean;
+  linkedProductId: string | null;
+  mainTitle: string;
+  introDescription: string;
+  dynamicSections: BlogPostSectionPayload[];
+  seoTitle: string;
+  metaDescription: string;
+};
+
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -199,6 +246,17 @@ function asBoolean(value: unknown) {
 function asInteger(value: unknown, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : fallback;
+}
+
+function asDate(value: unknown) {
+  const normalized = asString(value);
+
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function asSkinTypes(value: unknown) {
@@ -247,6 +305,30 @@ export function validateUserPayload(body: unknown): ValidationResult<UserPayload
   };
 }
 
+export function validateContactMessagePayload(body: unknown): ValidationResult<ContactMessagePayload> {
+  const payload = body as Record<string, unknown>;
+
+  const fullName = asString(payload.fullName);
+  const phone = asString(payload.phone);
+
+  if (!fullName) {
+    return { success: false, error: "Full name is required." };
+  }
+
+  if (!phone) {
+    return { success: false, error: "Phone is required." };
+  }
+
+  return {
+    success: true,
+    data: {
+      fullName,
+      phone,
+      message: asOptionalString(payload.message)
+    }
+  };
+}
+
 export function validateCategoryPayload(body: unknown): ValidationResult<CategoryPayload> {
   const payload = body as Record<string, unknown>;
 
@@ -287,6 +369,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
   const nameRu = asString(payload.nameRu);
   const nameEn = asString(payload.nameEn);
   const price = Number(payload.price);
+  const discountAmount = Number(payload.discountAmount ?? 0);
   const stock = Number(payload.stock);
   const categoryId = asString(payload.categoryId);
 
@@ -304,6 +387,10 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
 
   if (!Number.isFinite(stock) || stock < 0) {
     return { success: false, error: "Stock must be a valid non-negative number." };
+  }
+
+  if (!Number.isFinite(discountAmount) || discountAmount < 0) {
+    return { success: false, error: "Discount amount must be a valid non-negative number." };
   }
 
   if (!categoryId) {
@@ -369,10 +456,13 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       skinTypes: asSkinTypes(payload.skinTypes),
       size: asOptionalString(payload.size),
       price: Math.round(price),
+      discountAmount: Math.round(discountAmount),
       hidePrice: asBoolean(payload.hidePrice),
       stock: Math.round(stock),
       active: asBoolean(payload.active),
       isBestseller: asBoolean(payload.isBestseller),
+      isHit: asBoolean(payload.isHit),
+      isNew: asBoolean(payload.isNew),
       homeSortOrder: asInteger(payload.homeSortOrder),
       imageUrl: asOptionalString(payload.imageUrl),
       colorFrom: asOptionalString(payload.colorFrom),
@@ -409,6 +499,22 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
       footerAddressUz: asOptionalString(payload.footerAddressUz),
       footerAddressRu: asOptionalString(payload.footerAddressRu),
       footerAddressEn: asOptionalString(payload.footerAddressEn),
+      aboutTitleUz: asOptionalString(payload.aboutTitleUz),
+      aboutTitleRu: asOptionalString(payload.aboutTitleRu),
+      aboutTitleEn: asOptionalString(payload.aboutTitleEn),
+      aboutDescriptionUz: asOptionalString(payload.aboutDescriptionUz),
+      aboutDescriptionRu: asOptionalString(payload.aboutDescriptionRu),
+      aboutDescriptionEn: asOptionalString(payload.aboutDescriptionEn),
+      aboutBrandTitleUz: asOptionalString(payload.aboutBrandTitleUz),
+      aboutBrandTitleRu: asOptionalString(payload.aboutBrandTitleRu),
+      aboutBrandTitleEn: asOptionalString(payload.aboutBrandTitleEn),
+      aboutPanelDescriptionUz: asOptionalString(payload.aboutPanelDescriptionUz),
+      aboutPanelDescriptionRu: asOptionalString(payload.aboutPanelDescriptionRu),
+      aboutPanelDescriptionEn: asOptionalString(payload.aboutPanelDescriptionEn),
+      aboutPanelSecondaryDescriptionUz: asOptionalString(payload.aboutPanelSecondaryDescriptionUz),
+      aboutPanelSecondaryDescriptionRu: asOptionalString(payload.aboutPanelSecondaryDescriptionRu),
+      aboutPanelSecondaryDescriptionEn: asOptionalString(payload.aboutPanelSecondaryDescriptionEn),
+      aboutImageUrl: asOptionalString(payload.aboutImageUrl),
       newsletterTitleUz: asOptionalString(payload.newsletterTitleUz),
       newsletterTitleRu: asOptionalString(payload.newsletterTitleRu),
       newsletterTitleEn: asOptionalString(payload.newsletterTitleEn),
@@ -591,6 +697,110 @@ export function validateTestimonialPayload(body: unknown): ValidationResult<Test
       rating,
       sortOrder: asInteger(payload.sortOrder),
       active: asBoolean(payload.active)
+    }
+  };
+}
+
+export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPostPayload> {
+  const payload = body as Record<string, unknown>;
+
+  const cardTitle = asString(payload.cardTitle);
+  const excerpt = asString(payload.excerpt);
+  const coverImage = asString(payload.coverImage);
+  const publishDate = asDate(payload.publishDate);
+  const category = asString(payload.category);
+  const slug = toSlug(asString(payload.slug) || cardTitle || asString(payload.mainTitle));
+  const mainTitle = asString(payload.mainTitle);
+  const introDescription = asString(payload.introDescription);
+  const seoTitle = asString(payload.seoTitle) || mainTitle;
+  const metaDescription = asString(payload.metaDescription) || excerpt;
+
+  if (!cardTitle) {
+    return { success: false, error: "Card title is required." };
+  }
+
+  if (!excerpt) {
+    return { success: false, error: "Excerpt is required." };
+  }
+
+  if (!coverImage) {
+    return { success: false, error: "Cover image is required." };
+  }
+
+  if (!publishDate) {
+    return { success: false, error: "Valid publish date is required." };
+  }
+
+  if (!category) {
+    return { success: false, error: "Category is required." };
+  }
+
+  if (!slug) {
+    return { success: false, error: "Slug is required." };
+  }
+
+  if (!mainTitle) {
+    return { success: false, error: "Main title is required." };
+  }
+
+  if (!introDescription) {
+    return { success: false, error: "Intro description is required." };
+  }
+
+  if (!seoTitle) {
+    return { success: false, error: "SEO title is required." };
+  }
+
+  if (!metaDescription) {
+    return { success: false, error: "Meta description is required." };
+  }
+
+  if (!Array.isArray(payload.dynamicSections)) {
+    return { success: false, error: "Dynamic sections must be an array." };
+  }
+
+  const dynamicSections: BlogPostSectionPayload[] = [];
+
+  for (const [index, entry] of payload.dynamicSections.entries()) {
+    if (!entry || typeof entry !== "object") {
+      return { success: false, error: "Each dynamic section must be an object." };
+    }
+
+    const row = entry as Record<string, unknown>;
+    const title = asString(row.title);
+    const description = asString(row.description);
+
+    if (!title && !description) {
+      continue;
+    }
+
+    if (!title || !description) {
+      return { success: false, error: "Each dynamic section must include title and description." };
+    }
+
+    dynamicSections.push({
+      title,
+      description,
+      sortOrder: asInteger(row.sortOrder, index)
+    });
+  }
+
+  return {
+    success: true,
+    data: {
+      cardTitle,
+      excerpt,
+      coverImage,
+      publishDate,
+      category,
+      slug,
+      featured: asBoolean(payload.featured),
+      linkedProductId: asOptionalString(payload.linkedProductId),
+      mainTitle,
+      introDescription,
+      dynamicSections,
+      seoTitle,
+      metaDescription
     }
   };
 }

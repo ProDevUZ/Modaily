@@ -17,6 +17,17 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model ContactMessage {
+  id        String   @id @default(cuid())
+  fullName  String
+  phone     String
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
 model Category {
   id            String    @id @default(cuid())
   slug          String    @unique
@@ -63,10 +74,13 @@ model Product {
   skinTypes          String?
   size               String?
   price              Int
+  discountAmount     Int      @default(0)
   hidePrice          Boolean  @default(false)
   stock              Int      @default(0)
   active             Boolean  @default(true)
   isBestseller       Boolean  @default(false)
+  isHit              Boolean  @default(false)
+  isNew              Boolean  @default(false)
   homeSortOrder      Int      @default(0)
   imageUrl           String?
   colorFrom          String?
@@ -77,6 +91,7 @@ model Product {
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   galleryImages      ProductGalleryImage[]
   heroEntries        HomeHero[] @relation("HomeHeroProduct")
+  linkedBlogPosts    BlogPost[] @relation("BlogPostLinkedProduct")
   reviews            ProductReview[]
 }
 
@@ -129,6 +144,22 @@ model SiteSettings {
   footerAddressUz        String?
   footerAddressRu        String?
   footerAddressEn        String?
+  aboutTitleUz          String?
+  aboutTitleRu          String?
+  aboutTitleEn          String?
+  aboutDescriptionUz    String?
+  aboutDescriptionRu    String?
+  aboutDescriptionEn    String?
+  aboutBrandTitleUz     String?
+  aboutBrandTitleRu     String?
+  aboutBrandTitleEn     String?
+  aboutPanelDescriptionUz String?
+  aboutPanelDescriptionRu String?
+  aboutPanelDescriptionEn String?
+  aboutPanelSecondaryDescriptionUz String?
+  aboutPanelSecondaryDescriptionRu String?
+  aboutPanelSecondaryDescriptionEn String?
+  aboutImageUrl         String?
   newsletterTitleUz      String?
   newsletterTitleRu      String?
   newsletterTitleEn      String?
@@ -241,4 +272,42 @@ model Testimonial {
   active           Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model BlogPost {
+  id               String            @id @default(cuid())
+  cardTitle        String
+  excerpt          String
+  coverImage       String
+  publishDate      DateTime
+  category         String
+  slug             String            @unique
+  featured         Boolean           @default(false)
+  linkedProductId  String?
+  mainTitle        String
+  introDescription String
+  seoTitle         String
+  metaDescription  String
+  dynamicSections  BlogPostSection[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  linkedProduct    Product?          @relation("BlogPostLinkedProduct", fields: [linkedProductId], references: [id], onDelete: SetNull)
+
+  @@index([publishDate(sort: Desc)])
+  @@index([category, publishDate(sort: Desc)])
+  @@index([featured, publishDate(sort: Desc)])
+  @@index([linkedProductId])
+}
+
+model BlogPostSection {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  sortOrder   Int      @default(0)
+  postId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, sortOrder])
 }

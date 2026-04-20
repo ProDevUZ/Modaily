@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminContentIndexPage() {
-  redirect("/admin/content/hero");
+  redirect("/admin123/content/hero");
 }

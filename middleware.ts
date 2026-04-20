@@ -5,11 +5,36 @@ import { defaultLocale, locales } from "@/lib/i18n";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const localizedAdminSecretMatch = pathname.match(new RegExp(`^/(${locales.join("|")})/admin123(?:(/.*)|$)`));
+  const localizedAdminMatch = pathname.match(new RegExp(`^/(${locales.join("|")})/admin(?:(/.*)|$)`));
+
+  if (localizedAdminSecretMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/admin123${localizedAdminSecretMatch[2] || ""}`;
+    return NextResponse.redirect(url);
+  }
+
+  if (localizedAdminMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${localizedAdminMatch[1]}`;
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname === "/admin123" || pathname.startsWith("/admin123/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/admin${pathname.slice("/admin123".length)}`;
+    return NextResponse.rewrite(url);
+  }
+
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
+  }
 
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
-    pathname.startsWith("/admin") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const galleryModes = [
-  { key: "image", href: "/admin/content/gallery/image", label: "Изображения" },
-  { key: "video", href: "/admin/content/gallery/video", label: "Видео" }
+  { key: "image", href: "/admin123/content/gallery/image", label: "Изображения" },
+  { key: "video", href: "/admin123/content/gallery/video", label: "Видео" }
 ] as const;
 
 export function GalleryModeTabs() {

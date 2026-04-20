@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminGalleryIndexPage() {
-  redirect("/admin/content/gallery/image");
+  redirect("/admin123/content/gallery/image");
 }

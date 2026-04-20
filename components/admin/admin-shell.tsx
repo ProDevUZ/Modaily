@@ -10,65 +10,24 @@ type AdminShellProps = {
   description: string;
   current: AdminSectionKey;
   subHeader?: React.ReactNode;
+  searchable?: boolean;
+  hideHeader?: boolean;
+  headerVariant?: "default" | "compact";
+  headerAccessory?: React.ReactNode;
+  mainClassName?: string;
+  contentClassName?: string;
   children: React.ReactNode;
 };
 
-const navToneMap: Record<
-  AdminSectionKey,
-  { iconBg: string; iconText: string; iconBorder: string; activeGlow: string }
-> = {
-  overview: {
-    iconBg: "bg-[#eef3ff]",
-    iconText: "text-[#5777ff]",
-    iconBorder: "border-[#dbe4ff]",
-    activeGlow: "shadow-[0_16px_34px_rgba(87,119,255,0.14)]"
-  },
-  products: {
-    iconBg: "bg-[#fff2f4]",
-    iconText: "text-[var(--brand)]",
-    iconBorder: "border-[#ffdbe2]",
-    activeGlow: "shadow-[0_16px_34px_rgba(186,12,47,0.12)]"
-  },
-  categories: {
-    iconBg: "bg-[#fff7e8]",
-    iconText: "text-[#f0a320]",
-    iconBorder: "border-[#ffe7b3]",
-    activeGlow: "shadow-[0_16px_34px_rgba(240,163,32,0.12)]"
-  },
-  content: {
-    iconBg: "bg-[#fff0f6]",
-    iconText: "text-[#ec4899]",
-    iconBorder: "border-[#ffd5e8]",
-    activeGlow: "shadow-[0_16px_34px_rgba(236,72,153,0.14)]"
-  },
-  settings: {
-    iconBg: "bg-[#f4f6fa]",
-    iconText: "text-[#64748b]",
-    iconBorder: "border-[#e2e8f0]",
-    activeGlow: "shadow-[0_16px_34px_rgba(100,116,139,0.12)]"
-  },
-  shop: {
-    iconBg: "bg-[#eefcf7]",
-    iconText: "text-[#10b981]",
-    iconBorder: "border-[#d0f5e7]",
-    activeGlow: "shadow-[0_16px_34px_rgba(16,185,129,0.14)]"
-  }
-};
-
 function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: boolean }) {
-  const tone = navToneMap[section];
-  const iconClass = active
-    ? "border-transparent bg-[#0f172a] text-white"
-    : `${tone.iconBg} ${tone.iconText} ${tone.iconBorder}`;
-
   return (
-    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border ${iconClass}`}>
+    <span className={`inline-flex h-5 w-5 items-center justify-center ${active ? "text-slate-700" : "text-slate-400"}`}>
       <svg
         viewBox="0 0 24 24"
-        className="h-4.5 w-4.5"
+        className="h-5 w-5"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.9"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -97,12 +56,34 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
             <rect x="14" y="15" width="6" height="4" rx="1" />
           </>
         ) : null}
+        {section === "users" ? (
+          <>
+            <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="10" cy="7" r="3" />
+            <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 4.13a4 4 0 0 1 0 7.75" />
+          </>
+        ) : null}
+        {section === "messages" ? (
+          <>
+            <path d="M5 6.5h14A1.5 1.5 0 0 1 20.5 8v8A1.5 1.5 0 0 1 19 17.5H9.5L5 20v-3.5A1.5 1.5 0 0 1 3.5 15V8A1.5 1.5 0 0 1 5 6.5Z" />
+            <path d="m7.5 10 4.1 3a.7.7 0 0 0 .8 0l4.1-3" />
+          </>
+        ) : null}
         {section === "content" ? (
           <>
             <rect x="4" y="4" width="16" height="16" rx="2.5" />
             <path d="M8 9h8" />
             <path d="M8 13h5" />
             <path d="M8 17h8" />
+          </>
+        ) : null}
+        {section === "blog" ? (
+          <>
+            <path d="M6 5.5h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z" />
+            <path d="M8 9h8" />
+            <path d="M8 12.5h8" />
+            <path d="M8 16h5" />
           </>
         ) : null}
         {section === "settings" ? (
@@ -124,12 +105,49 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
   );
 }
 
-export function AdminShell({ title, description, current, subHeader, children }: AdminShellProps) {
+const adminUtilityLinks = [
+  {
+    label: "Admin Profile",
+    href: "/admin123/settings",
+    icon: (
+      <>
+        <path d="M20 21a8 8 0 0 0-16 0" />
+        <circle cx="12" cy="8" r="4" />
+      </>
+    )
+  },
+  {
+    label: "Logout",
+    href: "/",
+    icon: (
+      <>
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        <path d="m16 17 5-5-5-5" />
+        <path d="M21 12H9" />
+      </>
+    )
+  }
+] as const;
+
+export function AdminShell({
+  title,
+  description,
+  current,
+  subHeader,
+  searchable,
+  hideHeader,
+  headerVariant = "default",
+  headerAccessory,
+  mainClassName,
+  contentClassName,
+  children
+}: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const showSearch = current === "products" || current === "categories";
+  const showSearch = searchable ?? (current === "products" || current === "categories");
   const searchValue = searchParams.get("q") || "";
+  const compactHeader = headerVariant === "compact";
 
   function handleSearchChange(value: string) {
     const nextParams = new URLSearchParams(searchParams.toString());
@@ -146,45 +164,26 @@ export function AdminShell({ title, description, current, subHeader, children }:
 
   return (
     <section className="admin-surface">
-      <div className="grid min-h-screen xl:grid-cols-[332px_1fr]">
-        <aside className="border-b border-[#e9eef7] bg-white xl:border-b-0 xl:border-r">
-          <div className="px-10 py-8">
-            <Link href="/admin" className="flex items-center gap-4 rounded-3xl">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.35rem] bg-[#0f172a] text-white shadow-[0_14px_34px_rgba(15,23,42,0.14)]">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M6 10V8a6 6 0 0 1 12 0v2" />
-                  <rect x="4" y="10" width="16" height="10" rx="2.5" />
-                  <path d="M9.5 14h5" />
-                </svg>
-              </span>
-              <div className="min-w-0">
-                <p className="brand-wordmark text-[32px] uppercase leading-none text-[var(--brand)]">Modaily</p>
-                <p className="mt-1 text-xs font-medium tracking-[0.24em] text-slate-400">Панель управления</p>
-              </div>
+      <div className="grid min-h-screen xl:grid-cols-[280px_1fr]">
+        <aside className="flex flex-col border-b border-[#e5eaf2] bg-white xl:border-b-0 xl:border-r">
+          <div className="border-b border-[#e5eaf2] px-7 py-8">
+            <Link href="/admin123" className="inline-flex">
+              <p className="brand-wordmark text-[31px] uppercase leading-none text-slate-950">Modaily</p>
             </Link>
           </div>
 
-          <nav className="space-y-1.5 px-8 pb-8">
+          <nav className="flex-1 space-y-1.5 px-4 py-6">
             {adminSections.map((section) => {
               const active = current === section.key || pathname === section.href;
-              const tone = navToneMap[section.key];
 
               return (
                 <Link
                   key={section.key}
                   href={section.href}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.04rem] font-medium transition ${
                     active
-                      ? `bg-white text-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.06)] ${tone.activeGlow}`
-                      : "text-slate-500 hover:bg-white hover:text-slate-950"
+                      ? "bg-[#f3f5f8] text-slate-900"
+                      : "text-slate-500 hover:bg-[#f8fafc] hover:text-slate-800"
                   }`}
                 >
                   <AdminNavIcon section={section.key} active={active} />
@@ -193,42 +192,103 @@ export function AdminShell({ title, description, current, subHeader, children }:
               );
             })}
           </nav>
+
+          <div className="border-t border-[#e5eaf2] px-4 py-5">
+            <div className="space-y-1.5">
+              {adminUtilityLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-2xl px-4 py-3 text-[1.04rem] font-medium text-slate-500 transition hover:bg-[#f8fafc] hover:text-slate-800"
+                >
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-slate-400">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {item.icon}
+                    </svg>
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </aside>
 
         <div className="min-w-0">
-          <header className="border-b border-[#e9eef7] bg-[#fbfcff]">
-            <div
-              className={`px-5 py-5 lg:px-8 ${
-                showSearch
-                  ? "flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
-                  : "space-y-3"
-              }`}
-            >
-              <div className="max-w-[1100px]">
-                <h1 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">{title}</h1>
-                <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>
-              </div>
-
-              {showSearch ? (
-                <div className="w-full max-w-[460px] lg:shrink-0">
-                  <div className="relative w-full">
-                    <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="m20 20-3.5-3.5" />
-                      </svg>
-                    </span>
-                    <input
-                      className="admin-input bg-white pl-12 placeholder:text-slate-300"
-                      placeholder="Поиск..."
-                      value={searchValue}
-                      onChange={(event) => handleSearchChange(event.target.value)}
-                    />
+          {!hideHeader ? (
+            <header className={`border-b border-[#e9eef7] ${compactHeader ? "bg-white" : "bg-[#fbfcff]"}`}>
+              {compactHeader ? (
+                <div className="flex flex-col gap-4 px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+                  <div className="min-w-0">
+                    <h1 className="text-[1.95rem] font-semibold tracking-tight text-slate-950">{title}</h1>
+                    {description ? <p className="mt-1.5 text-sm text-slate-500">{description}</p> : null}
                   </div>
+
+                  {(showSearch || headerAccessory) ? (
+                    <div className="flex items-center gap-3 lg:shrink-0">
+                      {showSearch ? (
+                        <div className="relative w-full min-w-[260px] max-w-[360px]">
+                          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
+                            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="11" cy="11" r="7" />
+                              <path d="m20 20-3.5-3.5" />
+                            </svg>
+                          </span>
+                          <input
+                            className="admin-input h-11 bg-[#f8faff] pl-12 placeholder:text-slate-300"
+                            placeholder="Поиск..."
+                            value={searchValue}
+                            onChange={(event) => handleSearchChange(event.target.value)}
+                          />
+                        </div>
+                      ) : null}
+
+                      {headerAccessory}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          </header>
+              ) : (
+                <div
+                  className={`px-5 py-5 lg:px-8 ${
+                    showSearch
+                      ? "flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+                      : "space-y-3"
+                  }`}
+                >
+                  <div className="max-w-[1100px]">
+                    <h1 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">{title}</h1>
+                    <p className="mt-3 text-base leading-7 text-slate-500">{description}</p>
+                  </div>
+
+                  {showSearch ? (
+                    <div className="w-full max-w-[460px] lg:shrink-0">
+                      <div className="relative w-full">
+                        <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m20 20-3.5-3.5" />
+                          </svg>
+                        </span>
+                        <input
+                          className="admin-input bg-white pl-12 placeholder:text-slate-300"
+                          placeholder="Поиск..."
+                          value={searchValue}
+                          onChange={(event) => handleSearchChange(event.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </header>
+          ) : null}
 
           {subHeader ? (
             <div className="border-b border-[#e8eef8] bg-white/72 backdrop-blur-xl">
@@ -236,8 +296,8 @@ export function AdminShell({ title, description, current, subHeader, children }:
             </div>
           ) : null}
 
-          <main className="px-5 py-6 lg:px-8">
-            <div className="space-y-6">{children}</div>
+          <main className={mainClassName || "px-5 py-6 lg:px-8"}>
+            <div className={contentClassName || "space-y-6"}>{children}</div>
           </main>
         </div>
       </div>

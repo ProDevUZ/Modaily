@@ -9,26 +9,35 @@ type SiteFooterProps = {
   siteSettings: {
     brandName: string;
     footerPhone: string;
+    footerEmail: string;
     footerTelegram: string;
     footerTelegramLink: string;
     footerInstagram: string;
     footerInstagramLink: string;
     footerAddress: string;
+    newsletterTitle: string;
+    newsletterPlaceholder: string;
   };
 };
 
 const footerLabels = {
   uz: {
     pages: "Sahifalar",
-    stores: "Do'konlarimiz"
+    stores: "Do'konlarimiz",
+    blog: "Blog",
+    about: "Biz haqimizda"
   },
   ru: {
     pages: "Страницы",
-    stores: "Наши магазины"
+    stores: "Наши магазины",
+    blog: "Блог",
+    about: "О нас"
   },
   en: {
     pages: "Pages",
-    stores: "Our stores"
+    stores: "Our stores",
+    blog: "Blog",
+    about: "About"
   }
 } as const;
 
@@ -55,15 +64,14 @@ function getPhoneHref(phone: string) {
   return normalized ? `tel:${normalized}` : "";
 }
 
-function getInstagramHref(handle: string, link: string) {
-  const directLink = normalizeExternalHref(link);
+function getWhatsAppHref(phone: string) {
+  const normalized = phone.trim().replace(/[^\d]/g, "");
+  return normalized ? `https://wa.me/${normalized}` : "";
+}
 
-  if (directLink) {
-    return directLink;
-  }
-
-  const normalizedHandle = normalizeHandle(handle);
-  return normalizedHandle ? `https://instagram.com/${normalizedHandle}` : "";
+function getEmailHref(email: string) {
+  const normalized = email.trim();
+  return normalized ? `mailto:${normalized}` : "";
 }
 
 function getTelegramHref(handle: string, link: string) {
@@ -77,26 +85,133 @@ function getTelegramHref(handle: string, link: string) {
   return normalizedHandle ? `https://t.me/${normalizedHandle}` : "";
 }
 
-function ContactIcon({
-  children,
+function getInstagramHref(handle: string, link: string) {
+  const directLink = normalizeExternalHref(link);
+
+  if (directLink) {
+    return directLink;
+  }
+
+  const normalizedHandle = normalizeHandle(handle);
+  return normalizedHandle ? `https://instagram.com/${normalizedHandle}` : "";
+}
+
+function FooterAssetIcon({
+  src,
+  alt,
+  className
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={className || "h-[23px] w-[23px] brightness-0 invert"}
+      aria-hidden="true"
+    />
+  );
+}
+
+function FooterBrandWordmark({
+  brandName,
+  className
+}: {
+  brandName: string;
+  className?: string;
+}) {
+  const normalizedBrandName = brandName.trim() || "Modaily";
+  const firstLetter = normalizedBrandName.slice(0, 1);
+  const remainingLetters = normalizedBrandName.slice(1);
+  const isLeadingM = firstLetter.toUpperCase() === "M";
+
+  return (
+    <p className={`brand-wordmark uppercase text-white ${className || ""}`} aria-label={normalizedBrandName}>
+      {isLeadingM ? (
+        <>
+          <span aria-hidden="true" className="inline-block origin-left scale-x-[1.15] mr-[0.18em]">
+            {firstLetter}
+          </span>
+          <span aria-hidden="true">{remainingLetters}</span>
+        </>
+      ) : (
+        normalizedBrandName
+      )}
+    </p>
+  );
+}
+
+function FooterInfoLink({
   href,
-  label,
+  iconSrc,
+  iconAlt,
+  text,
   external = false
 }: {
-  children: React.ReactNode;
   href: string;
-  label: string;
+  iconSrc: string;
+  iconAlt: string;
+  text: string;
   external?: boolean;
 }) {
   return (
     <a
       href={href}
-      aria-label={label}
       target={external ? "_blank" : undefined}
       rel={external ? "noreferrer" : undefined}
-      className="flex h-7 w-7 items-center justify-center rounded-full border border-white/50 text-white transition hover:bg-white/10"
+      className="flex items-center gap-[17px] text-[16px] leading-[23px] text-white/95 transition hover:text-white"
     >
-      {children}
+      <FooterAssetIcon src={iconSrc} alt={iconAlt} />
+      <span>{text}</span>
+    </a>
+  );
+}
+
+function FooterSocialLink({
+  href,
+  iconSrc,
+  iconAlt,
+  text
+}: {
+  href: string;
+  iconSrc: string;
+  iconAlt: string;
+  text: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-[17px] text-[16px] leading-[23px] text-white/95 transition hover:text-white"
+    >
+      <FooterAssetIcon src={iconSrc} alt={iconAlt} />
+      <span>{text}</span>
+    </a>
+  );
+}
+
+function FooterIconOnlyLink({
+  href,
+  iconSrc,
+  iconAlt
+}: {
+  href: string;
+  iconSrc: string;
+  iconAlt: string;
+}) {
+  const isWebLink = /^https?:\/\//i.test(href);
+
+  return (
+    <a
+      href={href}
+      target={isWebLink ? "_blank" : undefined}
+      rel={isWebLink ? "noreferrer" : undefined}
+      className="transition hover:opacity-100"
+    >
+      <FooterAssetIcon src={iconSrc} alt={iconAlt} className="h-[31px] w-[31px] brightness-0 invert" />
     </a>
   );
 }
@@ -104,158 +219,127 @@ function ContactIcon({
 export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps) {
   const labels = footerLabels[locale];
   const phoneHref = getPhoneHref(siteSettings.footerPhone);
-  const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
+  const whatsappHref = getWhatsAppHref(siteSettings.footerPhone);
+  const emailHref = getEmailHref(siteSettings.footerEmail);
   const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
+  const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
+  const whatsappText = siteSettings.footerTelegram || siteSettings.footerPhone;
 
   return (
     <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="text-white">
       <footer>
-        <div className="mx-auto max-w-[1560px] px-6 py-7 lg:px-10 lg:py-9 xl:px-12 xl:py-10">
-          <div className="lg:hidden">
-            <div className="border-t border-white/35 px-5 pt-7 pb-5 text-center">
-              <p className="brand-wordmark text-[36px] uppercase leading-none text-white">
-                {siteSettings.brandName}
-              </p>
-
-              <div className="mx-auto mt-4 h-[2px] w-[30px] rounded-full bg-white/75" />
-
-              <nav className="mt-4 flex items-center justify-center gap-5 text-[13px] text-white">
-                <Link href={`/${locale}`} className="transition hover:text-white/80">
-                  {dictionary.nav.home}
-                </Link>
-                <Link href={`/${locale}/catalog`} className="transition hover:text-white/80">
-                  {dictionary.nav.catalog}
-                </Link>
-                <Link href={`/${locale}#video-gallery`} className="transition hover:text-white/80">
-                  Blog
-                </Link>
-                <Link href={`/${locale}#about`} className="transition hover:text-white/80">
-                  {locale === "uz" ? "Biz haqimizda" : "O nas"}
-                </Link>
-              </nav>
-
-              <div className="mt-7 text-left">
-                <p className="text-[12px] font-medium text-white">{labels.stores}</p>
-                <p className="mt-3 max-w-[240px] text-[12px] leading-7 text-white/90">
-                  {siteSettings.footerAddress}
-                </p>
-              </div>
-
-              <div className="mt-6 border-t border-white/30 pt-4">
-                <div className="flex items-center justify-center gap-3.5">
-                  {phoneHref ? (
-                    <ContactIcon href={phoneHref} label="Phone">
-                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                        <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
-                      </svg>
-                    </ContactIcon>
-                  ) : null}
-
-                  {instagramHref ? (
-                    <ContactIcon href={instagramHref} label="Instagram" external>
-                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                        <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
-                        <circle cx="12" cy="12" r="3.6" />
-                        <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
-                      </svg>
-                    </ContactIcon>
-                  ) : null}
-
-                  {telegramHref ? (
-                    <ContactIcon href={telegramHref} label="Telegram" external>
-                      <svg viewBox="0 0 24 24" className="h-[14px] w-[14px]" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                        <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
-                      </svg>
-                    </ContactIcon>
-                  ) : null}
-                </div>
-              </div>
-
-              <p className="mt-6 text-center text-[11px] text-white/85">
-                © 2026 {siteSettings.brandName}. All rights reserved.
-              </p>
+        <div className="lg:hidden">
+          <div className="mx-auto max-w-[390px] px-[34px] pb-[50px] pt-[48px]">
+            <div className="flex flex-col items-center text-center">
+              <FooterBrandWordmark brandName={siteSettings.brandName} className="text-[34px] leading-none" />
+              <div className="mt-[24px] h-[2px] w-[36px] bg-white/80" />
             </div>
+
+            <nav className="mt-[34px] grid grid-cols-4 items-center justify-items-center gap-x-3 text-center text-[17px] leading-[1.18] text-white/95">
+              <Link href={`/${locale}`} className="transition hover:text-white">
+                {dictionary.nav.home}
+              </Link>
+              <Link href={`/${locale}/catalog`} className="transition hover:text-white">
+                {dictionary.nav.catalog}
+              </Link>
+              <Link href={`/${locale}/blog`} className="transition hover:text-white">
+                {labels.blog}
+              </Link>
+              <Link href={`/${locale}/main/about-us`} className="transition hover:text-white">
+                {labels.about}
+              </Link>
+            </nav>
+
+            <div className="mt-[56px]">
+              <p className="text-[17px] font-medium leading-[1.25] text-white">{labels.stores}</p>
+              <p className="mt-[18px] max-w-[320px] text-[17px] leading-[1.45] text-white/82">{siteSettings.footerAddress}</p>
+            </div>
+
+            <div className="mt-[64px] h-px bg-white/42" />
+
+            <div className="mt-[38px] flex items-center justify-center gap-[24px]">
+              {phoneHref ? <FooterIconOnlyLink href={phoneHref} iconSrc="/icons/call.svg" iconAlt="Phone" /> : null}
+              {instagramHref ? <FooterIconOnlyLink href={instagramHref} iconSrc="/icons/INSTAsvg.svg" iconAlt="Instagram" /> : null}
+              {emailHref ? <FooterIconOnlyLink href={emailHref} iconSrc="/icons/mail.svg" iconAlt="Email" /> : null}
+              {telegramHref ? <FooterIconOnlyLink href={telegramHref} iconSrc="/icons/TGsvg.svg" iconAlt="Telegram" /> : null}
+              {whatsappHref ? <FooterIconOnlyLink href={whatsappHref} iconSrc="/icons/WAsvg.svg" iconAlt="WhatsApp" /> : null}
+            </div>
+
+            <p className="mt-[44px] text-center text-[15px] leading-5 text-white/88">
+              © 2026 {siteSettings.brandName}. All rights reserved.
+            </p>
           </div>
+        </div>
 
-          <div className="hidden lg:block">
-            <div className="border-t border-white/35 pt-9 lg:pt-10">
-              <div className="grid gap-9 lg:grid-cols-[1.42fr_0.56fr_0.94fr] lg:gap-12 xl:gap-16">
-                <div className="pt-2">
-                  <p className="brand-wordmark text-[3.5rem] uppercase leading-none text-white lg:text-[4rem]">
-                    {siteSettings.brandName}
-                  </p>
+        <div className="hidden lg:block">
+          <div className="mx-auto max-w-[1075px] px-0 pb-[33px] pt-[33px]">
+            <div className="h-px bg-white/45" />
 
-                  <div className="mt-10 space-y-4 text-[0.92rem] text-white/92 lg:text-[0.94rem]">
+            <div className="pt-[44px]">
+              <div
+                className="grid items-start"
+                style={{
+                  gridTemplateColumns: "289px 232px 74px 178px 302px"
+                }}
+              >
+                <div className="col-[1]">
+                  <FooterBrandWordmark
+                    brandName={siteSettings.brandName}
+                    className="mt-[22px] w-[289px] text-[51px] leading-[0.86]"
+                  />
+
+                  <div className="mt-[46px] space-y-[17px]">
                     {phoneHref ? (
-                      <a href={phoneHref} className="flex items-center gap-4 transition hover:text-white">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
-                          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                            <path d="M6.5 4.5h2.4l1.2 3.4-1.6 1.6a15.7 15.7 0 0 0 6 6l1.6-1.6 3.4 1.2v2.4a1.5 1.5 0 0 1-1.6 1.5A16.4 16.4 0 0 1 5 6.1a1.5 1.5 0 0 1 1.5-1.6Z" />
-                          </svg>
-                        </span>
-                        {siteSettings.footerPhone}
-                      </a>
+                      <FooterInfoLink href={phoneHref} iconSrc="/icons/call.svg" iconAlt="Phone" text={siteSettings.footerPhone} />
                     ) : null}
 
-                    <div className="flex flex-wrap items-center gap-x-7 gap-y-3 text-[0.92rem] text-white/92 lg:text-[0.94rem]">
-                      {telegramHref ? (
-                        <a href={telegramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                              <path d="m21 4-3 14-5.5-4-3 2 1-4.5L21 4Z" />
-                            </svg>
-                          </span>
-                          {siteSettings.footerTelegram}
-                        </a>
-                      ) : null}
+                    {emailHref ? (
+                      <FooterInfoLink href={emailHref} iconSrc="/icons/mail.svg" iconAlt="Email" text={siteSettings.footerEmail} />
+                    ) : null}
+                  </div>
 
-                      {instagramHref ? (
-                        <a href={instagramHref} target="_blank" rel="noreferrer" className="flex items-center gap-4 transition hover:text-white">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/35">
-                            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                              <rect x="4.5" y="4.5" width="15" height="15" rx="4.5" />
-                              <circle cx="12" cy="12" r="3.6" />
-                              <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" stroke="none" />
-                            </svg>
-                          </span>
-                          {siteSettings.footerInstagram}
-                        </a>
-                      ) : null}
-                    </div>
+                  <div className="mt-[17px] flex items-center gap-[29px]">
+                    {whatsappHref ? (
+                      <FooterSocialLink href={whatsappHref} iconSrc="/icons/WAsvg.svg" iconAlt="WhatsApp" text={whatsappText} />
+                    ) : null}
+
+                    {telegramHref ? (
+                      <FooterSocialLink href={telegramHref} iconSrc="/icons/TGsvg.svg" iconAlt="Telegram" text={siteSettings.footerTelegram} />
+                    ) : null}
                   </div>
                 </div>
 
-                <div className="pt-1">
-                  <p className="text-[0.96rem] font-medium text-white">{labels.pages}</p>
-                  <div className="mt-7 space-y-4 text-[0.92rem] text-white/88">
+                <div className="col-[3] pt-[4px]">
+                  <p className="text-[16px] font-medium leading-[23px] text-white">{labels.pages}</p>
+                  <nav className="mt-[29px] space-y-[13px] text-[16px] leading-[23px] text-white/88">
                     <Link href={`/${locale}`} className="block transition hover:text-white">
                       {dictionary.nav.home}
                     </Link>
                     <Link href={`/${locale}/catalog`} className="block transition hover:text-white">
                       {dictionary.nav.catalog}
                     </Link>
-                    <Link href={`/${locale}#video-gallery`} className="block transition hover:text-white">
-                      Blog
+                    <Link href={`/${locale}/blog`} className="block transition hover:text-white">
+                      {labels.blog}
                     </Link>
-                    <Link href={`/${locale}#about`} className="block transition hover:text-white">
-                      {locale === "uz" ? "Biz haqimizda" : "O nas"}
+                    <Link href={`/${locale}/main/about-us`} className="block transition hover:text-white">
+                      {labels.about}
                     </Link>
-                  </div>
+                  </nav>
                 </div>
 
-                <div className="pt-1">
-                  <p className="text-[0.96rem] font-medium text-white">{labels.stores}</p>
-                  <p className="mt-7 max-w-[360px] text-[0.92rem] leading-7 text-white/88">
+                <div className="col-[5] pt-[4px]">
+                  <p className="text-[16px] font-medium leading-[23px] text-white">{labels.stores}</p>
+                  <p className="mt-[38px] min-h-[95px] w-[302px] text-[16px] leading-[1.35] text-white/82">
                     {siteSettings.footerAddress}
                   </p>
                 </div>
               </div>
 
-              <p className="mt-12 text-center text-[0.88rem] text-white/55">
-                © 2026 <span className="brand-wordmark align-baseline text-[0.88rem] uppercase">{siteSettings.brandName}</span>. All rights reserved.
+              <p className="mx-auto mt-[68px] text-center text-[15px] leading-5 text-white/62">
+                © 2026 {siteSettings.brandName}. All rights reserved.
               </p>
 
-              <div className="mt-7 border-t border-white/30" />
+              <div className="mt-[22px] h-px bg-white/45" />
             </div>
           </div>
         </div>

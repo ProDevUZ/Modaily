@@ -1,3 +1,5 @@
+import type { BlogPostDynamicSection, BlogPostRecord } from "@/lib/blog-post-types";
+
 export type AdminUser = {
   id: string;
   fullName: string;
@@ -5,6 +7,15 @@ export type AdminUser = {
   phone: string | null;
   city: string | null;
   notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminContactMessage = {
+  id: string;
+  fullName: string;
+  phone: string;
+  message: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -57,10 +68,13 @@ export type AdminProduct = {
   skinTypes: string | null;
   size: string | null;
   price: number;
+  discountAmount: number;
   hidePrice: boolean;
   stock: number;
   active: boolean;
   isBestseller: boolean;
+  isHit: boolean;
+  isNew: boolean;
   homeSortOrder: number;
   imageUrl: string | null;
   colorFrom: string | null;
@@ -105,6 +119,22 @@ export type AdminSiteSettings = {
   footerAddressUz: string | null;
   footerAddressRu: string | null;
   footerAddressEn: string | null;
+  aboutTitleUz: string | null;
+  aboutTitleRu: string | null;
+  aboutTitleEn: string | null;
+  aboutDescriptionUz: string | null;
+  aboutDescriptionRu: string | null;
+  aboutDescriptionEn: string | null;
+  aboutBrandTitleUz: string | null;
+  aboutBrandTitleRu: string | null;
+  aboutBrandTitleEn: string | null;
+  aboutPanelDescriptionUz: string | null;
+  aboutPanelDescriptionRu: string | null;
+  aboutPanelDescriptionEn: string | null;
+  aboutPanelSecondaryDescriptionUz: string | null;
+  aboutPanelSecondaryDescriptionRu: string | null;
+  aboutPanelSecondaryDescriptionEn: string | null;
+  aboutImageUrl: string | null;
   newsletterTitleUz: string | null;
   newsletterTitleRu: string | null;
   newsletterTitleEn: string | null;
@@ -217,6 +247,10 @@ export type AdminTestimonial = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AdminBlogPostSection = BlogPostDynamicSection;
+
+export type AdminBlogPost = BlogPostRecord;
 
 export async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, init);

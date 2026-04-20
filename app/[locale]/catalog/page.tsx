@@ -10,6 +10,7 @@ export const revalidate = 0;
 
 type PageProps = {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ category?: string | string[] }>;
 };
 
 const catalogDisplayHeading = {
@@ -40,12 +41,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CatalogPage({ params }: PageProps) {
+export default async function CatalogPage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
   if (!isLocale(locale)) {
     return null;
   }
+
+  const initialCategorySlugs = Array.isArray(resolvedSearchParams?.category)
+    ? resolvedSearchParams?.category.filter(Boolean)
+    : typeof resolvedSearchParams?.category === "string" && resolvedSearchParams.category.length > 0
+      ? resolvedSearchParams.category.split(",").map((entry) => entry.trim()).filter(Boolean)
+      : [];
 
   const products = await getStorefrontProducts(locale);
   const siteSettings = await getLocalizedSiteSettings(locale);
@@ -68,7 +76,12 @@ export default async function CatalogPage({ params }: PageProps) {
 
       <div className="mx-auto w-full max-w-[1720px] px-5 md:px-8 xl:pl-7 xl:pr-10">
         <div className="w-full xl:mr-auto xl:max-w-[1450px]">
-          <CatalogBrowser locale={locale} products={products} hideCommerce={siteSettings.hideCommerce} />
+          <CatalogBrowser
+            locale={locale}
+            products={products}
+            hideCommerce={siteSettings.hideCommerce}
+            initialCategorySlugs={initialCategorySlugs}
+          />
         </div>
       </div>
     </section>

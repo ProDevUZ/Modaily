@@ -1,14 +1,23 @@
 import { AdminShell } from "@/components/admin/admin-shell";
-import { ProductManager } from "@/components/admin/product-manager";
+import { ProductListManager } from "@/components/admin/product-manager";
 
 export default function AdminProductsPage() {
   return (
     <AdminShell
       current="products"
       title="Товары"
-      description="Управление SKU, слагом, категориями, ценой, остатком и контентом UZ/RU/EN в едином разделе."
+      description=""
+      searchable={false}
+      headerVariant="compact"
+      headerAccessory={
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f5f9] text-sm font-semibold text-slate-500">
+          A
+        </span>
+      }
+      mainClassName="p-0"
+      contentClassName=""
     >
-      <ProductManager />
+      <ProductListManager />
     </AdminShell>
   );
 }

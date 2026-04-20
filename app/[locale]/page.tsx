@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BestsellerMarquee } from "@/components/home/bestseller-marquee";
 import { Gallery } from "@/components/home/gallery";
 import { ProductCard } from "@/components/home/product-card";
 import { Reviews } from "@/components/home/reviews";
@@ -159,34 +160,6 @@ function getFallbackTestimonials(locale: keyof typeof labels) {
   ];
 }
 
-function MiniBottle() {
-  return (
-    <div className="flex h-[146px] w-[64px] flex-col items-center justify-end">
-      <div className="h-[34px] w-[28px] rounded-t-[20px] rounded-b-[8px] bg-[linear-gradient(180deg,#db1534_0%,#bb102b_100%)]" />
-      <div className="flex h-[112px] w-[50px] items-start justify-center rounded-[18px] bg-[linear-gradient(180deg,#fff_0%,#f7f7f7_100%)] pt-[34px] shadow-[0_12px_24px_rgba(0,0,0,0.14)]">
-        <div className="text-center text-[7px] font-black uppercase tracking-[0.16em] text-[var(--brand)]">
-          Modaily
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProductPackshot({ imageUrl, name }: { imageUrl: string; name: string }) {
-  if (!imageUrl) {
-    return <MiniBottle />;
-  }
-
-  return (
-    <FallbackImage
-      src={imageUrl}
-      fallbackSrc="https://placehold.co/180x240/f3f3f3/bb102b?text=Modaily"
-      alt={name}
-      className="h-[240px] w-[180px] object-contain"
-    />
-  );
-}
-
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
@@ -234,6 +207,7 @@ export default async function HomePage({ params }: PageProps) {
           name: product.name,
           shortDescription: product.shortDescription,
           price: product.price,
+          badges: product.badges,
           imageUrl: ""
         }));
   const gallerySource = content.galleryImages.some((item) => item.imageUrl?.trim()) ? content.galleryImages : getLocalGalleryItems();
@@ -334,19 +308,7 @@ export default async function HomePage({ params }: PageProps) {
             </span>
           </Link>
 
-          <div className="mt-7 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-[10px]">
-            {bestsellerProducts.slice(0, 4).map((product) => (
-              <article key={product.id} className="mx-auto w-full max-w-[90%]">
-                <div className="flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
-                  <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
-                </div>
-                <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:leading-6">{product.name}</h3>
-                <Link href={`/${locale}/catalog/${product.slug}`} className="mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">
-                  {copy.learnMore}
-                </Link>
-              </article>
-            ))}
-          </div>
+          <BestsellerMarquee locale={locale} products={bestsellerProducts} learnMoreLabel={copy.learnMore} />
         </div>
       </section>
 

@@ -10,12 +10,10 @@ import {
   type AdminHomeHero,
   type AdminHomePromoCard,
   type AdminProduct,
-  type AdminSiteSettings,
   type AdminTestimonial,
   requestJson
 } from "@/components/admin/admin-types";
 
-type SiteSettingsForm = Omit<AdminSiteSettings, "id" | "createdAt" | "updatedAt">;
 type HeroForm = Omit<AdminHomeHero, "id" | "createdAt" | "updatedAt">;
 type AboutForm = Omit<AdminHomeAbout, "id" | "createdAt" | "updatedAt">;
 type PromoForm = Omit<AdminHomePromoCard, "id" | "createdAt" | "updatedAt">;
@@ -127,16 +125,6 @@ const workspaceMeta: Record<
       "Активные отзывы сразу попадают на витрину."
     ]
   },
-  settings: {
-    eyebrow: "Глобальный контент",
-    title: "Рабочая зона настроек витрины",
-    description: "Центральная панель для анонса, футера и общего контента витрины.",
-    tips: [
-      "Контакты в футере всегда должны быть актуальными.",
-      "Анонс и контент футера должны быть согласованы во всех локалях.",
-      "Название бренда и сервисный контент глобально управляются именно здесь."
-    ]
-  },
   bestseller: {
     eyebrow: "Мерчандайзинг главной",
     title: "Обзор блока бестселлеров",
@@ -198,7 +186,6 @@ function Area({ value, onChange, placeholder }: { value: string | null; onChange
 }
 
 export function ContentManager({ section, galleryMode }: { section: AdminContentSectionKey; galleryMode?: "image" | "video" }) {
-  const [siteSettings, setSiteSettings] = useState<SiteSettingsForm | null>(null);
   const [hero, setHero] = useState<HeroForm | null>(null);
   const [about, setAbout] = useState<AboutForm | null>(null);
   const [promoCards, setPromoCards] = useState<AdminHomePromoCard[]>([]);
@@ -226,7 +213,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     try {
       const [dashboard, productPayload] = await Promise.all([
         requestJson<{
-          siteSettings: SiteSettingsForm;
           hero: HeroForm;
           about: AboutForm;
           promoCards: AdminHomePromoCard[];
@@ -236,7 +222,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         requestJson<AdminProduct[]>("/api/products")
       ]);
 
-      setSiteSettings(dashboard.siteSettings);
       setHero(dashboard.hero);
       setAbout(dashboard.about);
       setPromoCards(dashboard.promoCards);
@@ -539,7 +524,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
               <p className="text-sm font-semibold text-slate-950">Выбранные товары</p>
               <p className="mt-1 text-sm text-slate-500">Сейчас выбрано {bestsellers.length} товаров.</p>
             </div>
-            <Link href="/admin/products" className="admin-button-secondary">
+            <Link href="/admin123/products" className="admin-button-secondary">
               Открыть товары
             </Link>
           </div>
@@ -555,39 +540,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
             ))}
             {bestsellers.length === 0 ? <p className="text-sm text-slate-500">Пока нет товаров, отмеченных как бестселлеры.</p> : null}
           </div>
-        </SectionCard>
-        </div>
-      ) : null}
-
-      {section === "settings" ? (
-        <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Настройки витрины" description="Глобальный контент для верхней плашки, футера и контактных блоков.">
-          {siteSettings ? (
-            <form
-              className="grid gap-4 md:grid-cols-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void saveSingleton("/api/content/site-settings", siteSettings, "Настройки витрины обновлены.");
-              }}
-            >
-              <Field value={siteSettings.brandName} onChange={(value) => setSiteSettings((current) => (current ? { ...current, brandName: value } : current))} placeholder="Название бренда" />
-              <Field value={siteSettings.announcementLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementLink: value } : current))} placeholder="Ссылка анонса" />
-              <Field value={siteSettings.announcementTextUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextUz: value } : current))} placeholder="Текст анонса UZ" />
-              <Field value={siteSettings.announcementTextRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextRu: value } : current))} placeholder="Текст анонса RU" />
-              <Field value={siteSettings.announcementTextEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, announcementTextEn: value } : current))} placeholder="Текст анонса EN" />
-              <Field value={siteSettings.footerPhone} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerPhone: value } : current))} placeholder="Телефон в футере" />
-              <Field value={siteSettings.footerTelegram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegram: value } : current))} placeholder="Подпись Telegram" />
-              <Field value={siteSettings.footerInstagram} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagram: value } : current))} placeholder="Подпись Instagram" />
-              <Field value={siteSettings.footerTelegramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerTelegramLink: value } : current))} placeholder="Ссылка Telegram" />
-              <Field value={siteSettings.footerInstagramLink} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerInstagramLink: value } : current))} placeholder="Ссылка Instagram" />
-              <Area value={siteSettings.footerAddressUz} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressUz: value } : current))} placeholder="Адрес в футере UZ" />
-              <Area value={siteSettings.footerAddressRu} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressRu: value } : current))} placeholder="Адрес в футере RU" />
-              <Area value={siteSettings.footerAddressEn} onChange={(value) => setSiteSettings((current) => (current ? { ...current, footerAddressEn: value } : current))} placeholder="Адрес в футере EN" />
-              <button type="submit" className="admin-button-primary md:col-span-2">
-                Сохранить настройки витрины
-              </button>
-            </form>
-          ) : null}
         </SectionCard>
         </div>
       ) : null}

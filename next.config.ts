@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  experimental: {
+    middlewareClientMaxBodySize: 250 * 1024 * 1024
+  },
   webpack: (config, { dev }) => {
     if (dev) {
       const currentWatchOptions = config.watchOptions ?? {};

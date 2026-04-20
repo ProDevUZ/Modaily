@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 import type { Locale } from "@/lib/i18n";
+import { buildProductBadges, type StorefrontProductBadge } from "@/lib/product-badges";
 
 type LocalizedProductFields = {
   nameUz: string;
@@ -45,8 +46,11 @@ type ProductWithCategory = {
   skinTypes: string | null;
   size: string | null;
   price: number;
+  discountAmount: number;
   hidePrice: boolean;
   stock: number;
+  isHit: boolean;
+  isNew: boolean;
   colorFrom: string | null;
   colorTo: string | null;
   imageUrl: string | null;
@@ -78,9 +82,11 @@ export type StorefrontProduct = {
   skinTypes: string[];
   size: string;
   price: number;
+  discountAmount: number;
   hidePrice: boolean;
   stock: number;
   colors: [string, string];
+  badges: StorefrontProductBadge[];
   name: string;
   shortName: string;
   shortDescription: string;
@@ -208,9 +214,11 @@ function mapStorefrontProduct(product: ProductWithCategory, locale: Locale): Sto
     skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
     size: product.size || "",
     price: product.price,
+    discountAmount: product.discountAmount,
     hidePrice: product.hidePrice,
     stock: product.stock,
     colors: [product.colorFrom || "#ece6df", product.colorTo || "#f7f4ef"],
+    badges: buildProductBadges(product, locale),
     name,
     shortName: name,
     shortDescription,

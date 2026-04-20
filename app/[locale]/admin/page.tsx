@@ -6,5 +6,5 @@ type PageProps = {
 
 export default async function AdminOverviewPage({ params }: PageProps) {
   await params;
-  redirect("/admin");
+  redirect("/admin123");
 }

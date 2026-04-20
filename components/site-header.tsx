@@ -44,21 +44,15 @@ const navLabels = {
 const searchLabels = {
   uz: {
     placeholder: "Mahsulot qidirish...",
-    title: "Mahsulot qidiruvi",
-    empty: "Mos mahsulot topilmadi.",
-    browseAll: "Barcha mahsulotlar"
+    empty: "Mos mahsulot topilmadi."
   },
   ru: {
     placeholder: "Поиск товара...",
-    title: "Поиск по товарам",
-    empty: "Подходящие товары не найдены.",
-    browseAll: "Все товары"
+    empty: "Подходящие товары не найдены."
   },
   en: {
     placeholder: "Search products...",
-    title: "Product search",
-    empty: "No matching products found.",
-    browseAll: "Browse all products"
+    empty: "No matching products found."
   }
 } as const;
 
@@ -133,8 +127,8 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
   const navItems = [
     { href: `/${locale}/catalog`, label: navLabels[locale].catalog },
-    { href: `/${locale}#about`, label: navLabels[locale].about },
-    { href: `/${locale}#video-gallery`, label: navLabels[locale].blog }
+    { href: `/${locale}/main/about-us`, label: navLabels[locale].about },
+    { href: `/${locale}/blog`, label: navLabels[locale].blog }
   ];
 
   const switchLocale = (nextLocale: Locale) => {
@@ -158,11 +152,17 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
   const filteredProducts = normalizedQuery
-    ? searchProducts.filter((product) => {
-        const haystack = [product.name, product.category, product.shortDescription, product.description].join(" ").toLowerCase();
-        return haystack.includes(normalizedQuery);
-      })
-    : searchProducts.slice(0, 6);
+    ? searchProducts.filter((product) => product.name.toLowerCase().includes(normalizedQuery))
+    : [];
+  const filteredCategories = normalizedQuery
+    ? Array.from(
+        new Map(
+          filteredProducts
+            .filter((product) => product.categorySlug && product.category)
+            .map((product) => [product.categorySlug, product.category] as const)
+        ).entries()
+      ).map(([slug, name]) => ({ slug, name }))
+    : [];
 
   return (
     <header className="relative z-50 bg-white [font-family:var(--font-body)]">
@@ -433,16 +433,6 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
         <div className="border-b border-black/8 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.05)]">
           <div className="mx-auto max-w-[1760px] px-4">
             <div className="flex flex-col gap-4 rounded-[1.25rem] border border-black/8 bg-[#faf7f5] p-4 md:p-5">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-black/35">{searchCopy.title}</p>
-                  <p className="mt-1 text-[13px] text-black/50">{searchCopy.browseAll}</p>
-                </div>
-                <Link href={`/${locale}/catalog`} className="text-[13px] font-semibold text-[var(--brand)]">
-                  {searchCopy.browseAll}
-                </Link>
-              </div>
-
               <div className="relative">
                 <input
                   value={searchQuery}
@@ -458,26 +448,51 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.slice(0, 6).map((product) => (
-                    <Link
-                      key={product.slug}
-                      href={`/${locale}/catalog/${product.slug}`}
-                      className="rounded-[0.95rem] border border-black/8 bg-white p-3.5 transition hover:border-[var(--brand)] hover:shadow-[0_12px_28px_rgba(186,12,47,0.08)]"
-                    >
-                      <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-black/35">{product.category}</p>
-                      <p className="mt-2 text-[15px] font-semibold text-black">{product.name}</p>
-                      <p className="mt-2 line-clamp-2 text-[13px] leading-5 text-black/55">{product.shortDescription}</p>
-                      {!siteSettings.hideCommerce ? <p className="mt-3 text-[13px] font-semibold text-[var(--brand)]">${product.price}</p> : null}
-                    </Link>
-                  ))
-                ) : (
-                  <div className="rounded-[1rem] border border-dashed border-black/12 bg-white p-4 text-sm text-black/50">
-                    {searchCopy.empty}
-                  </div>
-                )}
-              </div>
+              {normalizedQuery ? (
+                <div className="space-y-4">
+                  {filteredCategories.length > 0 ? (
+                    <div className="flex flex-wrap gap-2.5">
+                      {filteredCategories.map((category) => (
+                        <Link
+                          key={category.slug}
+                          href={`/${locale}/catalog?category=${encodeURIComponent(category.slug)}`}
+                          className="rounded-full border border-black/10 bg-white px-3.5 py-2 text-[13px] font-medium text-black/75 transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {filteredProducts.length > 0 ? (
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {filteredProducts.slice(0, 6).map((product) => (
+                        <Link
+                          key={product.slug}
+                          href={`/${locale}/catalog/${product.slug}`}
+                          className="rounded-[0.95rem] border border-black/8 bg-white p-3.5 transition hover:border-[var(--brand)] hover:shadow-[0_12px_28px_rgba(186,12,47,0.08)]"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.8rem] bg-[#f4f1ee]">
+                              {product.imageUrl ? (
+                                <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+                              ) : null}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-[14px] font-semibold text-black">{product.name}</p>
+                              <p className="mt-1 truncate text-[12px] text-black/45">{product.category}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-[1rem] border border-dashed border-black/12 bg-white p-4 text-sm text-black/50">
+                      {searchCopy.empty}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

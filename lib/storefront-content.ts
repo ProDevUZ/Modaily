@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Locale } from "@/lib/i18n";
 import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "@/lib/content-defaults";
+import { buildProductBadges } from "@/lib/product-badges";
 
 const promoButtonLabels = {
   uz: "Batafsil",
@@ -35,13 +36,31 @@ export async function getLocalizedSiteSettings(locale: Locale) {
     announcementLinkLabel: localizedValue(settings, "announcementLinkLabel", locale),
     announcementLink: settings.announcementLink || `/${locale}/catalog`,
     footerPhone: settings.footerPhone || "",
+    footerEmail: settings.footerEmail || "",
     footerTelegram: settings.footerTelegram || "",
     footerTelegramLink: settings.footerTelegramLink || "",
     footerInstagram: settings.footerInstagram || "",
     footerInstagramLink: settings.footerInstagramLink || "",
     storeAddress: settings.storeAddress || "",
     storeMapLink: settings.storeMapLink || "",
-    footerAddress: localizedValue(settings, "footerAddress", locale)
+    footerAddress: localizedValue(settings, "footerAddress", locale),
+    newsletterTitle:
+      localizedValue(settings, "newsletterTitle", locale) || localizedValue(defaultSiteSettings, "newsletterTitle", locale),
+    newsletterPlaceholder:
+      localizedValue(settings, "newsletterPlaceholder", locale) ||
+      localizedValue(defaultSiteSettings, "newsletterPlaceholder", locale),
+    aboutPage: {
+      title: localizedValue(settings, "aboutTitle", locale) || localizedValue(defaultHomeAbout, "title", locale),
+      description:
+        localizedValue(settings, "aboutDescription", locale) || localizedValue(defaultHomeAbout, "description", locale),
+      brandTitle:
+        localizedValue(settings, "aboutBrandTitle", locale) || localizedValue(defaultHomeAbout, "secondaryTitle", locale),
+      panelDescription:
+        localizedValue(settings, "aboutPanelDescription", locale) || localizedValue(defaultHomeAbout, "secondaryDescription", locale),
+      panelSecondaryDescription:
+        localizedValue(settings, "aboutPanelSecondaryDescription", locale) || localizedValue(defaultHomeAbout, "bottomDescription", locale),
+      imageUrl: settings.aboutImageUrl || defaultHomeAbout.imageUrl
+    }
   };
 }
 
@@ -104,6 +123,7 @@ export async function getHomePageContent(locale: Locale) {
             ? product.shortDescriptionRu || product.shortDescriptionEn || ""
             : product.shortDescriptionEn || "",
       price: product.price,
+      badges: buildProductBadges(product, locale),
       imageUrl: product.imageUrl || ""
     })),
     promoCards: promoRows.map((row) => ({

@@ -126,6 +126,21 @@ select {
   animation: where-to-buy-signal 1.9s ease-out infinite;
 }
 
+.bestseller-scroller {
+  mask-image: linear-gradient(90deg, transparent 0, black 5%, black 95%, transparent 100%);
+  cursor: grab;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.bestseller-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.bestseller-scroller:active {
+  cursor: grabbing;
+}
+
 @keyframes where-to-buy-float {
   0%,
   100% {

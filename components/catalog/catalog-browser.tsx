@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product-card";
 import type { Locale } from "@/lib/i18n";
@@ -10,6 +10,7 @@ type CatalogBrowserProps = {
   locale: Locale;
   products: StorefrontProduct[];
   hideCommerce?: boolean;
+  initialCategorySlugs?: string[];
 };
 
 type FilterSectionProps = {
@@ -105,10 +106,15 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("ru-RU").format(price);
 }
 
-export function CatalogBrowser({ locale, products, hideCommerce = false }: CatalogBrowserProps) {
+export function CatalogBrowser({
+  locale,
+  products,
+  hideCommerce = false,
+  initialCategorySlugs = []
+}: CatalogBrowserProps) {
   const copy = copyByLocale[locale];
   const [search, setSearch] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategorySlugs);
   const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -125,6 +131,10 @@ export function CatalogBrowser({ locale, products, hideCommerce = false }: Catal
   }, [products]);
 
   const [priceRange, setPriceRange] = useState(priceBounds);
+
+  useEffect(() => {
+    setSelectedCategories(initialCategorySlugs);
+  }, [initialCategorySlugs]);
 
   const categories = useMemo(() => {
     const map = new Map<string, string>();

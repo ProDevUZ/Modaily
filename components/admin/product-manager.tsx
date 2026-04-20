@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode
+} from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   type AdminCategory,
   type AdminProduct,
   requestJson
 } from "@/components/admin/admin-types";
+import { getDiscountPercent } from "@/lib/product-badges";
 
 type GalleryFormImage = {
   imageUrl: string;
@@ -17,21 +26,6 @@ type GalleryFormImage = {
 type ProductSubmitError = {
   message: string;
   hint?: string | null;
-};
-
-const MAX_GALLERY_IMAGES = 6;
-const SKIN_TYPE_OPTIONS = [
-  { value: "dry", label: "Сухая" },
-  { value: "combination", label: "Комбинированная" },
-  { value: "oily", label: "Жирная" },
-  { value: "sensitive", label: "Чувствительная" }
-] as const;
-
-const SKIN_TYPE_LABELS: Record<string, string> = {
-  dry: "Сухая",
-  combination: "Комбинированная",
-  oily: "Жирная",
-  sensitive: "Чувствительная"
 };
 
 type ProductFormState = {
@@ -65,15 +59,43 @@ type ProductFormState = {
   skinTypes: string[];
   size: string;
   price: string;
+  discountAmount: string;
   stock: string;
   active: boolean;
   isBestseller: boolean;
+  isHit: boolean;
+  isNew: boolean;
   homeSortOrder: string;
   imageUrl: string;
   colorFrom: string;
   colorTo: string;
   categoryId: string;
   galleryImages: GalleryFormImage[];
+};
+
+type ProductEditorProps = {
+  productId?: string;
+};
+
+const MAX_GALLERY_IMAGES = 6;
+const SKIN_TYPE_OPTIONS = [
+  { value: "dry", label: "Сухая" },
+  { value: "combination", label: "Комбинированная" },
+  { value: "oily", label: "Жирная" },
+  { value: "sensitive", label: "Чувствительная" }
+] as const;
+
+const SKIN_TYPE_LABELS: Record<string, string> = {
+  dry: "Сухая",
+  combination: "Комбинированная",
+  oily: "Жирная",
+  sensitive: "Чувствительная"
+};
+
+const STATUS_MESSAGE: Record<string, string> = {
+  created: "Товар создан.",
+  updated: "Изменения сохранены.",
+  deleted: "Товар удален."
 };
 
 const emptyForm: ProductFormState = {
@@ -107,9 +129,12 @@ const emptyForm: ProductFormState = {
   skinTypes: [],
   size: "",
   price: "0",
+  discountAmount: "0",
   stock: "0",
   active: true,
   isBestseller: false,
+  isHit: false,
+  isNew: false,
   homeSortOrder: "0",
   imageUrl: "",
   colorFrom: "",
@@ -121,15 +146,105 @@ const emptyForm: ProductFormState = {
 type FieldGroupProps = {
   children: ReactNode;
   hint: string;
+  label?: ReactNode;
   className?: string;
+  hintClassName?: string;
 };
 
-function FieldGroup({ children, hint, className }: FieldGroupProps) {
+function FieldGroup({ children, hint, label, className, hintClassName }: FieldGroupProps) {
   return (
-    <div className={className}>
+    <div className={`space-y-2.5 ${className || ""}`}>
+      {label ? <div className="text-[0.98rem] font-medium text-slate-700">{label}</div> : null}
       {children}
-      <p className="admin-form-hint">{hint}</p>
+      <p className={`admin-form-hint ${hintClassName || ""}`}>{hint}</p>
     </div>
+  );
+}
+
+function EditorCard({
+  title,
+  children,
+  className
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-[1.6rem] border border-[#e4e9f1] bg-white p-5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] lg:p-7 ${
+        className || ""
+      }`}
+    >
+      <div className="border-b border-[#edf1f6] pb-4">
+        <h3 className="text-[1.15rem] font-semibold tracking-tight text-slate-900">{title}</h3>
+      </div>
+      <div className="pt-5">{children}</div>
+    </section>
+  );
+}
+
+function EditorSubsection({
+  title,
+  children
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="border-t border-[#edf1f6] pt-6 first:border-t-0 first:pt-0">
+      <h4 className="text-[1.02rem] font-semibold text-slate-800">{title}</h4>
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  title,
+  description,
+  checked,
+  onChange
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start justify-between gap-4 py-4">
+      <div className="min-w-0">
+        <p className="text-[1rem] font-medium text-slate-800">{title}</p>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+      <span className="relative mt-1 inline-flex h-8 w-[54px] shrink-0">
+        <input
+          type="checkbox"
+          className="peer sr-only"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <span className="absolute inset-0 rounded-full bg-[#e5e7ef] transition peer-checked:bg-[#111827]" />
+        <span className="absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-[0_1px_3px_rgba(15,23,42,0.16)] transition peer-checked:translate-x-[22px]" />
+      </span>
+    </label>
+  );
+}
+
+function UploadPlaceholderIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className || "h-10 w-10"}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="m21 15-5-5L5 21" />
+    </svg>
   );
 }
 
@@ -137,6 +252,61 @@ function buildInitialForm(categoryId: string) {
   return {
     ...emptyForm,
     categoryId
+  };
+}
+
+function buildFormFromProduct(product: AdminProduct): ProductFormState {
+  return {
+    sku: product.sku,
+    slug: product.slug,
+    nameUz: product.nameUz,
+    nameRu: product.nameRu,
+    nameEn: product.nameEn,
+    shortDescriptionUz: product.shortDescriptionUz || "",
+    shortDescriptionRu: product.shortDescriptionRu || "",
+    shortDescriptionEn: product.shortDescriptionEn || "",
+    descriptionUz: product.descriptionUz || "",
+    descriptionRu: product.descriptionRu || "",
+    descriptionEn: product.descriptionEn || "",
+    featureUz: product.featureUz || "",
+    featureRu: product.featureRu || "",
+    featureEn: product.featureEn || "",
+    ingredientsUz: product.ingredientsUz || "",
+    ingredientsRu: product.ingredientsRu || "",
+    ingredientsEn: product.ingredientsEn || "",
+    usageUz: product.usageUz || "",
+    usageRu: product.usageRu || "",
+    usageEn: product.usageEn || "",
+    storeImageUrl: product.storeImageUrl || "",
+    storeLocationUz: product.storeLocationUz || "",
+    storeLocationRu: product.storeLocationRu || "",
+    storeLocationEn: product.storeLocationEn || "",
+    storeContactsUz: product.storeContactsUz || "",
+    storeContactsRu: product.storeContactsRu || "",
+    storeContactsEn: product.storeContactsEn || "",
+    skinTypes: product.skinTypes
+      ? product.skinTypes
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      : [],
+    size: product.size || "",
+    price: String(product.price),
+    discountAmount: String(product.discountAmount ?? 0),
+    stock: String(product.stock),
+    active: product.active,
+    isBestseller: Boolean(product.isBestseller),
+    isHit: Boolean(product.isHit),
+    isNew: Boolean(product.isNew),
+    homeSortOrder: String(product.homeSortOrder ?? 0),
+    imageUrl: product.imageUrl || "",
+    colorFrom: product.colorFrom || "",
+    colorTo: product.colorTo || "",
+    categoryId: product.categoryId,
+    galleryImages: (product.galleryImages || []).map((image, index) => ({
+      imageUrl: image.imageUrl,
+      sortOrder: typeof image.sortOrder === "number" ? image.sortOrder : index
+    }))
   };
 }
 
@@ -166,75 +336,493 @@ function formatSkinTypes(skinTypes?: string | null) {
   return labels.length > 0 ? labels.join(", ") : null;
 }
 
-export function ProductManager() {
+function formatPrice(value: number) {
+  return `${value.toLocaleString("ru-RU")} сум`;
+}
+
+function StatusBadge({ active, compact = false }: { active: boolean; compact?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-full font-semibold ${
+        compact ? "min-w-[84px] px-2.5 py-1 text-[11px]" : "min-w-[96px] px-3 py-1 text-xs"
+      } ${
+        active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+      }`}
+    >
+      {active ? "Активен" : "Черновик"}
+    </span>
+  );
+}
+
+function ProductThumbnail({ product }: { product: AdminProduct }) {
+  if (product.imageUrl) {
+    return (
+      <div
+        className="h-14 w-14 rounded-2xl border border-[#e7edf7] bg-slate-50 bg-cover bg-center"
+        style={{ backgroundImage: `url(${product.imageUrl})` }}
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e7edf7] bg-[#f8fafc] text-[0.78rem] font-medium text-slate-300">
+      Img
+    </div>
+  );
+}
+
+function FilterSelect({
+  value,
+  onChange,
+  children,
+  ariaLabel
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+  ariaLabel: string;
+}) {
+  return (
+    <div className="relative">
+      <select
+        className="admin-select h-12 appearance-none bg-white pr-11 text-sm text-slate-700"
+        aria-label={ariaLabel}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-300">
+        <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
+function EmptyProductList({ hasFilters }: { hasFilters: boolean }) {
+  return (
+    <div className="flex min-h-[340px] items-center justify-center px-6 py-16 text-center">
+      <div className="max-w-sm space-y-2">
+        <p className="text-lg font-semibold text-slate-900">
+          {hasFilters ? "Ничего не найдено" : "Список товаров пуст"}
+        </p>
+        <p className="text-sm leading-6 text-slate-500">
+          {hasFilters
+            ? "Измените фильтры или поисковый запрос, чтобы увидеть нужные карточки."
+            : "Создайте первый товар через кнопку в правом верхнем углу."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function ProductListManager() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const searchValue = searchParams.get("q") || "";
+  const searchQuery = searchValue.trim().toLowerCase();
+  const categoryFilter = searchParams.get("category") || "";
+  const productStatusFilter = searchParams.get("productStatus") || "";
+  const skinTypeFilter = searchParams.get("skinType") || "";
+  const statusMessage = STATUS_MESSAGE[searchParams.get("status") || ""] || null;
+
+  const categoryOptions = useMemo(() => {
+    const categoryMap = new Map<string, string>();
+
+    products.forEach((product) => {
+      if (!product.categoryId) {
+        return;
+      }
+
+      categoryMap.set(product.categoryId, getCategoryDisplayName(product.category));
+    });
+
+    return Array.from(categoryMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((left, right) => left.label.localeCompare(right.label, "ru"));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesSearch =
+        !searchQuery ||
+        [
+          product.nameUz,
+          product.nameRu,
+          product.nameEn,
+          product.sku,
+          product.slug,
+          product.category?.nameUz,
+          product.category?.nameRu,
+          product.category?.nameEn,
+          formatSkinTypes(product.skinTypes)
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(searchQuery);
+
+      const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
+      const matchesStatus =
+        !productStatusFilter ||
+        (productStatusFilter === "active" ? product.active : !product.active);
+      const matchesSkinType =
+        !skinTypeFilter ||
+        product.skinTypes
+          ?.split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+          .includes(skinTypeFilter);
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesSkinType;
+    });
+  }, [products, searchQuery, categoryFilter, productStatusFilter, skinTypeFilter]);
+
+  const hasFilters = Boolean(searchValue || categoryFilter || productStatusFilter || skinTypeFilter);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProducts() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const payload = await requestJson<AdminProduct[]>("/api/products");
+        if (active) {
+          setProducts(payload);
+        }
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : "Не удалось загрузить товары.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadProducts();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function updateFilterParam(key: string, value: string) {
+    const nextParams = new URLSearchParams(searchParams.toString());
+
+    if (value.trim()) {
+      nextParams.set(key, value);
+    } else {
+      nextParams.delete(key);
+    }
+
+    nextParams.delete("status");
+    const nextQuery = nextParams.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }
+
+  return (
+    <section className="min-h-screen bg-[#f7f9fc] px-5 py-6 lg:px-8 lg:py-8">
+      {statusMessage ? (
+        <div className="mb-6 rounded-[1.25rem] border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700">
+          {statusMessage}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-5 border-b border-[#e3eaf4] pb-7 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-3xl">
+          <h2 className="text-[2.15rem] font-semibold tracking-tight text-slate-950">Товары</h2>
+          <p className="mt-2.5 text-base leading-7 text-slate-500">
+            Управляйте карточками каталога, фильтрами и данными витрины в одном рабочем потоке.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-500 shadow-[0_10px_22px_rgba(15,23,42,0.05)]">
+            {filteredProducts.length}
+          </span>
+          <Link
+            href="/admin123/products/new"
+            className="inline-flex h-[52px] items-center gap-3 rounded-[1.25rem] bg-[#0f172a] px-5 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition hover:bg-[#111c32]"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <path d="M12 5v14" strokeLinecap="round" />
+              <path d="M5 12h14" strokeLinecap="round" />
+            </svg>
+            Добавить товар
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-7 overflow-hidden rounded-[1.75rem] border border-[#e3eaf4] bg-white shadow-[0_22px_52px_rgba(15,23,42,0.05)]">
+        <div className="grid gap-3 border-b border-[#e8eef7] p-4 lg:grid-cols-[minmax(0,1.8fr)_220px_220px_220px] lg:p-5">
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-slate-300">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+            </span>
+            <input
+              className="admin-input h-12 bg-white pl-12"
+              aria-label="Поиск товаров"
+              placeholder="Поиск товаров..."
+              value={searchValue}
+              onChange={(event) => updateFilterParam("q", event.target.value)}
+            />
+          </div>
+
+          <FilterSelect
+            ariaLabel="Фильтр по категории"
+            value={categoryFilter}
+            onChange={(value) => updateFilterParam("category", value)}
+          >
+            <option value="">Все категории</option>
+            {categoryOptions.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </FilterSelect>
+
+          <FilterSelect
+            ariaLabel="Фильтр по статусу"
+            value={productStatusFilter}
+            onChange={(value) => updateFilterParam("productStatus", value)}
+          >
+            <option value="">Все статусы</option>
+            <option value="active">Активен</option>
+            <option value="draft">Черновик</option>
+          </FilterSelect>
+
+          <FilterSelect
+            ariaLabel="Фильтр по типу кожи"
+            value={skinTypeFilter}
+            onChange={(value) => updateFilterParam("skinType", value)}
+          >
+            <option value="">Все типы кожи</option>
+            {SKIN_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </FilterSelect>
+        </div>
+
+        <div className="hidden grid-cols-[92px_minmax(0,2fr)_1.15fr_1.1fr_0.9fr_0.8fr] items-center gap-4 border-b border-[#e8eef7] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 lg:grid">
+          <span>Изображение</span>
+          <span>Название</span>
+          <span>Артикул</span>
+          <span>Категория</span>
+          <span>Цена</span>
+          <span>Остаток</span>
+        </div>
+
+        {loading ? (
+          <div className="px-5 py-12 text-sm text-slate-500">Загружаем товары...</div>
+        ) : null}
+
+        {!loading && error ? (
+          <div className="px-5 py-12 text-sm font-medium text-red-600">{error}</div>
+        ) : null}
+
+        {!loading && !error && filteredProducts.length === 0 ? <EmptyProductList hasFilters={hasFilters} /> : null}
+
+        {!loading && !error && filteredProducts.length > 0 ? (
+          <>
+            <div className="divide-y divide-[#edf2f7]">
+              {filteredProducts.map((product) => {
+                const skinTypeLabel = formatSkinTypes(product.skinTypes);
+
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/admin123/products/${product.id}`}
+                    className="block transition hover:bg-[#fafcff]"
+                  >
+                    <div className="hidden grid-cols-[92px_minmax(0,2fr)_1.15fr_1.1fr_0.9fr_0.8fr] items-center gap-4 px-5 py-5 lg:grid">
+                      <ProductThumbnail product={product} />
+
+                      <div className="min-w-0">
+                        <p className="truncate text-[1.08rem] font-semibold text-slate-950">{getProductDisplayName(product)}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <StatusBadge active={product.active} compact />
+                          {skinTypeLabel ? (
+                            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+                              {skinTypeLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-700">{product.sku}</p>
+                        <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-slate-400">{product.slug}</p>
+                      </div>
+
+                      <p className="truncate text-sm text-slate-600">{getCategoryDisplayName(product.category)}</p>
+                      <p className="text-sm font-semibold text-slate-800">{formatPrice(product.price)}</p>
+
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">{product.stock}</p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            {product.stock > 0 ? "На складе" : "Нет в наличии"}
+                          </p>
+                        </div>
+                        <span className="text-slate-300">
+                          <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 px-4 py-4 lg:hidden">
+                      <div className="flex items-start gap-4">
+                        <ProductThumbnail product={product} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-base font-semibold text-slate-950">
+                                {getProductDisplayName(product)}
+                              </p>
+                              <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-slate-400">
+                                {product.sku}
+                              </p>
+                            </div>
+                            <span className="pt-1 text-slate-300">
+                              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <StatusBadge active={product.active} compact />
+                            {skinTypeLabel ? (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+                                {skinTypeLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Категория</p>
+                          <p className="mt-1.5 truncate text-slate-700">{getCategoryDisplayName(product.category)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Цена</p>
+                          <p className="mt-1.5 text-slate-700">{formatPrice(product.price)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Остаток</p>
+                          <p className="mt-1.5 text-slate-700">{product.stock}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-[#e8eef7] px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                Показано {filteredProducts.length} из {products.length} товаров
+              </p>
+              {hasFilters ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextParams = new URLSearchParams(searchParams.toString());
+                    nextParams.delete("q");
+                    nextParams.delete("category");
+                    nextParams.delete("productStatus");
+                    nextParams.delete("skinType");
+                    nextParams.delete("status");
+                    const nextQuery = nextParams.toString();
+                    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+                  }}
+                  className="text-sm font-semibold text-slate-900 transition hover:text-[var(--brand)]"
+                >
+                  Сбросить фильтры
+                </button>
+              ) : null}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+export function ProductEditor({ productId }: ProductEditorProps) {
+  const router = useRouter();
+  const isEditing = Boolean(productId);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [form, setForm] = useState<ProductFormState>(emptyForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<ProductSubmitError | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
-  const [uploadingStoreImage, setUploadingStoreImage] = useState(false);
-  const searchQuery = (searchParams.get("q") || "").trim().toLowerCase();
-
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery) {
-      return products;
-    }
-
-    return products.filter((product) =>
-      [
-        product.sku,
-        product.slug,
-        product.nameUz,
-        product.nameRu,
-        product.nameEn,
-        product.shortDescriptionUz,
-        product.shortDescriptionRu,
-        product.shortDescriptionEn,
-        product.category?.nameUz,
-        product.category?.nameRu,
-        product.category?.nameEn
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(searchQuery)
-    );
-  }, [products, searchQuery]);
-
-  async function loadData() {
-    setLoading(true);
-    try {
-      const [productsPayload, categoriesPayload] = await Promise.all([
-        requestJson<AdminProduct[]>("/api/products"),
-        requestJson<AdminCategory[]>("/api/categories")
-      ]);
-
-      setProducts(productsPayload);
-      setCategories(categoriesPayload);
-      setForm((current) => ({
-        ...current,
-        categoryId: current.categoryId || categoriesPayload[0]?.id || ""
-      }));
-    } catch (loadError) {
-      setError({ message: loadError instanceof Error ? loadError.message : "Не удалось загрузить товары." });
-    } finally {
-      setLoading(false);
-    }
-  }
+  const discountPercent = getDiscountPercent(Number(form.price), Number(form.discountAmount));
 
   useEffect(() => {
-    void loadData();
-  }, []);
+    let active = true;
 
-  function resetForm() {
-    setEditingId(null);
-    setForm(buildInitialForm(categories[0]?.id || ""));
-  }
+    async function loadEditorData() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [categoriesPayload, productPayload] = await Promise.all([
+          requestJson<AdminCategory[]>("/api/categories"),
+          productId ? requestJson<AdminProduct>(`/api/products/${productId}`) : Promise.resolve(null)
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        setCategories(categoriesPayload);
+        setForm(
+          productPayload
+            ? buildFormFromProduct(productPayload)
+            : buildInitialForm(categoriesPayload[0]?.id || "")
+        );
+      } catch (loadError) {
+        if (active) {
+          setError({
+            message:
+              loadError instanceof Error ? loadError.message : "Не удалось подготовить форму товара."
+          });
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadEditorData();
+
+    return () => {
+      active = false;
+    };
+  }, [productId]);
 
   async function uploadSingleFile(file: File) {
     const uploadFormData = new FormData();
@@ -264,7 +852,10 @@ export function ProductManager() {
       }));
       setMessage("Обложка загружена.");
     } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить обложку." });
+      setError({
+        message:
+          uploadError instanceof Error ? uploadError.message : "Не удалось загрузить обложку."
+      });
     } finally {
       setUploadingCover(false);
       event.target.value = "";
@@ -272,7 +863,10 @@ export function ProductManager() {
   }
 
   async function handleGalleryUpload(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files || []).slice(0, Math.max(0, MAX_GALLERY_IMAGES - form.galleryImages.length));
+    const files = Array.from(event.target.files || []).slice(
+      0,
+      Math.max(0, MAX_GALLERY_IMAGES - form.galleryImages.length)
+    );
 
     if (files.length === 0) {
       return;
@@ -306,35 +900,14 @@ export function ProductManager() {
 
       setMessage("Изображения галереи загружены.");
     } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображения галереи." });
+      setError({
+        message:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Не удалось загрузить изображения галереи."
+      });
     } finally {
       setUploadingGallery(false);
-      event.target.value = "";
-    }
-  }
-
-  async function handleStoreImageUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    setError(null);
-    setMessage(null);
-    setUploadingStoreImage(true);
-
-    try {
-      const payload = await uploadSingleFile(file);
-      setForm((current) => ({
-        ...current,
-        storeImageUrl: payload.url
-      }));
-      setMessage("Изображение магазина загружено.");
-    } catch (uploadError) {
-      setError({ message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение магазина." });
-    } finally {
-      setUploadingStoreImage(false);
       event.target.value = "";
     }
   }
@@ -345,15 +918,16 @@ export function ProductManager() {
     setMessage(null);
 
     try {
-      const response = await fetch(editingId ? `/api/products/${editingId}` : "/api/products", {
-        method: editingId ? "PATCH" : "POST",
+      const response = await fetch(productId ? `/api/products/${productId}` : "/api/products", {
+        method: productId ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json"
         },
-          body: JSON.stringify({
-            ...form,
-            price: Number(form.price),
-            stock: Number(form.stock),
+        body: JSON.stringify({
+          ...form,
+          price: Number(form.price),
+          discountAmount: Number(form.discountAmount),
+          stock: Number(form.stock),
           homeSortOrder: Number(form.homeSortOrder),
           skinTypes: form.skinTypes,
           galleryImages: form.galleryImages.map((image, index) => ({
@@ -364,16 +938,17 @@ export function ProductManager() {
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as { error?: string; hint?: string } | null;
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string; hint?: string }
+          | null;
         throw {
-          message: payload?.error || (editingId ? "Не удалось обновить товар." : "Не удалось создать товар."),
+          message: payload?.error || (isEditing ? "Не удалось обновить товар." : "Не удалось создать товар."),
           hint: payload?.hint || null
         } satisfies ProductSubmitError;
       }
 
-      resetForm();
-      setMessage(editingId ? "Товар обновлен." : "Товар создан.");
-      await loadData();
+      router.push(`/admin123/products?status=${isEditing ? "updated" : "created"}`);
+      router.refresh();
     } catch (submitError) {
       if (
         submitError &&
@@ -383,406 +958,652 @@ export function ProductManager() {
       ) {
         setError({
           message: submitError.message,
-          hint: "hint" in submitError && typeof submitError.hint === "string" ? submitError.hint : null
+          hint:
+            "hint" in submitError && typeof submitError.hint === "string" ? submitError.hint : null
         });
       } else {
-        setError({ message: editingId ? "Не удалось обновить товар." : "Не удалось создать товар." });
+        setError({
+          message: isEditing ? "Не удалось обновить товар." : "Не удалось создать товар."
+        });
       }
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Удалить этот товар?")) {
+  async function handleDelete() {
+    if (!productId || !window.confirm("Удалить этот товар?")) {
       return;
     }
 
     try {
-      await requestJson(`/api/products/${id}`, { method: "DELETE" });
-
-      if (editingId === id) {
-        resetForm();
-      }
-
-      setMessage("Товар удален.");
-      await loadData();
+      await requestJson(`/api/products/${productId}`, { method: "DELETE" });
+      router.push("/admin123/products?status=deleted");
+      router.refresh();
     } catch (deleteError) {
-      setError({ message: deleteError instanceof Error ? deleteError.message : "Не удалось удалить товар." });
+      setError({
+        message: deleteError instanceof Error ? deleteError.message : "Не удалось удалить товар."
+      });
     }
   }
 
+  if (loading) {
+    return (
+      <div className="px-6 py-12 text-sm text-slate-500 lg:px-8">
+        Загружаем форму товара...
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-6 xl:grid-cols-[560px_1fr]">
-      <form onSubmit={handleSubmit} className="admin-panel p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold text-slate-950">{editingId ? "Редактирование товара" : "Создание товара"}</h3>
-          {editingId ? (
-            <button type="button" className="text-sm font-semibold text-slate-500" onClick={resetForm}>
-              Отмена
-            </button>
-          ) : null}
+    <section className="min-h-screen bg-[#f6f8fb] px-5 py-6 lg:px-8 lg:py-8">
+      <Link
+        href="/admin123/products"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-slate-950"
+      >
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Назад к списку товаров
+      </Link>
+
+      <div className="mt-6 border-b border-[#e6ebf2] pb-6">
+        <div className="max-w-3xl">
+          <h2 className="text-[2.35rem] font-semibold tracking-tight text-slate-950">
+            {isEditing ? "Редактирование товара" : "Новый товар"}
+          </h2>
+          <p className="mt-2.5 text-base leading-7 text-slate-500">
+            {isEditing
+              ? "Обновите данные карточки и сохраните изменения в каталоге."
+              : "Заполните поля товара и подготовьте карточку для публикации."}
+          </p>
         </div>
+      </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <FieldGroup hint="Внутренний код товара для админки и склада.">
-            <input className="admin-input" aria-label="SKU" value={form.sku} onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Сегмент URL, который используется в ссылке на товар.">
-            <input className="admin-input" aria-label="Слаг" value={form.slug} onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))} />
-          </FieldGroup>
+      <form onSubmit={handleSubmit} className="mt-6">
+        {error ? (
+          <div className="mb-6 rounded-[1.1rem] border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {error.message}
+            {error.hint ? (
+              <span className="ml-2 font-normal text-red-600/90">Подсказка: {error.hint}</span>
+            ) : null}
+          </div>
+        ) : null}
 
-          <FieldGroup hint="Название товара для витрины на узбекском языке.">
-            <input className="admin-input" aria-label="Название UZ" value={form.nameUz} onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Название товара для витрины на русском языке.">
-            <input className="admin-input" aria-label="Название RU" value={form.nameRu} onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Название товара для витрины на английском языке.">
-            <input className="admin-input" aria-label="Название EN" value={form.nameEn} onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))} />
-          </FieldGroup>
+        {message ? (
+          <div className="mb-6 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            {message}
+          </div>
+        ) : null}
 
-          <FieldGroup hint="Короткий текст для карточек и превью на узбекском языке.">
-            <textarea className="admin-textarea" aria-label="Короткое описание UZ" value={form.shortDescriptionUz} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Короткий текст для карточек и превью на русском языке.">
-            <textarea className="admin-textarea" aria-label="Короткое описание RU" value={form.shortDescriptionRu} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Короткий текст для карточек и превью на английском языке.">
-            <textarea className="admin-textarea" aria-label="Короткое описание EN" value={form.shortDescriptionEn} onChange={(event) => setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Основное описание товара для детальной страницы на узбекском языке.">
-            <textarea className="admin-textarea min-h-28" aria-label="Описание UZ" value={form.descriptionUz} onChange={(event) => setForm((current) => ({ ...current, descriptionUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Основное описание товара для детальной страницы на русском языке.">
-            <textarea className="admin-textarea min-h-28" aria-label="Описание RU" value={form.descriptionRu} onChange={(event) => setForm((current) => ({ ...current, descriptionRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Основное описание товара для детальной страницы на английском языке.">
-            <textarea className="admin-textarea min-h-28" aria-label="Описание EN" value={form.descriptionEn} onChange={(event) => setForm((current) => ({ ...current, descriptionEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Текст о свойствах товара в аккордеоне на узбекском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Свойства UZ" value={form.featureUz} onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Текст о свойствах товара в аккордеоне на русском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Свойства RU" value={form.featureRu} onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Текст о свойствах товара в аккордеоне на английском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Свойства EN" value={form.featureEn} onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Текст с ключевыми ингредиентами для детальной страницы на узбекском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты UZ" value={form.ingredientsUz} onChange={(event) => setForm((current) => ({ ...current, ingredientsUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Текст с ключевыми ингредиентами для детальной страницы на русском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты RU" value={form.ingredientsRu} onChange={(event) => setForm((current) => ({ ...current, ingredientsRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Текст с ключевыми ингредиентами для детальной страницы на английском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Ингредиенты EN" value={form.ingredientsEn} onChange={(event) => setForm((current) => ({ ...current, ingredientsEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Инструкция по применению для детальной страницы на узбекском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Применение UZ" value={form.usageUz} onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Инструкция по применению для детальной страницы на русском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Применение RU" value={form.usageRu} onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Инструкция по применению для детальной страницы на английском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Применение EN" value={form.usageEn} onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup className="md:col-span-2" hint="Необязательные типы кожи для фильтров каталога. Можно выбрать один или несколько вариантов.">
-            <div className="grid gap-3 sm:grid-cols-2">
-              {SKIN_TYPE_OPTIONS.map((option) => {
-                const checked = form.skinTypes.includes(option.value);
-
-                return (
-                  <label key={option.value} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          skinTypes: event.target.checked
-                            ? [...current.skinTypes, option.value]
-                            : current.skinTypes.filter((entry) => entry !== option.value)
-                        }))
-                      }
-                    />
-                    {option.label}
-                  </label>
-                );
-              })}
-            </div>
-          </FieldGroup>
-
-          <FieldGroup className="md:col-span-2" hint="Основная обложка для карточек и первого слота галереи. JPG, PNG или WebP до 5 МБ.">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Обложка</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.imageUrl || "Обложка пока не загружена"}</p>
-                </div>
-                <label className="admin-button-secondary cursor-pointer text-center">
-                  {uploadingCover ? "Загрузка..." : "Загрузить обложку"}
-                  <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleCoverUpload} disabled={uploadingCover} />
-                </label>
-              </div>
-            </div>
-          </FieldGroup>
-
-          <FieldGroup className="md:col-span-2" hint="Дополнительные изображения для страницы товара. Оптимально 2-5 изображений, максимум 6.">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Галерея товара</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.galleryImages.length}/{MAX_GALLERY_IMAGES} загружено</p>
-                </div>
-                <label className={`admin-button-secondary cursor-pointer text-center ${form.galleryImages.length >= MAX_GALLERY_IMAGES ? "pointer-events-none opacity-50" : ""}`}>
-                  {uploadingGallery ? "Загрузка..." : "Загрузить изображения"}
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_360px]">
+          <div className="space-y-6">
+            <EditorCard title="Основная информация">
+              <div className="grid gap-5 md:grid-cols-2">
+                <FieldGroup label="SKU" hint="Внутренний код товара для админки и склада.">
                   <input
-                    type="file"
-                    accept=".jpg,.jpeg,.png,.webp"
-                    multiple
-                    className="hidden"
-                    onChange={handleGalleryUpload}
-                    disabled={uploadingGallery || form.galleryImages.length >= MAX_GALLERY_IMAGES}
+                    className="admin-input h-12"
+                    aria-label="SKU"
+                    placeholder="e.g. MDL-001"
+                    value={form.sku}
+                    onChange={(event) => setForm((current) => ({ ...current, sku: event.target.value }))}
                   />
-                </label>
-              </div>
+                </FieldGroup>
+                <FieldGroup label="Slug" hint="Сегмент URL, который используется в ссылке на товар.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Слаг"
+                    placeholder="e.g. balancing-foam-cleanser"
+                    value={form.slug}
+                    onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))}
+                  />
+                </FieldGroup>
 
-              {form.galleryImages.length > 0 ? (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {form.galleryImages.map((image, index) => (
-                    <div key={`${image.imageUrl}-${index}`} className="overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white">
-                      <img src={image.imageUrl} alt={`Галерея ${index + 1}`} className="h-40 w-full object-cover" />
-                      <div className="flex items-center justify-between gap-3 p-3">
-                        <p className="truncate text-xs text-slate-500">Изображение {index + 1}</p>
-                        <button
-                          type="button"
-                          className="text-xs font-semibold text-red-600"
-                          onClick={() =>
-                            setForm((current) => ({
-                              ...current,
-                              galleryImages: current.galleryImages
-                                .filter((_, imageIndex) => imageIndex !== index)
-                                .map((entry, imageIndex) => ({
-                                  ...entry,
-                                  sortOrder: imageIndex
-                                }))
-                            }))
-                          }
+                <FieldGroup className="md:col-span-2" label="Название (UZ)" hint="Название товара для витрины на узбекском языке.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Название UZ"
+                    value={form.nameUz}
+                    onChange={(event) => setForm((current) => ({ ...current, nameUz: event.target.value }))}
+                  />
+                </FieldGroup>
+                <FieldGroup className="md:col-span-2" label="Название (RU)" hint="Название товара для витрины на русском языке.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Название RU"
+                    value={form.nameRu}
+                    onChange={(event) => setForm((current) => ({ ...current, nameRu: event.target.value }))}
+                  />
+                </FieldGroup>
+                <FieldGroup className="md:col-span-2" label="Название (EN)" hint="Название товара для витрины на английском языке.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Название EN"
+                    value={form.nameEn}
+                    onChange={(event) => setForm((current) => ({ ...current, nameEn: event.target.value }))}
+                  />
+                </FieldGroup>
+              </div>
+            </EditorCard>
+
+            <EditorCard title="Описания">
+              <div className="space-y-6">
+                <EditorSubsection title="Короткое описание">
+                  <div className="space-y-4">
+                    <FieldGroup label="UZ" hint="Короткий текст для карточек и превью на узбекском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Короткое описание UZ"
+                        value={form.shortDescriptionUz}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="RU" hint="Короткий текст для карточек и превью на русском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Короткое описание RU"
+                        value={form.shortDescriptionRu}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="EN" hint="Короткий текст для карточек и превью на английском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Короткое описание EN"
+                        value={form.shortDescriptionEn}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                  </div>
+                </EditorSubsection>
+
+                <EditorSubsection title="Полное описание">
+                  <div className="space-y-4">
+                    <FieldGroup label="UZ" hint="Основное описание товара для детальной страницы на узбекском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[124px]"
+                        aria-label="Описание UZ"
+                        value={form.descriptionUz}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, descriptionUz: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="RU" hint="Основное описание товара для детальной страницы на русском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[124px]"
+                        aria-label="Описание RU"
+                        value={form.descriptionRu}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, descriptionRu: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="EN" hint="Основное описание товара для детальной страницы на английском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[124px]"
+                        aria-label="Описание EN"
+                        value={form.descriptionEn}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, descriptionEn: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                  </div>
+                </EditorSubsection>
+
+                <EditorSubsection title="Свойства">
+                  <div className="space-y-4">
+                    <FieldGroup label="UZ" hint="Текст о свойствах товара в аккордеоне на узбекском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Свойства UZ"
+                        value={form.featureUz}
+                        onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))}
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="RU" hint="Текст о свойствах товара в аккордеоне на русском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Свойства RU"
+                        value={form.featureRu}
+                        onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))}
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="EN" hint="Текст о свойствах товара в аккордеоне на английском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Свойства EN"
+                        value={form.featureEn}
+                        onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))}
+                      />
+                    </FieldGroup>
+                  </div>
+                </EditorSubsection>
+
+                <EditorSubsection title="Ингредиенты">
+                  <div className="space-y-4">
+                    <FieldGroup label="UZ" hint="Текст с ключевыми ингредиентами для детальной страницы на узбекском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Ингредиенты UZ"
+                        value={form.ingredientsUz}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, ingredientsUz: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="RU" hint="Текст с ключевыми ингредиентами для детальной страницы на русском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Ингредиенты RU"
+                        value={form.ingredientsRu}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, ingredientsRu: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="EN" hint="Текст с ключевыми ингредиентами для детальной страницы на английском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Ингредиенты EN"
+                        value={form.ingredientsEn}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, ingredientsEn: event.target.value }))
+                        }
+                      />
+                    </FieldGroup>
+                  </div>
+                </EditorSubsection>
+
+                <EditorSubsection title="Применение">
+                  <div className="space-y-4">
+                    <FieldGroup label="UZ" hint="Инструкция по применению для детальной страницы на узбекском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Применение UZ"
+                        value={form.usageUz}
+                        onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))}
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="RU" hint="Инструкция по применению для детальной страницы на русском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Применение RU"
+                        value={form.usageRu}
+                        onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))}
+                      />
+                    </FieldGroup>
+                    <FieldGroup label="EN" hint="Инструкция по применению для детальной страницы на английском языке.">
+                      <textarea
+                        className="admin-textarea min-h-[104px]"
+                        aria-label="Применение EN"
+                        value={form.usageEn}
+                        onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))}
+                      />
+                    </FieldGroup>
+                  </div>
+                </EditorSubsection>
+              </div>
+            </EditorCard>
+
+            <EditorCard title="Медиа">
+              <div className="space-y-6">
+                <FieldGroup label="Обложка" hint="Основная обложка для карточек и первого слота галереи. JPG, PNG или WebP до 5 МБ.">
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-[1.35rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-6 py-8 text-center transition hover:border-slate-400 hover:bg-white">
+                    {form.imageUrl ? (
+                      <img
+                        src={form.imageUrl}
+                        alt="Обложка товара"
+                        className="mb-4 h-28 w-28 object-contain"
+                      />
+                    ) : (
+                      <UploadPlaceholderIcon className="h-12 w-12 text-slate-300" />
+                    )}
+                    <p className="mt-4 text-lg font-semibold text-slate-800">
+                      {uploadingCover ? "Загрузка..." : "Загрузите файл или перетащите"}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-400">PNG, JPG, WEBP до 5 МБ</p>
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp"
+                      className="hidden"
+                      onChange={handleCoverUpload}
+                      disabled={uploadingCover}
+                    />
+                  </label>
+                </FieldGroup>
+
+                <FieldGroup label="Галерея" hint="Дополнительные изображения для страницы товара. Оптимально 2-5 изображений, максимум 6.">
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {form.galleryImages.map((image, index) => (
+                      <div
+                        key={`${image.imageUrl}-${index}`}
+                        className="overflow-hidden rounded-[1.25rem] border border-[#e5eaf2] bg-[#fbfcff]"
+                      >
+                        <img
+                          src={image.imageUrl}
+                          alt={`Галерея ${index + 1}`}
+                          className="h-36 w-full object-cover"
+                        />
+                        <div className="flex items-center justify-between gap-3 p-3">
+                          <p className="truncate text-xs text-slate-500">Изображение {index + 1}</p>
+                          <button
+                            type="button"
+                            className="text-xs font-semibold text-red-600"
+                            onClick={() =>
+                              setForm((current) => ({
+                                ...current,
+                                galleryImages: current.galleryImages
+                                  .filter((_, imageIndex) => imageIndex !== index)
+                                  .map((entry, imageIndex) => ({
+                                    ...entry,
+                                    sortOrder: imageIndex
+                                  }))
+                              }))
+                            }
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {form.galleryImages.length < MAX_GALLERY_IMAGES ? (
+                      <label className="flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-white text-center transition hover:border-slate-400 hover:bg-[#fbfcfe]">
+                        <svg
+                          viewBox="0 0 24 24"
+                          className="h-8 w-8 text-slate-400"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          Удалить
-                        </button>
+                          <path d="M12 5v14" />
+                          <path d="M5 12h14" />
+                        </svg>
+                        <p className="mt-3 text-base font-semibold text-slate-700">
+                          {uploadingGallery ? "Загрузка..." : "Добавить"}
+                        </p>
+                        <input
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.webp"
+                          multiple
+                          className="hidden"
+                          onChange={handleGalleryUpload}
+                          disabled={uploadingGallery || form.galleryImages.length >= MAX_GALLERY_IMAGES}
+                        />
+                      </label>
+                    ) : null}
+                  </div>
+                </FieldGroup>
+
+                <FieldGroup label="Предпросмотр" hint="Обложка используется в карточках товара, поиске и первом слоте детальной галереи.">
+                  <div className="flex h-52 items-center justify-center rounded-[1.35rem] border border-[#e5eaf2] bg-[#fbfcff]">
+                    {form.imageUrl ? (
+                      <img
+                        src={form.imageUrl}
+                        alt="Предпросмотр товара"
+                        className="h-40 w-40 object-contain"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <UploadPlaceholderIcon className="mx-auto h-10 w-10 text-slate-300" />
+                        <p className="mt-3 text-sm text-slate-400">Изображение не выбрано</p>
+                      </div>
+                    )}
+                  </div>
+                </FieldGroup>
+              </div>
+            </EditorCard>
+          </div>
+
+          <div className="space-y-6">
+            <EditorCard title="Атрибуты">
+              <div className="space-y-5">
+                <FieldGroup label="Тип кожи" hint="Необязательные типы кожи для фильтров каталога. Можно выбрать один или несколько вариантов.">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    {SKIN_TYPE_OPTIONS.map((option) => {
+                      const checked = form.skinTypes.includes(option.value);
+
+                      return (
+                        <label
+                          key={option.value}
+                          className={`flex items-center gap-3 rounded-[1rem] border px-4 py-3 text-sm font-medium transition ${
+                            checked
+                              ? "border-slate-900 bg-slate-50 text-slate-900"
+                              : "border-[#dbe3f0] bg-white text-slate-600"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) =>
+                              setForm((current) => ({
+                                ...current,
+                                skinTypes: event.target.checked
+                                  ? [...current.skinTypes, option.value]
+                                  : current.skinTypes.filter((entry) => entry !== option.value)
+                              }))
+                            }
+                          />
+                          {option.label}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FieldGroup>
+
+                <FieldGroup label="Размер / объем" hint="Размер упаковки или объем товара, например 150 ml.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Размер"
+                    placeholder="e.g. 150 ml"
+                    value={form.size}
+                    onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Категория" hint="Категория, к которой относится товар в каталоге.">
+                  <select
+                    className="admin-select h-12"
+                    value={form.categoryId}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, categoryId: event.target.value }))
+                    }
+                  >
+                    <option value="">Выберите категорию</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.nameRu || category.nameEn || category.nameUz}
+                      </option>
+                    ))}
+                  </select>
+                </FieldGroup>
+
+                <FieldGroup label="Цена" hint="Цена продажи, которая показывается в карточках и при оформлении заказа.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Цена"
+                    type="number"
+                    min="0"
+                    value={form.price}
+                    onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Сумма скидки" hint="Сумма скидки в сумах. Процент для бейджа рассчитывается автоматически от основной цены товара.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Сумма скидки"
+                    type="number"
+                    min="0"
+                    value={form.discountAmount}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, discountAmount: event.target.value }))
+                    }
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Остаток" hint="Доступное количество на складе.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Остаток"
+                    type="number"
+                    min="0"
+                    value={form.stock}
+                    onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Порядок на главной" hint="Порядок на главной странице внутри блока бестселлеров. Меньшее число показывается раньше.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Порядок на главной"
+                    type="number"
+                    min="0"
+                    value={form.homeSortOrder}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, homeSortOrder: event.target.value }))
+                    }
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Цветовой диапазон" hint="Начальный и конечный цвет градиента для заглушек и карточек.">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-slate-500">От</p>
+                      <div className="flex items-center gap-3 rounded-[1rem] border border-[#dbe3f0] bg-white px-3 py-2.5">
+                        <span
+                          className="h-9 w-9 rounded-[0.8rem] border border-slate-200 bg-white"
+                          style={{ backgroundColor: form.colorFrom || "#ffffff" }}
+                        />
+                        <input
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none"
+                          aria-label="Цвет от"
+                          placeholder="#FFFFFF"
+                          value={form.colorFrom}
+                          onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))}
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-4 text-sm text-slate-400">Изображения галереи пока не загружены.</p>
-              )}
-            </div>
-          </FieldGroup>
-
-          <FieldGroup className="md:col-span-2" hint="Дополнительное фото магазина для страницы «Где купить». JPG, PNG или WebP до 5 МБ.">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Изображение магазина</p>
-                  <p className="mt-1 text-xs text-slate-400">{form.storeImageUrl || "Изображение магазина пока не загружено"}</p>
-                </div>
-                <label className="admin-button-secondary cursor-pointer text-center">
-                  {uploadingStoreImage ? "Загрузка..." : "Загрузить изображение"}
-                  <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleStoreImageUpload} disabled={uploadingStoreImage} />
-                </label>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-slate-500">До</p>
+                      <div className="flex items-center gap-3 rounded-[1rem] border border-[#dbe3f0] bg-white px-3 py-2.5">
+                        <span
+                          className="h-9 w-9 rounded-[0.8rem] border border-slate-200 bg-black"
+                          style={{ backgroundColor: form.colorTo || "#000000" }}
+                        />
+                        <input
+                          className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none"
+                          aria-label="Цвет до"
+                          placeholder="#000000"
+                          value={form.colorTo}
+                          onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </FieldGroup>
               </div>
-            </div>
-          </FieldGroup>
+            </EditorCard>
 
-          <FieldGroup hint="Адрес магазина для страницы «Где купить» на узбекском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина UZ" value={form.storeLocationUz} onChange={(event) => setForm((current) => ({ ...current, storeLocationUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Адрес магазина для страницы «Где купить» на русском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина RU" value={form.storeLocationRu} onChange={(event) => setForm((current) => ({ ...current, storeLocationRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Адрес магазина для страницы «Где купить» на английском языке.">
-            <textarea className="admin-textarea min-h-24" aria-label="Адрес магазина EN" value={form.storeLocationEn} onChange={(event) => setForm((current) => ({ ...current, storeLocationEn: event.target.value }))} />
-          </FieldGroup>
+            <EditorCard title="Статус">
+              <div className="divide-y divide-[#edf1f6]">
+                <ToggleRow
+                  title="Активность"
+                  description="Если выключено, товар остается в админке, но скрывается от покупателей."
+                  checked={form.active}
+                  onChange={(checked) => setForm((current) => ({ ...current, active: checked }))}
+                />
+                <ToggleRow
+                  title="Бестселлер"
+                  description="Включите, чтобы показывать товар в блоке бестселлеров на главной странице."
+                  checked={form.isBestseller}
+                  onChange={(checked) => setForm((current) => ({ ...current, isBestseller: checked }))}
+                />
+                <ToggleRow
+                  title="Хит продаж"
+                  description="Желтый карточный бейдж. Можно включать одновременно со скидкой и новинкой."
+                  checked={form.isHit}
+                  onChange={(checked) => setForm((current) => ({ ...current, isHit: checked }))}
+                />
+                <ToggleRow
+                  title="Новинка"
+                  description="Бирюзовый карточный бейдж. Можно включать одновременно со скидкой и хитом."
+                  checked={form.isNew}
+                  onChange={(checked) => setForm((current) => ({ ...current, isNew: checked }))}
+                />
+              </div>
+            </EditorCard>
 
-          <FieldGroup hint="Контакты магазина для страницы «Где купить» на узбекском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
-            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина UZ" value={form.storeContactsUz} onChange={(event) => setForm((current) => ({ ...current, storeContactsUz: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Контакты магазина для страницы «Где купить» на русском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
-            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина RU" value={form.storeContactsRu} onChange={(event) => setForm((current) => ({ ...current, storeContactsRu: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup className="md:col-span-2" hint="Контакты магазина для страницы «Где купить» на английском языке. Телефон, Telegram и Instagram указывайте с новой строки.">
-            <textarea className="admin-textarea min-h-24" aria-label="Контакты магазина EN" value={form.storeContactsEn} onChange={(event) => setForm((current) => ({ ...current, storeContactsEn: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Размер упаковки или объем товара, например 150 ml.">
-            <input className="admin-input" aria-label="Размер" value={form.size} onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Цена продажи, которая показывается в карточках и при оформлении заказа.">
-            <input className="admin-input" aria-label="Цена" type="number" min="0" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Доступное количество на складе.">
-            <input className="admin-input" aria-label="Остаток" type="number" min="0" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Порядок на главной странице внутри блока бестселлеров. Меньшее число показывается раньше.">
-            <input className="admin-input" aria-label="Порядок на главной" type="number" min="0" value={form.homeSortOrder} onChange={(event) => setForm((current) => ({ ...current, homeSortOrder: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Категория, к которой относится товар в каталоге.">
-            <select className="admin-select" value={form.categoryId} onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}>
-              <option value="">Выберите категорию</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.nameRu || category.nameEn || category.nameUz}
-                </option>
-              ))}
-            </select>
-          </FieldGroup>
-          <FieldGroup hint="Начальный цвет градиента для заглушек и карточек.">
-            <input className="admin-input" aria-label="Цвет от" value={form.colorFrom} onChange={(event) => setForm((current) => ({ ...current, colorFrom: event.target.value }))} />
-          </FieldGroup>
-          <FieldGroup hint="Конечный цвет градиента для заглушек и карточек.">
-            <input className="admin-input" aria-label="Цвет до" value={form.colorTo} onChange={(event) => setForm((current) => ({ ...current, colorTo: event.target.value }))} />
-          </FieldGroup>
-
-          <FieldGroup hint="Если выключено, товар остается в админке, но скрывается от покупателей.">
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              <input type="checkbox" checked={form.active} onChange={(event) => setForm((current) => ({ ...current, active: event.target.checked }))} />
-              Товар активен
-            </label>
-          </FieldGroup>
-          <FieldGroup hint="Включите, чтобы показывать товар в блоке бестселлеров на главной странице.">
-            <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
-              <input type="checkbox" checked={form.isBestseller} onChange={(event) => setForm((current) => ({ ...current, isBestseller: event.target.checked }))} />
-              Показывать в блоке бестселлеров
-            </label>
-          </FieldGroup>
-
-          <div className="md:col-span-2 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Предпросмотр обложки</p>
-            <div className="mt-3 flex h-48 items-center justify-center rounded-[1.2rem] bg-white">
-              {form.imageUrl ? <img src={form.imageUrl} alt="Предпросмотр товара" className="h-40 w-40 object-contain" /> : <p className="text-sm text-slate-400">Изображение не выбрано</p>}
-            </div>
-            <p className="mt-3 text-[11px] leading-4 text-slate-400">Обложка используется в карточках товара, поиске и первом слоте детальной галереи.</p>
+            <EditorCard title="Предпросмотр бейджей">
+              <div className="flex flex-wrap items-start gap-2">
+                {discountPercent > 0 ? (
+                  <span className="inline-flex min-h-10 items-center justify-center rounded-[0.6rem] bg-[#ff2a93] px-3 text-sm font-semibold text-white">
+                    {discountPercent}%
+                  </span>
+                ) : null}
+                {form.isHit ? (
+                  <span className="inline-flex min-h-10 items-center justify-center rounded-[0.6rem] bg-[#fff100] px-3 text-sm font-semibold text-black">
+                    ХИТ
+                  </span>
+                ) : null}
+                {form.isNew ? (
+                  <span className="inline-flex min-h-10 items-center justify-center rounded-[0.6rem] bg-[#E8FBF6] px-3 text-sm font-semibold text-[#0F766E]">
+                    НОВИНКА
+                  </span>
+                ) : null}
+                {discountPercent <= 0 && !form.isHit && !form.isNew ? (
+                  <p className="text-sm text-slate-400">Бейджи пока не выбраны.</p>
+                ) : null}
+              </div>
+              <p className="mt-4 text-[11px] leading-5 text-slate-400">
+                На витрине эти бейджи выводятся вместе и могут комбинироваться в одной карточке товара.
+              </p>
+            </EditorCard>
           </div>
         </div>
 
-        {error ? (
-          <p className="mt-4 text-sm font-semibold text-red-600">
-            {error.message}
-            {error.hint ? <span className="ml-2 font-normal text-red-500/90">Подсказка: {error.hint}</span> : null}
-          </p>
-        ) : null}
-        {message ? <p className="mt-4 text-sm font-semibold text-emerald-600">{message}</p> : null}
-
-        <button type="submit" className="admin-button-primary mt-6 w-full">
-          {editingId ? "Обновить товар" : "Создать товар"}
-        </button>
+        <div className="sticky bottom-0 mt-8 border-t border-[#e6ebf2] bg-[#f6f8fb]/95 py-5 backdrop-blur">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              {isEditing ? (
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-[1rem] border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                  onClick={handleDelete}
+                >
+                  Удалить товар
+                </button>
+              ) : null}
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/admin123/products"
+                className="inline-flex items-center justify-center rounded-[1rem] border border-[#d9e1ec] bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-[#fbfcfe]"
+              >
+                Отмена
+              </Link>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-[1rem] bg-[#111827] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1f2937]"
+              >
+                {isEditing ? "Сохранить товар" : "Опубликовать товар"}
+              </button>
+            </div>
+          </div>
+        </div>
       </form>
-
-      <div className="admin-panel p-6">
-        <div className="flex items-center justify-between gap-4">
-          <h3 className="text-2xl font-semibold text-slate-950">Products</h3>
-          <span className="admin-badge">{filteredProducts.length}</span>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          {loading ? <p className="text-sm text-slate-500">Загружаем товары...</p> : null}
-          {!loading && products.length === 0 ? <p className="text-sm text-slate-500">Товаров пока нет.</p> : null}
-          {!loading && products.length > 0 && filteredProducts.length === 0 ? (
-            <p className="text-sm text-slate-500">По этому запросу товары не найдены.</p>
-          ) : null}
-          {filteredProducts.map((product) => (
-            <article key={product.id} className="admin-panel-muted p-5">
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                <div className="flex gap-4">
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1.2rem] bg-white">
-                    {product.imageUrl ? <img src={product.imageUrl} alt={getProductDisplayName(product)} className="h-16 w-16 object-contain" /> : <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Нет фото</span>}
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                      {product.sku} | {product.slug}
-                    </p>
-                    <h4 className="mt-2 text-lg font-semibold text-slate-950">{getProductDisplayName(product)}</h4>
-                    <p className="mt-1 text-sm text-slate-600">{getCategoryDisplayName(product.category)}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {product.price.toLocaleString("ru-RU")} сум | Остаток {product.stock} | {product.active ? "Активен" : "Черновик"} | Бестселлер{" "}
-                      {product.isBestseller ? `Да (#${product.homeSortOrder})` : "Нет"}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-400">
-                      Галерея {product.galleryImages?.length || 0} | Отзывы {product._count?.reviews || 0}
-                      {formatSkinTypes(product.skinTypes) ? ` | Тип кожи: ${formatSkinTypes(product.skinTypes)}` : ""}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="admin-button-secondary"
-                    onClick={() => {
-                      setEditingId(product.id);
-                      setForm({
-                        sku: product.sku,
-                        slug: product.slug,
-                        nameUz: product.nameUz,
-                        nameRu: product.nameRu,
-                        nameEn: product.nameEn,
-                        shortDescriptionUz: product.shortDescriptionUz || "",
-                        shortDescriptionRu: product.shortDescriptionRu || "",
-                        shortDescriptionEn: product.shortDescriptionEn || "",
-                        descriptionUz: product.descriptionUz || "",
-                        descriptionRu: product.descriptionRu || "",
-                        descriptionEn: product.descriptionEn || "",
-                        featureUz: product.featureUz || "",
-                        featureRu: product.featureRu || "",
-                        featureEn: product.featureEn || "",
-                        ingredientsUz: product.ingredientsUz || "",
-                        ingredientsRu: product.ingredientsRu || "",
-                        ingredientsEn: product.ingredientsEn || "",
-                        usageUz: product.usageUz || "",
-                        usageRu: product.usageRu || "",
-                        usageEn: product.usageEn || "",
-                        storeImageUrl: product.storeImageUrl || "",
-                        storeLocationUz: product.storeLocationUz || "",
-                        storeLocationRu: product.storeLocationRu || "",
-                        storeLocationEn: product.storeLocationEn || "",
-                        storeContactsUz: product.storeContactsUz || "",
-                        storeContactsRu: product.storeContactsRu || "",
-                        storeContactsEn: product.storeContactsEn || "",
-                        skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
-                        size: product.size || "",
-                        price: String(product.price),
-                        stock: String(product.stock),
-                        active: product.active,
-                        isBestseller: Boolean(product.isBestseller),
-                        homeSortOrder: String(product.homeSortOrder ?? 0),
-                        imageUrl: product.imageUrl || "",
-                        colorFrom: product.colorFrom || "",
-                        colorTo: product.colorTo || "",
-                        categoryId: product.categoryId,
-                        galleryImages: (product.galleryImages || []).map((image, index) => ({
-                          imageUrl: image.imageUrl,
-                          sortOrder: typeof image.sortOrder === "number" ? image.sortOrder : index
-                        }))
-                      });
-                    }}
-                  >
-                    Редактировать
-                  </button>
-                  <button type="button" className="admin-button-danger" onClick={() => handleDelete(product.id)}>
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </div>
+    </section>
   );
+}
+
+export function ProductManager() {
+  return <ProductListManager />;
 }

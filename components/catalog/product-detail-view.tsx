@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { Locale } from "@/lib/i18n";
 import type { ProductPageCopy } from "@/lib/product-page-copy";
@@ -25,6 +26,13 @@ type AccordionSectionProps = {
   title: string;
   defaultOpen?: boolean;
   children: ReactNode;
+};
+
+type ProductLightboxProps = {
+  images: StorefrontProductDetail["images"];
+  productName: string;
+  initialIndex: number;
+  onClose: () => void;
 };
 
 function Stars({ rating, subtle = false }: { rating: number; subtle?: boolean }) {
@@ -51,6 +59,182 @@ function AccordionSection({ title, defaultOpen = false, children }: AccordionSec
         </svg>
       </button>
       {open ? <div className="pt-4 text-sm leading-8 text-black/75">{children}</div> : null}
+    </div>
+  );
+}
+
+function ProductLightbox({ images, productName, initialIndex, onClose }: ProductLightboxProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (images.length <= 1) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        setCurrentIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+      }
+
+      if (event.key === "ArrowRight") {
+        setCurrentIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [images.length, onClose]);
+
+  const activeImage = images[currentIndex] ?? images[0];
+
+  function showPreviousImage() {
+    setCurrentIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+  }
+
+  function showNextImage() {
+    setCurrentIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+  }
+
+  function handleTouchStart(clientX: number) {
+    setTouchStartX(clientX);
+    setTouchCurrentX(clientX);
+  }
+
+  function handleTouchMove(clientX: number) {
+    if (touchStartX === null) {
+      return;
+    }
+
+    setTouchCurrentX(clientX);
+  }
+
+  function handleTouchEnd() {
+    if (touchStartX === null || touchCurrentX === null || images.length <= 1) {
+      setTouchStartX(null);
+      setTouchCurrentX(null);
+      return;
+    }
+
+    const deltaX = touchCurrentX - touchStartX;
+
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) {
+        showNextImage();
+      } else {
+        showPreviousImage();
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchCurrentX(null);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${productName} gallery`}
+    >
+      <div
+        className="relative flex max-h-full w-full max-w-[1320px] flex-col"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close gallery"
+          className="absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+        >
+          ×
+        </button>
+
+        <div className="mb-4 flex items-center justify-between gap-4 pt-14 text-white/80">
+          <p className="truncate text-sm uppercase tracking-[0.22em]">{productName}</p>
+          <p className="shrink-0 text-sm">
+            {currentIndex + 1}/{images.length}
+          </p>
+        </div>
+
+        <div className="relative flex min-h-0 flex-1 items-center justify-center">
+          {images.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={showPreviousImage}
+                aria-label="Previous image"
+                className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={showNextImage}
+                aria-label="Next image"
+                className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
+              >
+                →
+              </button>
+            </>
+          ) : null}
+
+          <div
+            className="flex w-full items-center justify-center overflow-hidden rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
+            onTouchStart={(event) => handleTouchStart(event.touches[0]?.clientX ?? 0)}
+            onTouchMove={(event) => handleTouchMove(event.touches[0]?.clientX ?? 0)}
+            onTouchEnd={handleTouchEnd}
+          >
+            <FallbackImage
+              src={activeImage?.imageUrl || ""}
+              fallbackSrc="/images/home/mainpage.jpg"
+              alt={`${productName} image ${currentIndex + 1}`}
+              className="max-h-[72vh] w-auto max-w-full object-contain"
+            />
+          </div>
+        </div>
+
+        {images.length > 1 ? (
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+            {images.map((image, index) => (
+              <button
+                key={image.id}
+                type="button"
+                onClick={() => setCurrentIndex(index)}
+                className={`relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] border transition ${
+                  index === currentIndex ? "border-white" : "border-white/18"
+                }`}
+              >
+                <FallbackImage
+                  src={image.imageUrl}
+                  fallbackSrc="/images/home/mainpage.jpg"
+                  alt={`${productName} thumbnail ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+                {index === currentIndex ? <span className="absolute inset-0 ring-1 ring-white/80" /> : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -88,6 +272,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showWhereToBuy, setShowWhereToBuy] = useState(false);
 
   const reviewSummary = useMemo(() => {
@@ -165,12 +350,19 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.85fr)] xl:gap-12">
         <div>
           <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] lg:hidden">
-            <FallbackImage
-              src={activeImage?.imageUrl || ""}
-              fallbackSrc="/images/home/mainpage.jpg"
-              alt={product.name}
-              className="h-[394px] w-full object-contain p-5"
-            />
+            <button
+              type="button"
+              onClick={() => setLightboxIndex(activeImageIndex)}
+              aria-label={`Open ${product.name} image gallery`}
+              className="block w-full cursor-zoom-in"
+            >
+              <FallbackImage
+                src={activeImage?.imageUrl || ""}
+                fallbackSrc="/images/home/mainpage.jpg"
+                alt={product.name}
+                className="h-[394px] w-full object-contain p-5"
+              />
+            </button>
 
             {product.images.length > 1 ? (
               <>
@@ -214,7 +406,13 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
           <div className="hidden gap-4 sm:grid-cols-2 lg:grid">
             {product.images.map((image, index) => (
-              <div key={image.id} className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2]">
+              <button
+                key={image.id}
+                type="button"
+                onClick={() => setLightboxIndex(index)}
+                aria-label={`Open ${product.name} image ${index + 1}`}
+                className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
+              >
                 {index === 0 ? (
                   <span className="absolute left-4 top-4 z-10 inline-flex rounded-[6px] bg-white px-4 py-2 text-lg font-semibold text-black shadow-sm">
                     {copy.badges.novelty}
@@ -224,9 +422,9 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                   src={image.imageUrl}
                   fallbackSrc="/images/home/mainpage.jpg"
                   alt={product.name}
-                  className="h-[320px] w-full object-cover md:h-[360px] xl:h-[410px]"
+                  className="h-[320px] w-full cursor-zoom-in object-cover md:h-[360px] xl:h-[410px]"
                 />
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -349,6 +547,15 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
         </div>
       </div>
 
+      {lightboxIndex !== null ? (
+        <ProductLightbox
+          images={product.images}
+          productName={product.name}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      ) : null}
+
       <div className="mt-20">
         <section>
           <h2 className="text-[2rem] text-black">{copy.labels.reviews}</h2>
@@ -462,7 +669,8 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
           <div className="mt-6 grid gap-y-5 gap-x-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
             {recommendations.map((item) => (
               <Link key={item.id} href={`/${locale}/catalog/${item.slug}`} className="group overflow-hidden rounded-[0.25rem] bg-white">
-                <div className="overflow-hidden bg-[#f5f5f2]">
+                <div className="relative overflow-hidden bg-[#f5f5f2]">
+                  <ProductBadgeStack badges={item.badges} />
                   <FallbackImage
                     src={item.imageUrl}
                     fallbackSrc="/images/home/mainpage.jpg"

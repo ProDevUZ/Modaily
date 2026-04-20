@@ -6,5 +6,5 @@ type PageProps = {
 
 export default async function AdminCategoriesPage({ params }: PageProps) {
   await params;
-  redirect("/admin/categories");
+  redirect("/admin123/categories");
 }
