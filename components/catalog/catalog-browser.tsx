@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product-card";
 import type { Locale } from "@/lib/i18n";
+import { SKIN_TYPE_LABELS_EN, SKIN_TYPE_LABELS_RU, SKIN_TYPE_LABELS_UZ, SKIN_TYPE_VALUES } from "@/lib/skin-types";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
 type CatalogBrowserProps = {
@@ -58,7 +59,7 @@ const copyByLocale = {
   }
 } as const;
 
-const skinTypeOrder = ["dry", "combination", "oily", "sensitive"] as const;
+const skinTypeOrder = SKIN_TYPE_VALUES;
 
 function FilterSection({ title, children, defaultOpen = true }: FilterSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
@@ -113,6 +114,7 @@ export function CatalogBrowser({
   initialCategorySlugs = []
 }: CatalogBrowserProps) {
   const copy = copyByLocale[locale];
+  const skinTypeLabels = locale === "ru" ? SKIN_TYPE_LABELS_RU : locale === "en" ? SKIN_TYPE_LABELS_EN : SKIN_TYPE_LABELS_UZ;
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategorySlugs);
   const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
@@ -274,7 +276,7 @@ export function CatalogBrowser({
           {availableSkinTypes.map((skinType) => (
             <CheckboxRow
               key={skinType}
-              label={copy[skinType]}
+              label={skinTypeLabels[skinType] || skinType}
               checked={selectedSkinTypes.includes(skinType)}
               onChange={() =>
                 setSelectedSkinTypes((current) =>

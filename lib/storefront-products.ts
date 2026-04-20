@@ -68,7 +68,9 @@ type ProductReviewRecord = {
 
 type ProductGalleryRecord = {
   id: string;
-  imageUrl: string;
+  type: "IMAGE" | "VIDEO";
+  imageUrl: string | null;
+  videoUrl: string | null;
   sortOrder: number;
 };
 
@@ -97,9 +99,11 @@ export type StorefrontProduct = {
   imageUrl: string;
 };
 
-export type StorefrontProductGalleryImage = {
+export type StorefrontProductGalleryItem = {
   id: string;
+  type: "IMAGE" | "VIDEO";
   imageUrl: string;
+  videoUrl: string;
 };
 
 export type StorefrontProductReview = {
@@ -121,7 +125,7 @@ export type StorefrontProductDetail = StorefrontProduct & {
   ingredients: string;
   usage: string;
   store: StorefrontProductStore | null;
-  images: StorefrontProductGalleryImage[];
+  media: StorefrontProductGalleryItem[];
   reviews: StorefrontProductReview[];
   reviewCount: number;
   averageRating: number;
@@ -242,27 +246,42 @@ function mapReviews(reviews: ProductReviewRecord[]): StorefrontProductReview[] {
 
 function buildGallery(primaryImage: string | null, galleryImages: ProductGalleryRecord[]) {
   const seen = new Set<string>();
-  const images: StorefrontProductGalleryImage[] = [];
+  const images: StorefrontProductGalleryItem[] = [];
 
   if (primaryImage) {
-    images.push({ id: "primary-image", imageUrl: primaryImage });
-    seen.add(primaryImage);
+    images.push({ id: "primary-image", type: "IMAGE", imageUrl: primaryImage, videoUrl: "" });
+    seen.add(`IMAGE:${primaryImage}`);
   }
 
   for (const image of galleryImages) {
-    if (!seen.has(image.imageUrl)) {
-      images.push({
-        id: image.id,
-        imageUrl: image.imageUrl
-      });
-      seen.add(image.imageUrl);
+    const mediaType = image.type === "VIDEO" && image.videoUrl ? "VIDEO" : "IMAGE";
+    const mediaKey = mediaType === "VIDEO" ? image.videoUrl : image.imageUrl;
+
+    if (!mediaKey) {
+      continue;
     }
+
+    const seenKey = `${mediaType}:${mediaKey}`;
+
+    if (seen.has(seenKey)) {
+      continue;
+    }
+
+    images.push({
+      id: image.id,
+      type: mediaType,
+      imageUrl: image.imageUrl || "",
+      videoUrl: image.videoUrl || ""
+    });
+    seen.add(seenKey);
   }
 
   if (images.length === 0) {
     images.push({
       id: "fallback-image",
-      imageUrl: ""
+      type: "IMAGE",
+      imageUrl: "",
+      videoUrl: ""
     });
   }
 
@@ -376,7 +395,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
   }
 
   const baseProduct = mapStorefrontProduct(product, locale);
-  const images = buildGallery(product.imageUrl, product.galleryImages);
+  const media = buildGallery(product.imageUrl, product.galleryImages);
   const reviews = mapReviews(product.reviews);
 
   return {
@@ -385,7 +404,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
     ingredients: localizedProductValue(product, locale, "ingredients"),
     usage: localizedProductValue(product, locale, "usage"),
     store: buildStoreInfo(product, locale),
-    images,
+    media,
     reviews,
     reviewCount: reviews.length,
     averageRating: calculateAverageRating(product.reviews)
@@ -394,56 +413,32 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
 
 export async function getRecommendedProducts(locale: Locale, currentProductId: string, categoryId: string) {
   noStore();
-  const primaryProducts = await prisma.product.findMany({
+  const recommendationLinks = await prisma.productRecommendation.findMany({
     where: {
-      active: true,
-      id: {
-        not: currentProductId
-      },
-      OR: categoryId ? [{ categoryId }, { isBestseller: true }] : [{ isBestseller: true }]
-    },
-    include: {
-      category: {
-        select: {
-          id: true,
-          slug: true,
-          nameUz: true,
-          nameRu: true,
-          nameEn: true
-        }
-      }
-    },
-    orderBy: [{ isBestseller: "desc" }, { homeSortOrder: "asc" }, { createdAt: "asc" }],
-    take: 4
-  });
-
-  if (primaryProducts.length >= 4) {
-    return primaryProducts.map((product) => mapStorefrontProduct(product, locale));
-  }
-
-  const extraProducts = await prisma.product.findMany({
-    where: {
-      active: true,
-      id: {
-        notIn: [currentProductId, ...primaryProducts.map((product) => product.id)]
+      sourceProductId: currentProductId,
+      recommendedProduct: {
+        active: true
       }
     },
     include: {
-      category: {
-        select: {
-          id: true,
-          slug: true,
-          nameUz: true,
-          nameRu: true,
-          nameEn: true
+      recommendedProduct: {
+        include: {
+          category: {
+            select: {
+              id: true,
+              slug: true,
+              nameUz: true,
+              nameRu: true,
+              nameEn: true
+            }
+          }
         }
       }
     },
-    orderBy: [{ isBestseller: "desc" }, { homeSortOrder: "asc" }, { createdAt: "asc" }],
-    take: 4 - primaryProducts.length
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
   });
 
-  return [...primaryProducts, ...extraProducts].map((product) => mapStorefrontProduct(product, locale));
+  return recommendationLinks.map((entry) => mapStorefrontProduct(entry.recommendedProduct, locale));
 }
 
 export async function getStorefrontProductSlugs() {

@@ -1,3 +1,5 @@
+import { SKIN_TYPE_VALUES } from "@/lib/skin-types";
+
 type ValidationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
@@ -69,8 +71,11 @@ export type ProductPayload = {
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;
+  recommendedProductIds: string[];
   galleryImages: {
-    imageUrl: string;
+    type: "IMAGE" | "VIDEO";
+    imageUrl: string | null;
+    videoUrl: string | null;
     sortOrder: number;
   }[];
 };
@@ -120,6 +125,20 @@ export type SiteSettingsPayload = {
   newsletterPlaceholderEn: string | null;
 };
 
+export type ShopWorkingHourPayload = {
+  label: string | null;
+  value: string;
+  sortOrder: number;
+};
+
+export type ShopLocationPayload = {
+  address: string;
+  mapLink: string | null;
+  active: boolean;
+  sortOrder: number;
+  workingHours: ShopWorkingHourPayload[];
+};
+
 export type HomeHeroPayload = {
   badgeUz: string | null;
   badgeRu: string | null;
@@ -154,6 +173,7 @@ export type HomePromoCardPayload = {
   buttonLabelEn: string | null;
   buttonLink: string | null;
   imageUrl: string | null;
+  promoProductId: string | null;
   sortOrder: number;
   active: boolean;
 };
@@ -267,6 +287,7 @@ function asSkinTypes(value: unknown) {
   const normalized = value
     .map((entry) => asString(entry))
     .filter(Boolean)
+    .filter((entry) => SKIN_TYPE_VALUES.includes(entry as (typeof SKIN_TYPE_VALUES)[number]))
     .filter((entry, index, array) => array.indexOf(entry) === index);
 
   return normalized.length > 0 ? normalized.join(",") : null;
@@ -372,6 +393,12 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
   const discountAmount = Number(payload.discountAmount ?? 0);
   const stock = Number(payload.stock);
   const categoryId = asString(payload.categoryId);
+  const recommendedProductIds = Array.isArray(payload.recommendedProductIds)
+    ? payload.recommendedProductIds
+        .map((entry) => asString(entry))
+        .filter(Boolean)
+        .filter((entry, index, collection) => collection.indexOf(entry) === index)
+    : [];
 
   if (!sku || !slug) {
     return { success: false, error: "SKU and slug are required." };
@@ -397,6 +424,12 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
     return { success: false, error: "Category is required." };
   }
 
+  const skinTypes = asSkinTypes(payload.skinTypes);
+
+  if (!skinTypes) {
+    return { success: false, error: "Skin type is required." };
+  }
+
   const galleryImages = Array.isArray(payload.galleryImages)
     ? payload.galleryImages
         .map((entry, index) => {
@@ -405,22 +438,39 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
           }
 
           const row = entry as Record<string, unknown>;
-          const imageUrl = asString(row.imageUrl);
+          const type = asString(row.type) === "VIDEO" ? "VIDEO" : "IMAGE";
+          const imageUrl = asOptionalString(row.imageUrl);
+          const videoUrl = asOptionalString(row.videoUrl);
 
-          if (!imageUrl) {
+          if (type === "IMAGE" && !imageUrl) {
+            return null;
+          }
+
+          if (type === "VIDEO" && !videoUrl) {
             return null;
           }
 
           return {
+            type,
             imageUrl,
+            videoUrl,
             sortOrder: asInteger(row.sortOrder, index)
           };
         })
-        .filter((entry): entry is { imageUrl: string; sortOrder: number } => entry !== null)
+        .filter(
+          (
+            entry
+          ): entry is {
+            type: "IMAGE" | "VIDEO";
+            imageUrl: string | null;
+            videoUrl: string | null;
+            sortOrder: number;
+          } => entry !== null
+        )
     : [];
 
   if (galleryImages.length > 6) {
-    return { success: false, error: "Gallery can contain maximum 6 images." };
+    return { success: false, error: "Gallery can contain maximum 6 media items." };
   }
 
   return {
@@ -453,7 +503,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       storeContactsUz: asOptionalString(payload.storeContactsUz),
       storeContactsRu: asOptionalString(payload.storeContactsRu),
       storeContactsEn: asOptionalString(payload.storeContactsEn),
-      skinTypes: asSkinTypes(payload.skinTypes),
+      skinTypes,
       size: asOptionalString(payload.size),
       price: Math.round(price),
       discountAmount: Math.round(discountAmount),
@@ -468,6 +518,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       colorFrom: asOptionalString(payload.colorFrom),
       colorTo: asOptionalString(payload.colorTo),
       categoryId,
+      recommendedProductIds,
       galleryImages
     }
   };
@@ -561,14 +612,66 @@ export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHer
   };
 }
 
+export function validateShopLocationPayload(body: unknown): ValidationResult<ShopLocationPayload> {
+  const payload = body as Record<string, unknown>;
+  const address = asString(payload.address);
+
+  if (!address) {
+    return { success: false, error: "Store address is required." };
+  }
+
+  const workingHours = Array.isArray(payload.workingHours)
+    ? payload.workingHours
+        .map((entry, index) => {
+          if (!entry || typeof entry !== "object") {
+            return null;
+          }
+
+          const row = entry as Record<string, unknown>;
+          const value = asString(row.value);
+
+          if (!value) {
+            return null;
+          }
+
+          return {
+            label: asOptionalString(row.label),
+            value,
+            sortOrder: asInteger(row.sortOrder, index)
+          };
+        })
+        .filter((entry): entry is ShopWorkingHourPayload => entry !== null)
+    : [];
+
+  if (workingHours.length === 0) {
+    return { success: false, error: "At least one working hours row is required." };
+  }
+
+  return {
+    success: true,
+    data: {
+      address,
+      mapLink: asOptionalString(payload.mapLink),
+      active: asBoolean(payload.active),
+      sortOrder: asInteger(payload.sortOrder),
+      workingHours
+    }
+  };
+}
+
 export function validateHomePromoCardPayload(body: unknown): ValidationResult<HomePromoCardPayload> {
   const payload = body as Record<string, unknown>;
   const titleUz = asString(payload.titleUz);
   const titleRu = asString(payload.titleRu);
   const titleEn = asString(payload.titleEn);
+  const promoProductId = asOptionalString(payload.promoProductId);
 
   if (!titleUz || !titleRu || !titleEn) {
     return { success: false, error: "All promo card titles are required." };
+  }
+
+  if (!promoProductId) {
+    return { success: false, error: "Promo product is required." };
   }
 
   return {
@@ -585,6 +688,7 @@ export function validateHomePromoCardPayload(body: unknown): ValidationResult<Ho
       buttonLabelEn: asOptionalString(payload.buttonLabelEn),
       buttonLink: asOptionalString(payload.buttonLink),
       imageUrl: asOptionalString(payload.imageUrl),
+      promoProductId,
       sortOrder: asInteger(payload.sortOrder),
       active: asBoolean(payload.active)
     }

@@ -36,6 +36,7 @@ const emptyPromoForm: PromoForm = {
   buttonLabelEn: "",
   buttonLink: "",
   imageUrl: "",
+  promoProductId: null,
   sortOrder: 0,
   active: true
 };
@@ -462,10 +463,14 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const heroProductOptions = [...products]
     .filter((product) => product.active || product.id === hero?.heroProductId)
     .sort((first, second) => getProductOptionLabel(first).localeCompare(getProductOptionLabel(second), "ru"));
+  const promoProductOptions = [...products]
+    .filter((product) => product.active || product.id === promoForm.promoProductId)
+    .sort((first, second) => getProductOptionLabel(first).localeCompare(getProductOptionLabel(second), "ru"));
   const activeGalleryType = galleryMode === "video" ? "VIDEO" : "IMAGE";
   const activeGalleryLabel = galleryMode === "video" ? "Видео" : "Изображение";
   const filteredGalleryItems = galleryItems.filter((item) => item.type === activeGalleryType);
   const selectedHeroProduct = hero?.heroProductId ? products.find((product) => product.id === hero.heroProductId) ?? null : null;
+  const selectedPromoProduct = promoForm.promoProductId ? products.find((product) => product.id === promoForm.promoProductId) ?? null : null;
   const sectionMeta = workspaceMeta[section];
   const sectionDefinition = adminContentSections.find((entry) => entry.key === section);
   const managedCount =
@@ -698,13 +703,55 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
             <Area value={promoForm.descriptionUz} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionUz: value }))} placeholder="Описание UZ" />
             <Area value={promoForm.descriptionRu} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionRu: value }))} placeholder="Описание RU" />
             <Area value={promoForm.descriptionEn} onChange={(value) => setPromoForm((current) => ({ ...current, descriptionEn: value }))} placeholder="Описание EN" />
+            <div className="admin-panel-muted px-4 py-3 md:col-span-2">
+              <p className="text-sm font-semibold text-slate-950">Товар для промо-карточки</p>
+              <p className="mt-1 text-xs text-slate-500">Кнопка «Узнать подробнее» будет вести на страницу выбранного товара. Выбор обязателен.</p>
+              <div className="mt-4">
+                <select
+                  className="admin-select"
+                  value={promoForm.promoProductId ?? ""}
+                  onChange={(event) =>
+                    setPromoForm((current) => ({
+                      ...current,
+                      promoProductId: event.target.value || null
+                    }))
+                  }
+                  required
+                >
+                  <option value="">Выберите товар</option>
+                  {promoProductOptions.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {getProductOptionLabel(product)}
+                    </option>
+                  ))}
+                </select>
+                <p className="admin-form-hint">Используются только активные товары витрины.</p>
+              </div>
+              {selectedPromoProduct ? (
+                <div className="mt-4 flex items-center gap-3 rounded-[18px] border border-slate-200 bg-white px-4 py-3">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                    {selectedPromoProduct.imageUrl ? (
+                      <img
+                        src={selectedPromoProduct.imageUrl}
+                        alt={getProductOptionLabel(selectedPromoProduct)}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-950">{getProductOptionLabel(selectedPromoProduct)}</p>
+                    <p className="mt-1 truncate text-xs uppercase tracking-[0.22em] text-slate-500">{selectedPromoProduct.slug}</p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
             <Field value={String(promoForm.sortOrder)} onChange={(value) => setPromoForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Порядок сортировки" type="number" />
             <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={promoForm.active} onChange={(event) => setPromoForm((current) => ({ ...current, active: event.target.checked }))} />
               Карточка активна
             </label>
             <div className="admin-panel-muted px-4 py-3 text-sm text-slate-500 md:col-span-2">
-              Кнопка промо-блока автоматически ведет в каталог. Подпись и ссылка отдельно не задаются.
+              Кнопка промо-блока автоматически ведет на выбранный товар. Подпись и ссылка отдельно не задаются.
             </div>
             <button type="submit" className="admin-button-primary md:col-span-2">
               {editingPromoId ? "Обновить промо-карточку" : "Создать промо-карточку"}
@@ -729,7 +776,11 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         </span>
                       </div>
                       <h3 className="mt-2 truncate text-lg font-semibold text-slate-950">{card.titleRu}</h3>
-                      <p className="mt-1 truncate text-sm text-slate-500">{card.imageUrl || "Изображение не загружено"}</p>
+                      <p className="mt-1 truncate text-sm text-slate-500">
+                        {products.find((product) => product.id === card.promoProductId)
+                          ? getProductOptionLabel(products.find((product) => product.id === card.promoProductId)!)
+                          : card.imageUrl || "Товар не выбран"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -750,6 +801,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                           buttonLabelEn: card.buttonLabelEn,
                           buttonLink: card.buttonLink,
                           imageUrl: card.imageUrl,
+                          promoProductId: card.promoProductId,
                           sortOrder: card.sortOrder,
                           active: card.active
                         });

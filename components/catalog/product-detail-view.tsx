@@ -29,7 +29,7 @@ type AccordionSectionProps = {
 };
 
 type ProductLightboxProps = {
-  images: StorefrontProductDetail["images"];
+  media: StorefrontProductDetail["media"];
   productName: string;
   initialIndex: number;
   onClose: () => void;
@@ -63,7 +63,58 @@ function AccordionSection({ title, defaultOpen = false, children }: AccordionSec
   );
 }
 
-function ProductLightbox({ images, productName, initialIndex, onClose }: ProductLightboxProps) {
+function ProductMediaFrame({
+  item,
+  alt,
+  className,
+  videoClassName,
+  controls = false,
+  autoPlay = false
+}: {
+  item: StorefrontProductDetail["media"][number] | undefined;
+  alt: string;
+  className: string;
+  videoClassName?: string;
+  controls?: boolean;
+  autoPlay?: boolean;
+}) {
+  if (item?.type === "VIDEO" && item.videoUrl) {
+    return (
+      <div className="relative flex h-full w-full items-center justify-center">
+        <video
+          src={item.videoUrl}
+          className={`${videoClassName || className} mx-auto block`}
+          controls={controls}
+          autoPlay={autoPlay}
+          muted={!controls}
+          loop={!controls}
+          playsInline
+          preload="metadata"
+        />
+        {!controls ? (
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
+              <svg viewBox="0 0 24 24" className="ml-0.5 h-7 w-7" fill="currentColor">
+                <path d="m8 6 10 6-10 6z" />
+              </svg>
+            </span>
+          </span>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <FallbackImage
+      src={item?.imageUrl || ""}
+      fallbackSrc="/images/home/mainpage.jpg"
+      alt={alt}
+      className={className}
+    />
+  );
+}
+
+function ProductLightbox({ media, productName, initialIndex, onClose }: ProductLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
@@ -82,16 +133,16 @@ function ProductLightbox({ images, productName, initialIndex, onClose }: Product
         return;
       }
 
-      if (images.length <= 1) {
+      if (media.length <= 1) {
         return;
       }
 
       if (event.key === "ArrowLeft") {
-        setCurrentIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+        setCurrentIndex((current) => (current === 0 ? media.length - 1 : current - 1));
       }
 
       if (event.key === "ArrowRight") {
-        setCurrentIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+        setCurrentIndex((current) => (current === media.length - 1 ? 0 : current + 1));
       }
     }
 
@@ -101,16 +152,16 @@ function ProductLightbox({ images, productName, initialIndex, onClose }: Product
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [images.length, onClose]);
+  }, [media.length, onClose]);
 
-  const activeImage = images[currentIndex] ?? images[0];
+  const activeItem = media[currentIndex] ?? media[0];
 
   function showPreviousImage() {
-    setCurrentIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+    setCurrentIndex((current) => (current === 0 ? media.length - 1 : current - 1));
   }
 
   function showNextImage() {
-    setCurrentIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+    setCurrentIndex((current) => (current === media.length - 1 ? 0 : current + 1));
   }
 
   function handleTouchStart(clientX: number) {
@@ -127,7 +178,7 @@ function ProductLightbox({ images, productName, initialIndex, onClose }: Product
   }
 
   function handleTouchEnd() {
-    if (touchStartX === null || touchCurrentX === null || images.length <= 1) {
+    if (touchStartX === null || touchCurrentX === null || media.length <= 1) {
       setTouchStartX(null);
       setTouchCurrentX(null);
       return;
@@ -171,12 +222,12 @@ function ProductLightbox({ images, productName, initialIndex, onClose }: Product
         <div className="mb-4 flex items-center justify-between gap-4 pt-14 text-white/80">
           <p className="truncate text-sm uppercase tracking-[0.22em]">{productName}</p>
           <p className="shrink-0 text-sm">
-            {currentIndex + 1}/{images.length}
+            {currentIndex + 1}/{media.length}
           </p>
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          {images.length > 1 ? (
+          {media.length > 1 ? (
             <>
               <button
                 type="button"
@@ -203,29 +254,30 @@ function ProductLightbox({ images, productName, initialIndex, onClose }: Product
             onTouchMove={(event) => handleTouchMove(event.touches[0]?.clientX ?? 0)}
             onTouchEnd={handleTouchEnd}
           >
-            <FallbackImage
-              src={activeImage?.imageUrl || ""}
-              fallbackSrc="/images/home/mainpage.jpg"
-              alt={`${productName} image ${currentIndex + 1}`}
+            <ProductMediaFrame
+              item={activeItem}
+              alt={`${productName} media ${currentIndex + 1}`}
               className="max-h-[72vh] w-auto max-w-full object-contain"
+              videoClassName="max-h-[72vh] w-auto max-w-full rounded-[18px] bg-black object-contain"
+              controls
+              autoPlay
             />
           </div>
         </div>
 
-        {images.length > 1 ? (
+        {media.length > 1 ? (
           <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
-            {images.map((image, index) => (
+            {media.map((item, index) => (
               <button
-                key={image.id}
+                key={item.id}
                 type="button"
                 onClick={() => setCurrentIndex(index)}
                 className={`relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] border transition ${
                   index === currentIndex ? "border-white" : "border-white/18"
                 }`}
               >
-                <FallbackImage
-                  src={image.imageUrl}
-                  fallbackSrc="/images/home/mainpage.jpg"
+                <ProductMediaFrame
+                  item={item}
                   alt={`${productName} thumbnail ${index + 1}`}
                   className="h-full w-full object-cover"
                 />
@@ -260,6 +312,47 @@ function packagingDetails(locale: Locale) {
   return ['Eni: 15" Bo\'yi: 45"', "Vazni: 500 gramm", "Qadoq(lar): 1"];
 }
 
+const reviewSortLabels: Record<
+  Locale,
+  {
+    newest: string;
+    oldest: string;
+    highest: string;
+    lowest: string;
+    sortLabel: string;
+    writeReview: string;
+    closeLabel: string;
+  }
+> = {
+  uz: {
+    newest: "Eng yangi",
+    oldest: "Eng eski",
+    highest: "Yuqori reyting",
+    lowest: "Past reyting",
+    sortLabel: "Saralash",
+    writeReview: "Fikr yozish",
+    closeLabel: "Yopish"
+  },
+  ru: {
+    newest: "Новейший",
+    oldest: "Сначала старые",
+    highest: "Высокий рейтинг",
+    lowest: "Низкий рейтинг",
+    sortLabel: "Сортировать",
+    writeReview: "Написать отзыв",
+    closeLabel: "Закрыть"
+  },
+  en: {
+    newest: "Newest",
+    oldest: "Oldest first",
+    highest: "Highest rated",
+    lowest: "Lowest rated",
+    sortLabel: "Sort",
+    writeReview: "Write review",
+    closeLabel: "Close"
+  }
+};
+
 export function ProductDetailView({ locale, copy, product, recommendations, hideCommerce = false }: ProductDetailViewProps) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState<StorefrontProductReview[]>(product.reviews);
@@ -268,12 +361,12 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
   const [rating, setRating] = useState(5);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [visibleReviews, setVisibleReviews] = useState(3);
+  const [reviewSort, setReviewSort] = useState<"newest" | "oldest" | "highest" | "lowest">("newest");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [showWhereToBuy, setShowWhereToBuy] = useState(false);
 
   const reviewSummary = useMemo(() => {
     const average = reviews.length
@@ -286,15 +379,35 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
     };
   }, [product.averageRating, product.reviewCount, reviews]);
 
-  useEffect(() => {
-    setShowWhereToBuy(false);
+  const sortedReviews = useMemo(() => {
+    const nextReviews = [...reviews];
 
-    const timer = window.setTimeout(() => {
-      setShowWhereToBuy(true);
-    }, 2000);
+    nextReviews.sort((left, right) => {
+      if (reviewSort === "newest") {
+        return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+      }
 
-    return () => window.clearTimeout(timer);
-  }, [product.slug]);
+      if (reviewSort === "oldest") {
+        return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+      }
+
+      if (reviewSort === "highest") {
+        if (right.rating !== left.rating) {
+          return right.rating - left.rating;
+        }
+
+        return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+      }
+
+      if (left.rating !== right.rating) {
+        return left.rating - right.rating;
+      }
+
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    });
+
+    return nextReviews;
+  }, [reviewSort, reviews]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -327,6 +440,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
       setRating(5);
       setReviewOpen(false);
       setVisibleReviews((current) => current + 1);
+      setReviewSort("newest");
       setSuccess(copy.placeholders.reviewSuccess);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Review could not be submitted.");
@@ -335,14 +449,14 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
     }
   }
 
-  const activeImage = product.images[activeImageIndex] ?? product.images[0];
+  const activeMedia = product.media[activeImageIndex] ?? product.media[0];
 
   function showPreviousImage() {
-    setActiveImageIndex((current) => (current === 0 ? product.images.length - 1 : current - 1));
+    setActiveImageIndex((current) => (current === 0 ? product.media.length - 1 : current - 1));
   }
 
   function showNextImage() {
-    setActiveImageIndex((current) => (current === product.images.length - 1 ? 0 : current + 1));
+    setActiveImageIndex((current) => (current === product.media.length - 1 ? 0 : current + 1));
   }
 
   return (
@@ -353,18 +467,18 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             <button
               type="button"
               onClick={() => setLightboxIndex(activeImageIndex)}
-              aria-label={`Open ${product.name} image gallery`}
+              aria-label={`Open ${product.name} media gallery`}
               className="block w-full cursor-zoom-in"
             >
-              <FallbackImage
-                src={activeImage?.imageUrl || ""}
-                fallbackSrc="/images/home/mainpage.jpg"
+              <ProductMediaFrame
+                item={activeMedia}
                 alt={product.name}
                 className="h-[394px] w-full object-contain p-5"
+                videoClassName="h-[394px] w-full bg-[#f5f5f2] object-contain p-5"
               />
             </button>
 
-            {product.images.length > 1 ? (
+            {product.media.length > 1 ? (
               <>
                 <button
                   type="button"
@@ -387,16 +501,15 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
-            {product.images.slice(0, 4).map((image, index) => (
+            {product.media.slice(0, 4).map((item, index) => (
               <button
-                key={image.id}
+                key={item.id}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
                 className={`overflow-hidden border ${index === activeImageIndex ? "border-black/55" : "border-transparent"}`}
               >
-                <FallbackImage
-                  src={image.imageUrl}
-                  fallbackSrc="/images/home/mainpage.jpg"
+                <ProductMediaFrame
+                  item={item}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="h-[84px] w-full object-cover"
                 />
@@ -405,12 +518,12 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
           </div>
 
           <div className="hidden gap-4 sm:grid-cols-2 lg:grid">
-            {product.images.map((image, index) => (
+            {product.media.map((item, index) => (
               <button
-                key={image.id}
+                key={item.id}
                 type="button"
                 onClick={() => setLightboxIndex(index)}
-                aria-label={`Open ${product.name} image ${index + 1}`}
+                aria-label={`Open ${product.name} media ${index + 1}`}
                 className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
               >
                 {index === 0 ? (
@@ -418,11 +531,11 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                     {copy.badges.novelty}
                   </span>
                 ) : null}
-                <FallbackImage
-                  src={image.imageUrl}
-                  fallbackSrc="/images/home/mainpage.jpg"
+                <ProductMediaFrame
+                  item={item}
                   alt={product.name}
                   className="h-[320px] w-full cursor-zoom-in object-cover md:h-[360px] xl:h-[410px]"
+                  videoClassName="h-[320px] w-full cursor-zoom-in bg-[#f5f5f2] object-cover md:h-[360px] xl:h-[410px]"
                 />
               </button>
             ))}
@@ -443,34 +556,6 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
           <p className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">{product.shortDescription || product.description}</p>
 
           {!hideCommerce ? <div className="mt-6 text-[2.3rem] leading-none text-black">{formatPrice(product.price)} сум</div> : null}
-
-          {product.store ? (
-            <Link
-              href={`/${locale}/catalog/${product.slug}/store`}
-              aria-label={copy.actions.whereToBuy}
-              className={`where-to-buy-pin group fixed bottom-6 right-4 z-[120] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-all duration-700 hover:scale-[1.06] sm:bottom-10 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 lg:bottom-12 ${showWhereToBuy ? "pointer-events-auto translate-y-0 rotate-[-6deg] opacity-100" : "pointer-events-none translate-y-4 rotate-[2deg] opacity-0"}`}
-            >
-              <span className="where-to-buy-pin-tail pointer-events-none absolute left-1/2 top-[67px] h-[26px] w-[26px] -translate-x-1/2 rotate-45 rounded-[7px] border-r border-b border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] sm:top-[79px] sm:h-[30px] sm:w-[30px]" />
-              <span className="pointer-events-none absolute inset-[1px] rounded-[999px] bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.12))]" />
-              <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d11842] shadow-[0_0_14px_rgba(209,24,66,0.65)]">
-                <span className="where-to-buy-signal absolute inset-0 rounded-full bg-[#d11842]/45" />
-              </span>
-              <span className="relative z-10 flex flex-col items-center gap-1 text-center">
-                <span className="where-to-buy-icon flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/72 shadow-[0_10px_20px_rgba(255,255,255,0.22)] sm:h-12 sm:w-12">
-                  <span className="pointer-events-none absolute h-[18px] w-[18px] rounded-full border border-[#c41a43]/30 sm:h-[22px] sm:w-[22px]" />
-                  <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth="1.85" aria-hidden="true">
-                    <path d="M4 9.5 12 4l8 5.5" />
-                    <path d="M5.5 10.5h13v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
-                    <path d="M9 19.5v-5h6v5" />
-                    <path d="M9.5 10.5V8h5v2.5" />
-                  </svg>
-                </span>
-                <span className="px-2 text-[9px] font-semibold uppercase leading-tight tracking-[0.18em] text-[#7a1029] sm:text-[10px]">
-                  {copy.actions.whereToBuy}
-                </span>
-              </span>
-            </Link>
-          ) : null}
 
           </div>
 
@@ -549,7 +634,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
       {lightboxIndex !== null ? (
         <ProductLightbox
-          images={product.images}
+          media={product.media}
           productName={product.name}
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
@@ -566,74 +651,122 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </span>
           </div>
 
-          {!hideCommerce ? (
-            <>
-          <button
-            type="button"
-            className="mt-6 flex h-[38px] w-full items-center justify-center rounded-[12px] border border-black/10 bg-white px-5 text-sm text-black/35"
-            onClick={() => setReviewOpen((current) => !current)}
-          >
-            {copy.placeholders.shareThoughts}
-          </button>
-
-          {reviewOpen ? (
-            <form className="mt-5 space-y-4 rounded-[1.25rem] border border-black/10 bg-[#faf9f7] p-5" onSubmit={submitReview}>
-              <input
-                value={authorName}
-                onChange={(event) => setAuthorName(event.target.value)}
-                placeholder={copy.labels.yourName}
-                className="h-12 w-full rounded-[10px] border border-black/12 bg-white px-4 text-sm outline-none focus:border-[#ba0c2f]"
-              />
-
-              <div className="flex gap-2">
-                {Array.from({ length: 5 }).map((_, index) => {
-                  const nextRating = index + 1;
-                  return (
-                    <button
-                      key={nextRating}
-                      type="button"
-                      className={`h-10 w-10 rounded-full border text-lg transition ${nextRating <= rating ? "border-[#ba0c2f] bg-[#ba0c2f] text-white" : "border-black/12 bg-white text-black/45"}`}
-                      onClick={() => setRating(nextRating)}
-                    >
-                      ★
-                    </button>
-                  );
-                })}
-              </div>
-
-              <textarea
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                rows={5}
-                placeholder={copy.labels.yourComment}
-                className="w-full rounded-[10px] border border-black/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#ba0c2f]"
-              />
-
-              {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
-              {success ? <p className="text-sm font-medium text-emerald-600">{success}</p> : null}
-
-              <button type="submit" disabled={loading} className="inline-flex h-12 w-full items-center justify-center rounded-[8px] bg-[#ba0c2f] px-6 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60">
-                {loading ? "..." : copy.actions.submitReview}
+          <div className="mt-6 rounded-[1.45rem] border border-black/12 bg-white p-3 shadow-[0_12px_30px_rgba(15,23,42,0.04)]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <button
+                type="button"
+                className="flex h-[54px] flex-1 items-center rounded-[12px] border border-transparent bg-[#fcfcfb] px-4 text-left text-[0.97rem] text-black/35 transition hover:border-black/10"
+                onClick={() => setReviewOpen(true)}
+              >
+                {copy.placeholders.shareThoughts}
               </button>
-            </form>
-          ) : null}
-            </>
-          ) : null}
 
-          <h3 className="mt-12 text-[2rem] text-black">
+              <button
+                type="button"
+                className="inline-flex h-[54px] shrink-0 items-center justify-center rounded-[10px] bg-[#161819] px-8 text-sm font-medium text-white transition hover:opacity-90"
+                onClick={() => setReviewOpen((current) => !current)}
+              >
+                {reviewSortLabels[locale].writeReview}
+              </button>
+            </div>
+
+            {reviewOpen ? (
+              <form className="mt-4 grid gap-4 rounded-[1.15rem] border border-black/8 bg-[#faf9f7] p-4 sm:p-5" onSubmit={submitReview}>
+                <div className="grid gap-4 lg:grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)]">
+                  <input
+                    value={authorName}
+                    onChange={(event) => setAuthorName(event.target.value)}
+                    placeholder={copy.labels.yourName}
+                    className="h-12 w-full rounded-[12px] border border-black/12 bg-white px-4 text-sm outline-none focus:border-[#ba0c2f]"
+                  />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {Array.from({ length: 5 }).map((_, index) => {
+                      const nextRating = index + 1;
+                      return (
+                        <button
+                          key={nextRating}
+                          type="button"
+                          aria-label={`${copy.labels.rating} ${nextRating}`}
+                          className={`inline-flex h-11 w-11 items-center justify-center rounded-full border text-lg transition ${
+                            nextRating <= rating
+                              ? "border-[#ba0c2f] bg-[#ba0c2f] text-white"
+                              : "border-black/12 bg-white text-black/45"
+                          }`}
+                          onClick={() => setRating(nextRating)}
+                        >
+                          ★
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <textarea
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  rows={5}
+                  placeholder={copy.labels.yourComment}
+                  className="w-full rounded-[12px] border border-black/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#ba0c2f]"
+                />
+
+                {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+                {success ? <p className="text-sm font-medium text-emerald-600">{success}</p> : null}
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    className="inline-flex h-12 items-center justify-center rounded-[10px] border border-black/12 px-6 text-sm text-black/60 transition hover:bg-black/5"
+                    onClick={() => setReviewOpen(false)}
+                  >
+                    {reviewSortLabels[locale].closeLabel ?? "Close"}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="inline-flex h-12 min-w-[190px] items-center justify-center rounded-[10px] bg-[#161819] px-6 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+                  >
+                    {loading ? "..." : copy.actions.submitReview}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+          </div>
+
+          <div className="mt-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <h3 className="text-[2rem] text-black">
             {reviewSummary.count} {copy.labels.reviewsHeading}
-          </h3>
+            </h3>
 
-          {reviews.length > 0 ? (
+            <div className="relative w-full max-w-[220px]">
+              <select
+                aria-label={reviewSortLabels[locale].sortLabel}
+                className="h-12 w-full appearance-none rounded-[12px] border border-black/12 bg-white px-4 pr-10 text-sm text-black/70 outline-none transition focus:border-[#ba0c2f]"
+                value={reviewSort}
+                onChange={(event) => setReviewSort(event.target.value as "newest" | "oldest" | "highest" | "lowest")}
+              >
+                <option value="newest">{reviewSortLabels[locale].newest}</option>
+                <option value="oldest">{reviewSortLabels[locale].oldest}</option>
+                <option value="highest">{reviewSortLabels[locale].highest}</option>
+                <option value="lowest">{reviewSortLabels[locale].lowest}</option>
+              </select>
+              <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-black/35">
+                <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          {sortedReviews.length > 0 ? (
             <div className="mt-6 border-t border-black/10">
-              {reviews.slice(0, visibleReviews).map((review) => (
-                <article key={review.id} className="border-b border-black/10 py-7">
+              {sortedReviews.slice(0, visibleReviews).map((review) => (
+                <article key={review.id} className="border-b border-black/10 py-8">
                   <p className="text-base font-semibold text-black">{review.authorName}</p>
                   <div className="mt-3 flex items-center gap-3">
                     <Stars rating={review.rating} />
-                    <span className="text-xs text-black/35">{reviewDate(review.createdAt)}</span>
                   </div>
-                  <p className="mt-4 max-w-[980px] text-sm leading-8 text-black/65">{review.body}</p>
+                  <p className="mt-4 max-w-[980px] text-[1rem] leading-8 text-black/65">{review.body}</p>
                 </article>
               ))}
             </div>
@@ -643,12 +776,12 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </div>
           )}
 
-          {visibleReviews < reviews.length ? (
+          {visibleReviews < sortedReviews.length ? (
             <div className="mt-6 flex justify-center">
               <button
                 type="button"
                 className="inline-flex h-[42px] min-w-[140px] items-center justify-center border border-black/40 px-6 text-sm text-black/80 transition hover:bg-black hover:text-white"
-                onClick={() => setVisibleReviews((current) => Math.min(current + 3, reviews.length))}
+                onClick={() => setVisibleReviews((current) => Math.min(current + 3, sortedReviews.length))}
               >
                 {copy.actions.loadMore}
               </button>

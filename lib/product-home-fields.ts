@@ -7,6 +7,7 @@ type ProductLike = {
   discountAmount?: number | null;
   isHit?: boolean | null;
   isNew?: boolean | null;
+  recommendationLinks?: { recommendedProductId: string; sortOrder?: number | null }[] | null;
 };
 
 export function buildLegacyProductWriteData(payload: ProductPayload) {
@@ -26,6 +27,7 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
     storeContactsUz,
     storeContactsRu,
     storeContactsEn,
+    recommendedProductIds,
     ...baseData
   } = payload;
 
@@ -33,6 +35,12 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
 }
 
 export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
+  const recommendedProductIds = Array.isArray(product.recommendationLinks)
+    ? [...product.recommendationLinks]
+        .sort((first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0))
+        .map((entry) => entry.recommendedProductId)
+    : [];
+
   return {
     ...product,
     isBestseller: Boolean(product.isBestseller),
@@ -40,7 +48,8 @@ export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
     hidePrice: Boolean(product.hidePrice),
     discountAmount: typeof product.discountAmount === "number" ? product.discountAmount : 0,
     isHit: Boolean(product.isHit),
-    isNew: Boolean(product.isNew)
+    isNew: Boolean(product.isNew),
+    recommendedProductIds
   };
 }
 
@@ -58,6 +67,7 @@ export function isUnsupportedProductHomeFieldError(error: unknown) {
     error.message.includes("isNew") ||
     error.message.includes("storeImageUrl") ||
     error.message.includes("storeLocation") ||
-    error.message.includes("storeContacts")
+    error.message.includes("storeContacts") ||
+    error.message.includes("recommendationLinks")
   );
 }

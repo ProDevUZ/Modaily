@@ -91,13 +91,33 @@ model Product {
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   galleryImages      ProductGalleryImage[]
   heroEntries        HomeHero[] @relation("HomeHeroProduct")
+  promoEntries       HomePromoCard[] @relation("HomePromoCardProduct")
   linkedBlogPosts    BlogPost[] @relation("BlogPostLinkedProduct")
+  recommendationLinks ProductRecommendation[] @relation("ProductRecommendationSource")
+  recommendedByLinks ProductRecommendation[] @relation("ProductRecommendationTarget")
   reviews            ProductReview[]
+}
+
+model ProductRecommendation {
+  id                   String   @id @default(cuid())
+  sourceProductId      String
+  recommendedProductId String
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  sourceProduct        Product  @relation("ProductRecommendationSource", fields: [sourceProductId], references: [id], onDelete: Cascade)
+  recommendedProduct   Product  @relation("ProductRecommendationTarget", fields: [recommendedProductId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceProductId, recommendedProductId])
+  @@index([sourceProductId, sortOrder])
+  @@index([recommendedProductId])
 }
 
 model ProductGalleryImage {
   id        String   @id @default(cuid())
-  imageUrl  String
+  type      GalleryItemType @default(IMAGE)
+  imageUrl  String?
+  videoUrl  String?
   sortOrder Int      @default(0)
   productId String
   createdAt DateTime @default(now())
@@ -170,6 +190,32 @@ model SiteSettings {
   updatedAt              DateTime @updatedAt
 }
 
+model ShopLocation {
+  id           String            @id @default(cuid())
+  address      String
+  mapLink      String?
+  active       Boolean           @default(true)
+  sortOrder    Int               @default(0)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  workingHours ShopWorkingHour[]
+
+  @@index([active, sortOrder])
+}
+
+model ShopWorkingHour {
+  id             String       @id @default(cuid())
+  label          String?
+  value          String
+  sortOrder      Int          @default(0)
+  shopLocationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  shopLocation   ShopLocation @relation(fields: [shopLocationId], references: [id], onDelete: Cascade)
+
+  @@index([shopLocationId, sortOrder])
+}
+
 model HomeHero {
   id               String   @id @default(cuid())
   badgeUz          String?
@@ -209,10 +255,12 @@ model HomePromoCard {
   buttonLabelEn  String?
   buttonLink     String?
   imageUrl       String?
+  promoProductId String?
   sortOrder      Int      @default(0)
   active         Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  promoProduct   Product? @relation("HomePromoCardProduct", fields: [promoProductId], references: [id], onDelete: SetNull)
 }
 
 model HomeAboutSection {

@@ -25,6 +25,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    const promoProduct = await prisma.product.findUnique({
+      where: { id: parsed.data.promoProductId ?? "" },
+      select: { id: true }
+    });
+
+    if (!promoProduct) {
+      return NextResponse.json({ error: "Selected promo product was not found." }, { status: 400 });
+    }
+
     const card = await prisma.homePromoCard.create({
       data: parsed.data
     });

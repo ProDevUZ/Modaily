@@ -18,6 +18,15 @@ export async function GET() {
           sortOrder: "asc"
         }
       },
+      recommendationLinks: {
+        select: {
+          recommendedProductId: true,
+          sortOrder: true
+        },
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
       _count: {
         select: {
           reviews: true
@@ -41,16 +50,33 @@ export async function POST(request: Request) {
   }
 
   try {
+    const { galleryImages, recommendedProductIds, ...productData } = parsed.data;
+
     const product = await prisma.product.create({
       data: {
-        ...parsed.data,
+        ...productData,
         galleryImages: {
-          create: parsed.data.galleryImages
+          create: galleryImages
+        },
+        recommendationLinks: {
+          create: recommendedProductIds.map((recommendedProductId, index) => ({
+            recommendedProductId,
+            sortOrder: index
+          }))
         }
       },
       include: {
         category: true,
         galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        recommendationLinks: {
+          select: {
+            recommendedProductId: true,
+            sortOrder: true
+          },
           orderBy: {
             sortOrder: "asc"
           }

@@ -1,16 +1,23 @@
-import { AdminPlaceholderPage } from "@/components/admin/admin-placeholder-page";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { ShopManager } from "@/components/admin/shop-manager";
 
 export default function AdminShopPage() {
   return (
-    <AdminPlaceholderPage
+    <AdminShell
       current="shop"
-      title="Магазин"
-      description="Этот модуль зарезервирован под отдельное управление витриной, подборками и торговыми блоками."
-      points={[
-        "Главная витрина и избранные подборки",
-        "Промо-баннеры и сезонные кампании",
-        "Коллекции и специальные посадочные страницы"
-      ]}
-    />
+      title="Магазины"
+      description=""
+      searchable={false}
+      headerVariant="compact"
+      headerAccessory={
+        <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#f1f5f9] text-sm font-semibold text-slate-500">
+          A
+        </span>
+      }
+      mainClassName="p-0"
+      contentClassName=""
+    >
+      <ShopManager />
+    </AdminShell>
   );
 }

@@ -24,6 +24,15 @@ export async function GET(_: Request, { params }: RouteProps) {
           sortOrder: "asc"
         }
       },
+      recommendationLinks: {
+        select: {
+          recommendedProductId: true,
+          sortOrder: true
+        },
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
       _count: {
         select: {
           reviews: true
@@ -49,18 +58,38 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   }
 
   try {
+    const { galleryImages, recommendedProductIds, ...productData } = parsed.data;
+
     const product = await prisma.product.update({
       where: { id },
       data: {
-        ...parsed.data,
+        ...productData,
         galleryImages: {
           deleteMany: {},
-          create: parsed.data.galleryImages
+          create: galleryImages
+        },
+        recommendationLinks: {
+          deleteMany: {},
+          create: recommendedProductIds
+            .filter((recommendedProductId) => recommendedProductId !== id)
+            .map((recommendedProductId, index) => ({
+              recommendedProductId,
+              sortOrder: index
+            }))
         }
       },
       include: {
         category: true,
         galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        recommendationLinks: {
+          select: {
+            recommendedProductId: true,
+            sortOrder: true
+          },
           orderBy: {
             sortOrder: "asc"
           }

@@ -79,7 +79,18 @@ export async function getHomePageContent(locale: Locale) {
       }
     }),
     prisma.homeAboutSection.findFirst({ orderBy: { createdAt: "asc" } }),
-    prisma.homePromoCard.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
+    prisma.homePromoCard.findMany({
+      where: { active: true },
+      include: {
+        promoProduct: {
+          select: {
+            slug: true,
+            active: true
+          }
+        }
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    }),
     prisma.galleryItem.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.testimonial.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.product.findMany({
@@ -131,7 +142,10 @@ export async function getHomePageContent(locale: Locale) {
       title: localizedValue(row, "title", locale),
       description: localizedValue(row, "description", locale),
       buttonLabel: promoButtonLabels[locale],
-      buttonLink: `/${locale}/catalog`,
+      buttonLink:
+        row.promoProduct?.active && row.promoProduct.slug
+          ? `/${locale}/catalog/${row.promoProduct.slug}`
+          : `/${locale}/catalog`,
       imageUrl: row.imageUrl || ""
     })),
     galleryImages: galleryRows

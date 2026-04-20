@@ -17,9 +17,12 @@ import {
   requestJson
 } from "@/components/admin/admin-types";
 import { getDiscountPercent } from "@/lib/product-badges";
+import { SKIN_TYPE_LABELS_RU, SKIN_TYPE_OPTIONS } from "@/lib/skin-types";
 
-type GalleryFormImage = {
+type GalleryFormItem = {
+  type: "IMAGE" | "VIDEO";
   imageUrl: string;
+  videoUrl: string;
   sortOrder: number;
 };
 
@@ -70,28 +73,15 @@ type ProductFormState = {
   colorFrom: string;
   colorTo: string;
   categoryId: string;
-  galleryImages: GalleryFormImage[];
+  recommendedProductIds: string[];
+  galleryImages: GalleryFormItem[];
 };
 
 type ProductEditorProps = {
   productId?: string;
 };
 
-const MAX_GALLERY_IMAGES = 6;
-const SKIN_TYPE_OPTIONS = [
-  { value: "dry", label: "Сухая" },
-  { value: "combination", label: "Комбинированная" },
-  { value: "oily", label: "Жирная" },
-  { value: "sensitive", label: "Чувствительная" }
-] as const;
-
-const SKIN_TYPE_LABELS: Record<string, string> = {
-  dry: "Сухая",
-  combination: "Комбинированная",
-  oily: "Жирная",
-  sensitive: "Чувствительная"
-};
-
+const MAX_GALLERY_ITEMS = 6;
 const STATUS_MESSAGE: Record<string, string> = {
   created: "Товар создан.",
   updated: "Изменения сохранены.",
@@ -140,6 +130,7 @@ const emptyForm: ProductFormState = {
   colorFrom: "",
   colorTo: "",
   categoryId: "",
+  recommendedProductIds: [],
   galleryImages: []
 };
 
@@ -289,6 +280,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
           .split(",")
           .map((entry) => entry.trim())
           .filter(Boolean)
+          .slice(0, 1)
       : [],
     size: product.size || "",
     price: String(product.price),
@@ -303,8 +295,11 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     colorFrom: product.colorFrom || "",
     colorTo: product.colorTo || "",
     categoryId: product.categoryId,
+    recommendedProductIds: product.recommendedProductIds || [],
     galleryImages: (product.galleryImages || []).map((image, index) => ({
-      imageUrl: image.imageUrl,
+      type: image.type || "IMAGE",
+      imageUrl: image.imageUrl || "",
+      videoUrl: image.videoUrl || "",
       sortOrder: typeof image.sortOrder === "number" ? image.sortOrder : index
     }))
   };
@@ -331,7 +326,7 @@ function formatSkinTypes(skinTypes?: string | null) {
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean)
-    .map((entry) => SKIN_TYPE_LABELS[entry] || entry);
+    .map((entry) => SKIN_TYPE_LABELS_RU[entry] || entry);
 
   return labels.length > 0 ? labels.join(", ") : null;
 }
@@ -368,6 +363,46 @@ function ProductThumbnail({ product }: { product: AdminProduct }) {
     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#e7edf7] bg-[#f8fafc] text-[0.78rem] font-medium text-slate-300">
       Img
     </div>
+  );
+}
+
+function ProductGalleryItemPreview({
+  item,
+  className
+}: {
+  item: Pick<GalleryFormItem, "type" | "imageUrl" | "videoUrl">;
+  className?: string;
+}) {
+  if (item.type === "VIDEO" && item.videoUrl) {
+    return (
+      <div className={`relative overflow-hidden bg-[#0f172a] ${className || ""}`}>
+        <video
+          src={item.videoUrl}
+          className="h-full w-full object-cover"
+          muted
+          playsInline
+          preload="metadata"
+        />
+        <span className="absolute left-3 top-3 inline-flex rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-900">
+          Видео
+        </span>
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white">
+            <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6" fill="currentColor">
+              <path d="m8 6 10 6-10 6z" />
+            </svg>
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={item.imageUrl}
+      alt="Медиа товара"
+      className={className || "h-full w-full object-cover"}
+    />
   );
 }
 
@@ -612,7 +647,7 @@ export function ProductListManager() {
             <option value="">Все типы кожи</option>
             {SKIN_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {option.labelRu}
               </option>
             ))}
           </FilterSelect>
@@ -772,12 +807,15 @@ export function ProductEditor({ productId }: ProductEditorProps) {
   const router = useRouter();
   const isEditing = Boolean(productId);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [form, setForm] = useState<ProductFormState>(emptyForm);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<ProductSubmitError | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingGalleryImages, setUploadingGalleryImages] = useState(false);
+  const [uploadingGalleryVideos, setUploadingGalleryVideos] = useState(false);
+  const [recommendationQuery, setRecommendationQuery] = useState("");
   const discountPercent = getDiscountPercent(Number(form.price), Number(form.discountAmount));
 
   useEffect(() => {
@@ -788,8 +826,9 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       setError(null);
 
       try {
-        const [categoriesPayload, productPayload] = await Promise.all([
+        const [categoriesPayload, productsPayload, productPayload] = await Promise.all([
           requestJson<AdminCategory[]>("/api/categories"),
+          requestJson<AdminProduct[]>("/api/products"),
           productId ? requestJson<AdminProduct>(`/api/products/${productId}`) : Promise.resolve(null)
         ]);
 
@@ -798,6 +837,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
         }
 
         setCategories(categoriesPayload);
+        setProducts(productsPayload);
         setForm(
           productPayload
             ? buildFormFromProduct(productPayload)
@@ -824,10 +864,19 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     };
   }, [productId]);
 
-  async function uploadSingleFile(file: File) {
+  async function uploadProductImage(file: File) {
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
     return requestJson<{ url: string }>("/api/uploads/product-image", {
+      method: "POST",
+      body: uploadFormData
+    });
+  }
+
+  async function uploadProductVideo(file: File) {
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    return requestJson<{ url: string }>("/api/uploads/product-video", {
       method: "POST",
       body: uploadFormData
     });
@@ -845,7 +894,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     setUploadingCover(true);
 
     try {
-      const payload = await uploadSingleFile(file);
+      const payload = await uploadProductImage(file);
       setForm((current) => ({
         ...current,
         imageUrl: payload.url
@@ -862,10 +911,10 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     }
   }
 
-  async function handleGalleryUpload(event: ChangeEvent<HTMLInputElement>) {
+  async function handleGalleryImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []).slice(
       0,
-      Math.max(0, MAX_GALLERY_IMAGES - form.galleryImages.length)
+      Math.max(0, MAX_GALLERY_ITEMS - form.galleryImages.length)
     );
 
     if (files.length === 0) {
@@ -874,24 +923,26 @@ export function ProductEditor({ productId }: ProductEditorProps) {
 
     setError(null);
     setMessage(null);
-    setUploadingGallery(true);
+    setUploadingGalleryImages(true);
 
     try {
-      const uploaded = await Promise.all(files.map((file) => uploadSingleFile(file)));
+      const uploaded = await Promise.all(files.map((file) => uploadProductImage(file)));
 
       setForm((current) => {
         const nextImages = [...current.galleryImages];
 
         uploaded.forEach((image, index) => {
           nextImages.push({
+            type: "IMAGE",
             imageUrl: image.url,
+            videoUrl: "",
             sortOrder: nextImages.length + index
           });
         });
 
         return {
           ...current,
-          galleryImages: nextImages.slice(0, MAX_GALLERY_IMAGES).map((item, itemIndex) => ({
+          galleryImages: nextImages.slice(0, MAX_GALLERY_ITEMS).map((item, itemIndex) => ({
             ...item,
             sortOrder: itemIndex
           }))
@@ -907,7 +958,57 @@ export function ProductEditor({ productId }: ProductEditorProps) {
             : "Не удалось загрузить изображения галереи."
       });
     } finally {
-      setUploadingGallery(false);
+      setUploadingGalleryImages(false);
+      event.target.value = "";
+    }
+  }
+
+  async function handleGalleryVideoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || []).slice(
+      0,
+      Math.max(0, MAX_GALLERY_ITEMS - form.galleryImages.length)
+    );
+
+    if (files.length === 0) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingGalleryVideos(true);
+
+    try {
+      const uploaded = await Promise.all(files.map((file) => uploadProductVideo(file)));
+
+      setForm((current) => {
+        const nextImages = [...current.galleryImages];
+
+        uploaded.forEach((video, index) => {
+          nextImages.push({
+            type: "VIDEO",
+            imageUrl: "",
+            videoUrl: video.url,
+            sortOrder: nextImages.length + index
+          });
+        });
+
+        return {
+          ...current,
+          galleryImages: nextImages.slice(0, MAX_GALLERY_ITEMS).map((item, itemIndex) => ({
+            ...item,
+            sortOrder: itemIndex
+          }))
+        };
+      });
+
+      setMessage("Видео галереи загружены.");
+    } catch (uploadError) {
+      setError({
+        message:
+          uploadError instanceof Error ? uploadError.message : "Не удалось загрузить видео галереи."
+      });
+    } finally {
+      setUploadingGalleryVideos(false);
       event.target.value = "";
     }
   }
@@ -930,8 +1031,11 @@ export function ProductEditor({ productId }: ProductEditorProps) {
           stock: Number(form.stock),
           homeSortOrder: Number(form.homeSortOrder),
           skinTypes: form.skinTypes,
+          recommendedProductIds: form.recommendedProductIds,
           galleryImages: form.galleryImages.map((image, index) => ({
-            imageUrl: image.imageUrl,
+            type: image.type,
+            imageUrl: image.type === "IMAGE" ? image.imageUrl : null,
+            videoUrl: image.type === "VIDEO" ? image.videoUrl : null,
             sortOrder: index
           }))
         })
@@ -992,6 +1096,30 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       </div>
     );
   }
+
+  const selectedRecommendedProducts = form.recommendedProductIds
+    .map((recommendedProductId) => products.find((product) => product.id === recommendedProductId))
+    .filter((product): product is AdminProduct => Boolean(product));
+
+  const availableRecommendationProducts = products
+    .filter((product) => product.id !== productId)
+    .filter((product) => !form.recommendedProductIds.includes(product.id))
+    .filter((product) => {
+      const query = recommendationQuery.trim().toLowerCase();
+
+      if (!query) {
+        return true;
+      }
+
+      return [
+        getProductDisplayName(product),
+        product.slug,
+        product.sku
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
 
   return (
     <section className="min-h-screen bg-[#f6f8fb] px-5 py-6 lg:px-8 lg:py-8">
@@ -1278,20 +1406,21 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                   </label>
                 </FieldGroup>
 
-                <FieldGroup label="Галерея" hint="Дополнительные изображения для страницы товара. Оптимально 2-5 изображений, максимум 6.">
+                <FieldGroup label="Галерея" hint="Добавляйте изображения и видео для страницы товара. Можно смешивать оба типа, максимум 6 медиа-элементов.">
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {form.galleryImages.map((image, index) => (
                       <div
-                        key={`${image.imageUrl}-${index}`}
+                        key={`${image.type}-${image.imageUrl || image.videoUrl}-${index}`}
                         className="overflow-hidden rounded-[1.25rem] border border-[#e5eaf2] bg-[#fbfcff]"
                       >
-                        <img
-                          src={image.imageUrl}
-                          alt={`Галерея ${index + 1}`}
-                          className="h-36 w-full object-cover"
+                        <ProductGalleryItemPreview
+                          item={image}
+                          className="h-36 w-full"
                         />
                         <div className="flex items-center justify-between gap-3 p-3">
-                          <p className="truncate text-xs text-slate-500">Изображение {index + 1}</p>
+                          <p className="truncate text-xs text-slate-500">
+                            {image.type === "VIDEO" ? `Видео ${index + 1}` : `Изображение ${index + 1}`}
+                          </p>
                           <button
                             type="button"
                             className="text-xs font-semibold text-red-600"
@@ -1313,32 +1442,55 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                       </div>
                     ))}
 
-                    {form.galleryImages.length < MAX_GALLERY_IMAGES ? (
-                      <label className="flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-white text-center transition hover:border-slate-400 hover:bg-[#fbfcfe]">
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="h-8 w-8 text-slate-400"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 5v14" />
-                          <path d="M5 12h14" />
-                        </svg>
-                        <p className="mt-3 text-base font-semibold text-slate-700">
-                          {uploadingGallery ? "Загрузка..." : "Добавить"}
-                        </p>
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.webp"
-                          multiple
-                          className="hidden"
-                          onChange={handleGalleryUpload}
-                          disabled={uploadingGallery || form.galleryImages.length >= MAX_GALLERY_IMAGES}
-                        />
-                      </label>
+                    {form.galleryImages.length < MAX_GALLERY_ITEMS ? (
+                      <>
+                        <label className="flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-white text-center transition hover:border-slate-400 hover:bg-[#fbfcfe]">
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="h-8 w-8 text-slate-400"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M12 5v14" />
+                            <path d="M5 12h14" />
+                          </svg>
+                          <p className="mt-3 text-base font-semibold text-slate-700">
+                            {uploadingGalleryImages ? "Загрузка..." : "Добавить изображение"}
+                          </p>
+                          <p className="mt-2 text-xs text-slate-400">PNG, JPG, WEBP до 5 МБ</p>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            multiple
+                            className="hidden"
+                            onChange={handleGalleryImageUpload}
+                            disabled={uploadingGalleryImages || form.galleryImages.length >= MAX_GALLERY_ITEMS}
+                          />
+                        </label>
+
+                        <label className="flex h-[196px] cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-[#fbfcff] text-center transition hover:border-slate-400 hover:bg-white">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111827] text-white">
+                            <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6" fill="currentColor">
+                              <path d="m8 6 10 6-10 6z" />
+                            </svg>
+                          </span>
+                          <p className="mt-3 text-base font-semibold text-slate-700">
+                            {uploadingGalleryVideos ? "Загрузка..." : "Добавить видео"}
+                          </p>
+                          <p className="mt-2 text-xs text-slate-400">MP4, WEBM, MOV до 50 МБ</p>
+                          <input
+                            type="file"
+                            accept=".mp4,.webm,.mov"
+                            multiple
+                            className="hidden"
+                            onChange={handleGalleryVideoUpload}
+                            disabled={uploadingGalleryVideos || form.galleryImages.length >= MAX_GALLERY_ITEMS}
+                          />
+                        </label>
+                      </>
                     ) : null}
                   </div>
                 </FieldGroup>
@@ -1361,12 +1513,114 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                 </FieldGroup>
               </div>
             </EditorCard>
+
+            <EditorCard title="Возможно вам понравится">
+              <div className="space-y-5">
+                <FieldGroup
+                  label="Поиск товара"
+                  hint="Ищите по названию, SKU или slug, затем добавляйте товар в блок рекомендаций на странице продукта."
+                >
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Поиск рекомендованных товаров"
+                    placeholder="Поиск по названию, SKU или slug"
+                    value={recommendationQuery}
+                    onChange={(event) => setRecommendationQuery(event.target.value)}
+                  />
+                </FieldGroup>
+
+                <FieldGroup
+                  label="Выбранные товары"
+                  hint="Эти товары будут показаны в блоке «Возможно вам понравится» на странице текущего продукта."
+                >
+                  {selectedRecommendedProducts.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedRecommendedProducts.map((product) => (
+                        <div
+                          key={product.id}
+                          className="flex items-center gap-3 rounded-[1rem] border border-[#dbe3f0] bg-white px-3 py-3"
+                        >
+                          <ProductThumbnail product={product} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-slate-900">
+                              {getProductDisplayName(product)}
+                            </p>
+                            <p className="mt-1 truncate text-xs uppercase tracking-[0.22em] text-slate-500">
+                              {product.slug}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="shrink-0 text-xs font-semibold text-red-600"
+                            onClick={() =>
+                              setForm((current) => ({
+                                ...current,
+                                recommendedProductIds: current.recommendedProductIds.filter(
+                                  (recommendedProductId) => recommendedProductId !== product.id
+                                )
+                              }))
+                            }
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-[1rem] border border-dashed border-[#dbe3f0] bg-[#fbfcfe] px-4 py-4 text-sm text-slate-400">
+                      Пока не выбрано ни одного товара для блока рекомендаций.
+                    </div>
+                  )}
+                </FieldGroup>
+
+                <FieldGroup
+                  label="Список товаров"
+                  hint="Список берется из существующего каталога. Можно добавлять сколько угодно товаров."
+                >
+                  <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
+                    {availableRecommendationProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center gap-3 rounded-[1rem] border border-[#dbe3f0] bg-white px-3 py-3"
+                      >
+                        <ProductThumbnail product={product} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-slate-900">
+                            {getProductDisplayName(product)}
+                          </p>
+                          <p className="mt-1 truncate text-xs uppercase tracking-[0.22em] text-slate-500">
+                            {product.sku} / {product.slug}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-button-secondary shrink-0"
+                          onClick={() =>
+                            setForm((current) => ({
+                              ...current,
+                              recommendedProductIds: [...current.recommendedProductIds, product.id]
+                            }))
+                          }
+                        >
+                          Добавить
+                        </button>
+                      </div>
+                    ))}
+                    {availableRecommendationProducts.length === 0 ? (
+                      <div className="rounded-[1rem] border border-dashed border-[#dbe3f0] bg-[#fbfcfe] px-4 py-4 text-sm text-slate-400">
+                        По этому запросу товары не найдены.
+                      </div>
+                    ) : null}
+                  </div>
+                </FieldGroup>
+              </div>
+            </EditorCard>
           </div>
 
           <div className="space-y-6">
             <EditorCard title="Атрибуты">
               <div className="space-y-5">
-                <FieldGroup label="Тип кожи" hint="Необязательные типы кожи для фильтров каталога. Можно выбрать один или несколько вариантов.">
+                <FieldGroup label="Тип кожи" hint="Выберите один обязательный тип кожи для витрины и фильтра каталога.">
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     {SKIN_TYPE_OPTIONS.map((option) => {
                       const checked = form.skinTypes.includes(option.value);
@@ -1381,18 +1635,17 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                           }`}
                         >
                           <input
-                            type="checkbox"
+                            type="radio"
+                            name="skin-type"
                             checked={checked}
-                            onChange={(event) =>
+                            onChange={() =>
                               setForm((current) => ({
                                 ...current,
-                                skinTypes: event.target.checked
-                                  ? [...current.skinTypes, option.value]
-                                  : current.skinTypes.filter((entry) => entry !== option.value)
+                                skinTypes: [option.value]
                               }))
                             }
                           />
-                          {option.label}
+                          {option.labelRu}
                         </label>
                       );
                     })}

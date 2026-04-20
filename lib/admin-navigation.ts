@@ -51,7 +51,7 @@ export const adminSections = [
     key: "shop",
     href: "/admin123/shop",
     label: "Магазин",
-    summary: "Быстрый переход на витрину"
+    summary: "Адреса, карты и часы работы"
   }
 ] as const;
 

@@ -254,7 +254,7 @@ export function AboutPageView({
           </div>
         </div>
 
-        <div className="mt-10 text-center">
+        <div id="contacts" className="mt-10 scroll-mt-28 text-center">
           <h2 className="text-[1.9rem] tracking-[-0.03em] text-black md:text-[2.3rem]">{labels.contacts}</h2>
         </div>
 

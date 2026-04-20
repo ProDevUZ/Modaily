@@ -1,4 +1,5 @@
 import type { BlogPostDynamicSection, BlogPostRecord } from "@/lib/blog-post-types";
+import type { ShopLocationRecord, ShopWorkingHourRecord } from "@/lib/shop-location-types";
 
 export type AdminUser = {
   id: string;
@@ -19,6 +20,10 @@ export type AdminContactMessage = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AdminShopWorkingHour = ShopWorkingHourRecord;
+
+export type AdminShopLocation = ShopLocationRecord;
 
 export type AdminCategory = {
   id: string;
@@ -80,18 +85,21 @@ export type AdminProduct = {
   colorFrom: string | null;
   colorTo: string | null;
   categoryId: string;
+  recommendedProductIds?: string[];
   createdAt: string;
   updatedAt: string;
   category?: AdminCategory;
-  galleryImages?: AdminProductGalleryImage[];
+  galleryImages?: AdminProductGalleryItem[];
   _count?: {
     reviews: number;
   };
 };
 
-export type AdminProductGalleryImage = {
+export type AdminProductGalleryItem = {
   id: string;
-  imageUrl: string;
+  type: "IMAGE" | "VIDEO";
+  imageUrl: string | null;
+  videoUrl: string | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -183,6 +191,7 @@ export type AdminHomePromoCard = {
   buttonLabelEn: string | null;
   buttonLink: string | null;
   imageUrl: string | null;
+  promoProductId: string | null;
   sortOrder: number;
   active: boolean;
   createdAt: string;
