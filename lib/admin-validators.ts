@@ -57,6 +57,7 @@ export type ProductPayload = {
   storeContactsRu: string | null;
   storeContactsEn: string | null;
   skinTypes: string | null;
+  categoryIds: string;
   size: string | null;
   price: number;
   discountAmount: number;
@@ -293,6 +294,17 @@ function asSkinTypes(value: unknown) {
   return normalized.length > 0 ? normalized.join(",") : null;
 }
 
+function asCategoryIds(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => asString(entry))
+    .filter(Boolean)
+    .filter((entry, index, array) => array.indexOf(entry) === index);
+}
+
 function toSlug(value: string) {
   return value
     .toLowerCase()
@@ -392,7 +404,11 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
   const price = Number(payload.price);
   const discountAmount = Number(payload.discountAmount ?? 0);
   const stock = Number(payload.stock);
-  const categoryId = asString(payload.categoryId);
+  const requestedCategoryIds = asCategoryIds(payload.categoryIds);
+  const categoryId = requestedCategoryIds[0] || asString(payload.categoryId);
+  const categoryIdsList = categoryId
+    ? [categoryId, ...requestedCategoryIds.filter((entry) => entry !== categoryId)]
+    : requestedCategoryIds;
   const recommendedProductIds = Array.isArray(payload.recommendedProductIds)
     ? payload.recommendedProductIds
         .map((entry) => asString(entry))
@@ -504,6 +520,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       storeContactsRu: asOptionalString(payload.storeContactsRu),
       storeContactsEn: asOptionalString(payload.storeContactsEn),
       skinTypes,
+      categoryIds: categoryIdsList.join(","),
       size: asOptionalString(payload.size),
       price: Math.round(price),
       discountAmount: Math.round(discountAmount),

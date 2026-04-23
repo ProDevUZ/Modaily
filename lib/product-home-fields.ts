@@ -1,6 +1,8 @@
 import type { ProductPayload } from "@/lib/admin-validators";
 
 type ProductLike = {
+  categoryId?: string | null;
+  categoryIds?: string | null;
   isBestseller?: boolean | null;
   homeSortOrder?: number | null;
   hidePrice?: boolean | null;
@@ -35,6 +37,12 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
 }
 
 export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
+  const categoryIds = typeof product.categoryIds === "string"
+    ? product.categoryIds
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    : [];
   const recommendedProductIds = Array.isArray(product.recommendationLinks)
     ? [...product.recommendationLinks]
         .sort((first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0))
@@ -43,6 +51,7 @@ export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
 
   return {
     ...product,
+    categoryIds: categoryIds.length > 0 ? categoryIds : product.categoryId ? [product.categoryId] : [],
     isBestseller: Boolean(product.isBestseller),
     homeSortOrder: typeof product.homeSortOrder === "number" ? product.homeSortOrder : 0,
     hidePrice: Boolean(product.hidePrice),

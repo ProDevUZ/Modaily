@@ -17,7 +17,7 @@ import {
   requestJson
 } from "@/components/admin/admin-types";
 import { getDiscountPercent } from "@/lib/product-badges";
-import { SKIN_TYPE_LABELS_RU, SKIN_TYPE_OPTIONS } from "@/lib/skin-types";
+import { SKIN_TYPE_LABELS_RU, SKIN_TYPE_OPTIONS, SKIN_TYPE_VALUES } from "@/lib/skin-types";
 
 type GalleryFormItem = {
   type: "IMAGE" | "VIDEO";
@@ -72,7 +72,7 @@ type ProductFormState = {
   imageUrl: string;
   colorFrom: string;
   colorTo: string;
-  categoryId: string;
+  categoryIds: string[];
   recommendedProductIds: string[];
   galleryImages: GalleryFormItem[];
 };
@@ -116,7 +116,7 @@ const emptyForm: ProductFormState = {
   storeContactsUz: "",
   storeContactsRu: "",
   storeContactsEn: "",
-  skinTypes: [],
+  skinTypes: ["universal"],
   size: "",
   price: "0",
   discountAmount: "0",
@@ -129,7 +129,7 @@ const emptyForm: ProductFormState = {
   imageUrl: "",
   colorFrom: "",
   colorTo: "",
-  categoryId: "",
+  categoryIds: [],
   recommendedProductIds: [],
   galleryImages: []
 };
@@ -242,8 +242,32 @@ function UploadPlaceholderIcon({ className }: { className?: string }) {
 function buildInitialForm(categoryId: string) {
   return {
     ...emptyForm,
-    categoryId
+    categoryIds: categoryId ? [categoryId] : []
   };
+}
+
+function normalizeEditableSkinTypes(skinTypes?: string | null) {
+  const normalized = (skinTypes || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .filter((entry): entry is (typeof SKIN_TYPE_VALUES)[number] =>
+      SKIN_TYPE_VALUES.includes(entry as (typeof SKIN_TYPE_VALUES)[number])
+    );
+
+  return normalized.length > 0 ? normalized : ["universal"];
+}
+
+function normalizeEditableCategoryIds(product: AdminProduct) {
+  const normalized = Array.isArray(product.categoryIds)
+    ? product.categoryIds.map((entry) => entry.trim()).filter(Boolean)
+    : [];
+
+  if (normalized.length > 0) {
+    return normalized;
+  }
+
+  return product.categoryId ? [product.categoryId] : [];
 }
 
 function buildFormFromProduct(product: AdminProduct): ProductFormState {
@@ -275,13 +299,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     storeContactsUz: product.storeContactsUz || "",
     storeContactsRu: product.storeContactsRu || "",
     storeContactsEn: product.storeContactsEn || "",
-    skinTypes: product.skinTypes
-      ? product.skinTypes
-          .split(",")
-          .map((entry) => entry.trim())
-          .filter(Boolean)
-          .slice(0, 1)
-      : [],
+    skinTypes: normalizeEditableSkinTypes(product.skinTypes),
     size: product.size || "",
     price: String(product.price),
     discountAmount: String(product.discountAmount ?? 0),
@@ -294,7 +312,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     imageUrl: product.imageUrl || "",
     colorFrom: product.colorFrom || "",
     colorTo: product.colorTo || "",
-    categoryId: product.categoryId,
+    categoryIds: normalizeEditableCategoryIds(product),
     recommendedProductIds: product.recommendedProductIds || [],
     galleryImages: (product.galleryImages || []).map((image, index) => ({
       type: image.type || "IMAGE",
@@ -315,6 +333,18 @@ function getCategoryDisplayName(category?: AdminCategory | null) {
   }
 
   return category.nameRu || category.nameEn || category.nameUz;
+}
+
+function formatCategoryNames(categoryIds: string[] | undefined, categoriesById: Map<string, string>) {
+  if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+    return null;
+  }
+
+  const labels = categoryIds
+    .map((categoryId) => categoriesById.get(categoryId))
+    .filter((label): label is string => Boolean(label));
+
+  return labels.length > 0 ? labels.join(", ") : null;
 }
 
 function formatSkinTypes(skinTypes?: string | null) {
@@ -458,6 +488,7 @@ export function ProductListManager() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchValue = searchParams.get("q") || "";
@@ -468,20 +499,18 @@ export function ProductListManager() {
   const statusMessage = STATUS_MESSAGE[searchParams.get("status") || ""] || null;
 
   const categoryOptions = useMemo(() => {
-    const categoryMap = new Map<string, string>();
-
-    products.forEach((product) => {
-      if (!product.categoryId) {
-        return;
-      }
-
-      categoryMap.set(product.categoryId, getCategoryDisplayName(product.category));
-    });
-
-    return Array.from(categoryMap.entries())
-      .map(([value, label]) => ({ value, label }))
+    return categories
+      .map((category) => ({
+        value: category.id,
+        label: getCategoryDisplayName(category)
+      }))
       .sort((left, right) => left.label.localeCompare(right.label, "ru"));
-  }, [products]);
+  }, [categories]);
+
+  const categoryNameMap = useMemo(
+    () => new Map(categoryOptions.map((category) => [category.value, category.label])),
+    [categoryOptions]
+  );
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -496,6 +525,7 @@ export function ProductListManager() {
           product.category?.nameUz,
           product.category?.nameRu,
           product.category?.nameEn,
+          ...(product.categoryIds || []).map((categoryId) => categoryNameMap.get(categoryId)),
           formatSkinTypes(product.skinTypes)
         ]
           .filter(Boolean)
@@ -503,7 +533,8 @@ export function ProductListManager() {
           .toLowerCase()
           .includes(searchQuery);
 
-      const matchesCategory = !categoryFilter || product.categoryId === categoryFilter;
+      const matchesCategory =
+        !categoryFilter || (product.categoryIds || []).includes(categoryFilter);
       const matchesStatus =
         !productStatusFilter ||
         (productStatusFilter === "active" ? product.active : !product.active);
@@ -517,7 +548,7 @@ export function ProductListManager() {
 
       return matchesSearch && matchesCategory && matchesStatus && matchesSkinType;
     });
-  }, [products, searchQuery, categoryFilter, productStatusFilter, skinTypeFilter]);
+  }, [products, searchQuery, categoryFilter, productStatusFilter, skinTypeFilter, categoryNameMap]);
 
   const hasFilters = Boolean(searchValue || categoryFilter || productStatusFilter || skinTypeFilter);
 
@@ -529,9 +560,13 @@ export function ProductListManager() {
       setError(null);
 
       try {
-        const payload = await requestJson<AdminProduct[]>("/api/products");
+        const [productsPayload, categoriesPayload] = await Promise.all([
+          requestJson<AdminProduct[]>("/api/products"),
+          requestJson<AdminCategory[]>("/api/categories")
+        ]);
         if (active) {
-          setProducts(payload);
+          setProducts(productsPayload);
+          setCategories(categoriesPayload);
         }
       } catch (loadError) {
         if (active) {
@@ -677,6 +712,7 @@ export function ProductListManager() {
             <div className="divide-y divide-[#edf2f7]">
               {filteredProducts.map((product) => {
                 const skinTypeLabel = formatSkinTypes(product.skinTypes);
+                const categoryLabel = formatCategoryNames(product.categoryIds, categoryNameMap) || getCategoryDisplayName(product.category);
 
                 return (
                   <Link
@@ -704,7 +740,7 @@ export function ProductListManager() {
                         <p className="mt-1 truncate text-xs uppercase tracking-[0.18em] text-slate-400">{product.slug}</p>
                       </div>
 
-                      <p className="truncate text-sm text-slate-600">{getCategoryDisplayName(product.category)}</p>
+                      <p className="truncate text-sm text-slate-600">{categoryLabel}</p>
                       <p className="text-sm font-semibold text-slate-800">{formatPrice(product.price)}</p>
 
                       <div className="flex items-center justify-between gap-3">
@@ -756,7 +792,7 @@ export function ProductListManager() {
                       <div className="grid grid-cols-3 gap-3 text-sm">
                         <div>
                           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Категория</p>
-                          <p className="mt-1.5 truncate text-slate-700">{getCategoryDisplayName(product.category)}</p>
+                          <p className="mt-1.5 truncate text-slate-700">{categoryLabel}</p>
                         </div>
                         <div>
                           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Цена</p>
@@ -1620,7 +1656,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
           <div className="space-y-6">
             <EditorCard title="Атрибуты">
               <div className="space-y-5">
-                <FieldGroup label="Тип кожи" hint="Выберите один обязательный тип кожи для витрины и фильтра каталога.">
+                <FieldGroup label="Тип кожи" hint="Выберите один или несколько типов кожи. Хотя бы один вариант обязателен для сохранения товара.">
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                     {SKIN_TYPE_OPTIONS.map((option) => {
                       const checked = form.skinTypes.includes(option.value);
@@ -1633,15 +1669,16 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                               ? "border-slate-900 bg-slate-50 text-slate-900"
                               : "border-[#dbe3f0] bg-white text-slate-600"
                           }`}
-                        >
+                          >
                           <input
-                            type="radio"
-                            name="skin-type"
+                            type="checkbox"
                             checked={checked}
                             onChange={() =>
                               setForm((current) => ({
                                 ...current,
-                                skinTypes: [option.value]
+                                skinTypes: current.skinTypes.includes(option.value)
+                                  ? current.skinTypes.filter((entry) => entry !== option.value)
+                                  : [...current.skinTypes, option.value]
                               }))
                             }
                           />
@@ -1662,21 +1699,38 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                   />
                 </FieldGroup>
 
-                <FieldGroup label="Категория" hint="Категория, к которой относится товар в каталоге.">
-                  <select
-                    className="admin-select h-12"
-                    value={form.categoryId}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, categoryId: event.target.value }))
-                    }
-                  >
-                    <option value="">Выберите категорию</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.nameRu || category.nameEn || category.nameUz}
-                      </option>
-                    ))}
-                  </select>
+                <FieldGroup label="Категория" hint="Выберите одну или несколько категорий. Первый выбранный вариант станет основной категорией товара.">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    {categories.map((category) => {
+                      const checked = form.categoryIds.includes(category.id);
+                      const label = category.nameRu || category.nameEn || category.nameUz;
+
+                      return (
+                        <label
+                          key={category.id}
+                          className={`flex items-center gap-3 rounded-[1rem] border px-4 py-3 text-sm font-medium transition ${
+                            checked
+                              ? "border-slate-900 bg-slate-50 text-slate-900"
+                              : "border-[#dbe3f0] bg-white text-slate-600"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              setForm((current) => ({
+                                ...current,
+                                categoryIds: current.categoryIds.includes(category.id)
+                                  ? current.categoryIds.filter((entry) => entry !== category.id)
+                                  : [...current.categoryIds, category.id]
+                              }))
+                            }
+                          />
+                          {label}
+                        </label>
+                      );
+                    })}
+                  </div>
                 </FieldGroup>
 
                 <FieldGroup label="Цена" hint="Цена продажи, которая показывается в карточках и при оформлении заказа.">

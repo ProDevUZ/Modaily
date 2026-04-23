@@ -1,5 +1,5 @@
 export const SKIN_TYPE_OPTIONS = [
-  { value: "universal", labelRu: "Универсальная", labelUz: "Universal", labelEn: "Universal" },
+  { value: "universal", labelRu: "Универсальная кожа", labelUz: "Universal teri", labelEn: "Universal skin" },
   { value: "normal", labelRu: "Нормальная кожа", labelUz: "Normal teri", labelEn: "Normal skin" },
   { value: "dry", labelRu: "Сухая кожа", labelUz: "Quruq teri", labelEn: "Dry skin" },
   { value: "combination", labelRu: "Комбинированная кожа", labelUz: "Kombinatsiyalangan teri", labelEn: "Combination skin" },

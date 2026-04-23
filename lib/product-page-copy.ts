@@ -16,6 +16,7 @@ export type ProductPageCopy = {
     description: string;
     details: string;
     packaging: string;
+    ingredients: string;
     features: string;
     usage: string;
     location: string;
@@ -27,6 +28,7 @@ export type ProductPageCopy = {
     yourComment: string;
     rating: string;
     recommended: string;
+    recentlyViewed: string;
     oneClick: string;
   };
   actions: {
@@ -60,6 +62,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       description: "Tavsif",
       details: "Detali",
       packaging: "Qadoq",
+      ingredients: "Tarkibi",
       features: "Asosiy funksiyalar",
       usage: "Qo'llash usuli",
       location: "Lokatsiya",
@@ -71,6 +74,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       yourComment: "Fikringiz",
       rating: "Reyting",
       recommended: "Sizga yoqishi mumkin",
+      recentlyViewed: "Avval ko'rilganlar",
       oneClick: "1 klikda xarid"
     },
     actions: {
@@ -102,6 +106,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       description: "Описание",
       details: "Детали",
       packaging: "Упаковка",
+      ingredients: "Ингредиенты",
       features: "Основные функции",
       usage: "Способ применения",
       location: "Локация",
@@ -113,6 +118,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       yourComment: "Ваш комментарий",
       rating: "Рейтинг",
       recommended: "ВОЗМОЖНО ВАМ ПОНРАВИТСЯ",
+      recentlyViewed: "РАНЕЕ ПРОСМОТРЕННЫЕ",
       oneClick: "Купить в один клик"
     },
     actions: {
@@ -144,6 +150,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       description: "Description",
       details: "Details",
       packaging: "Packaging",
+      ingredients: "Ingredients",
       features: "Key features",
       usage: "How to use",
       location: "Location",
@@ -155,6 +162,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       yourComment: "Your comment",
       rating: "Rating",
       recommended: "YOU MAY ALSO LIKE",
+      recentlyViewed: "RECENTLY VIEWED",
       oneClick: "Buy in one click"
     },
     actions: {

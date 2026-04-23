@@ -142,9 +142,11 @@ export function CatalogBrowser({
     const map = new Map<string, string>();
 
     products.forEach((product) => {
-      if (product.categorySlug && product.category) {
-        map.set(product.categorySlug, product.category);
-      }
+      product.categories.forEach((category) => {
+        if (category.slug && category.name) {
+          map.set(category.slug, category.name);
+        }
+      });
     });
 
     return Array.from(map.entries()).map(([slug, name]) => ({ slug, name }));
@@ -166,13 +168,14 @@ export function CatalogBrowser({
     return products.filter((product) => {
       const matchesSearch =
         !normalizedQuery ||
-        [product.name, product.shortDescription, product.description, product.category]
+        [product.name, product.shortDescription, product.description, product.category, ...product.categories.map((category) => category.name)]
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery);
 
       const matchesCategory =
-        selectedCategories.length === 0 || selectedCategories.includes(product.categorySlug);
+        selectedCategories.length === 0 ||
+        selectedCategories.some((categorySlug) => product.categorySlugs.includes(categorySlug));
 
       const matchesSkinType =
         selectedSkinTypes.length === 0 ||

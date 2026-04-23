@@ -206,8 +206,6 @@ export function AboutPageView({
   const mapQuery = siteSettings.storeAddress || siteSettings.footerAddress;
   const primaryPanelText = content.secondaryDescription || content.description;
   const secondaryPanelText = content.bottomDescription || content.secondaryDescription || content.description;
-  const brandWord = content.secondaryTitle || brandName;
-
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-[1180px] px-5 pb-16 pt-6 sm:px-6 lg:px-8 lg:pb-20 lg:pt-8">
@@ -219,19 +217,13 @@ export function AboutPageView({
           <span>{labels.about}</span>
         </div>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <div className="mt-6">
           <div>
             <h1 className="text-[2rem] uppercase leading-none tracking-[-0.04em] text-[var(--brand)] md:text-[3.5rem]">
               {content.title || labels.about}
             </h1>
-            <p className="mt-5 max-w-[600px] text-[14px] leading-7 text-black/75 md:text-[15px] md:leading-8">
+            <p className="mt-5 max-w-[900px] text-[14px] leading-7 text-black/75 md:text-[15px] md:leading-8">
               {content.description}
-            </p>
-          </div>
-
-          <div className="lg:pt-3">
-            <p className="brand-wordmark text-left text-[2.15rem] uppercase leading-none text-[var(--brand)] md:text-right md:text-[3.6rem]">
-              {brandWord}
             </p>
           </div>
         </div>
@@ -241,7 +233,7 @@ export function AboutPageView({
             <FallbackImage
               src={content.imageUrl || "/images/Galary/about1.png"}
               fallbackSrc="/images/Galary/about1.png"
-              alt={content.title || brandWord}
+              alt={content.title || brandName}
               className="h-full min-h-[260px] w-full object-cover"
             />
           </div>

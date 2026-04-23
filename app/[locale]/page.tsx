@@ -54,6 +54,18 @@ function repeatToCount<T>(items: T[], count: number) {
   return Array.from({ length: count }, (_, index) => items[index % items.length]);
 }
 
+function repeatToMinimum<T>(items: T[], minimum: number) {
+  if (items.length === 0) {
+    return [];
+  }
+
+  if (items.length >= minimum) {
+    return items;
+  }
+
+  return Array.from({ length: minimum }, (_, index) => items[index % items.length]);
+}
+
 function getFallbackPromoCards(locale: keyof typeof labels) {
   const buttonLabel = labels[locale].learnMore;
 
@@ -203,19 +215,36 @@ export default async function HomePage({ params }: PageProps) {
       ? content.bestsellers
       : catalogProducts.slice(0, 4).map((product: StorefrontProduct) => ({
           id: product.id,
+          sku: product.sku,
           slug: product.slug,
+          category: product.category,
+          categoryId: product.categoryId,
+          categorySlug: product.categorySlug,
+          categories: product.categories,
+          categorySlugs: product.categorySlugs,
+          skinTypes: product.skinTypes,
+          size: product.size,
           name: product.name,
+          shortName: product.shortName,
           shortDescription: product.shortDescription,
+          description: product.description,
           price: product.price,
+          discountAmount: product.discountAmount,
+          hidePrice: product.hidePrice,
+          stock: product.stock,
+          colors: product.colors,
           badges: product.badges,
-          imageUrl: ""
+          metaTitle: product.metaTitle,
+          metaDescription: product.metaDescription,
+          h1: product.h1,
+          imageUrl: product.imageUrl
         }));
   const gallerySource = content.galleryImages.some((item) => item.imageUrl?.trim()) ? content.galleryImages : getLocalGalleryItems();
   const galleryImages = gallerySource.length > 0 ? gallerySource : getFallbackGalleryItems();
   const promoCards = repeatToCount(content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale), 2);
   const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
   const validVideoItems = content.galleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
-  const videoItems = repeatToCount(validVideoItems, 3);
+  const videoItems = repeatToMinimum(validVideoItems, 3);
 
   return (
     <div className="bg-white text-black">

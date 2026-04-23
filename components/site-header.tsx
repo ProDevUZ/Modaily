@@ -7,6 +7,7 @@ import { useDeferredValue, useEffect, useState } from "react";
 
 import { useCart } from "@/components/cart-provider";
 import { useCustomerProfile } from "@/components/customer-profile-provider";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import { locales, type Dictionary, type Locale } from "@/lib/i18n";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
@@ -152,14 +153,27 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
   const filteredProducts = normalizedQuery
-    ? searchProducts.filter((product) => product.name.toLowerCase().includes(normalizedQuery))
+    ? searchProducts.filter((product) => {
+        const searchFields = [
+          product.name,
+          product.shortDescription,
+          product.description,
+          product.category,
+          ...product.categories.map((category) => category.name)
+        ]
+          .filter(Boolean)
+          .map((value) => value.toLowerCase());
+
+        return searchFields.some((value) => value.includes(normalizedQuery));
+      })
     : [];
   const filteredCategories = normalizedQuery
     ? Array.from(
         new Map(
           filteredProducts
-            .filter((product) => product.categorySlug && product.category)
-            .map((product) => [product.categorySlug, product.category] as const)
+            .flatMap((product) =>
+              product.categories.map((category) => [category.slug, category.name] as const)
+            )
         ).entries()
       ).map(([slug, name]) => ({ slug, name }))
     : [];
@@ -473,10 +487,13 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                           className="rounded-[0.95rem] border border-black/8 bg-white p-3.5 transition hover:border-[var(--brand)] hover:shadow-[0_12px_28px_rgba(186,12,47,0.08)]"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[0.8rem] bg-[#f4f1ee]">
-                              {product.imageUrl ? (
-                                <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
-                              ) : null}
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.8rem] bg-[#f4f1ee]">
+                              <FallbackImage
+                                src={product.imageUrl}
+                                fallbackSrc="/images/home/mainpage.jpg"
+                                alt={product.name}
+                                className="h-[84%] w-[82%] object-contain"
+                              />
                             </div>
                             <div className="min-w-0">
                               <p className="truncate text-[14px] font-semibold text-black">{product.name}</p>

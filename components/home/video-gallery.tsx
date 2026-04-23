@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { FallbackImage } from "@/components/ui/fallback-image";
 
@@ -16,9 +16,25 @@ type VideoGalleryProps = {
   items: VideoItem[];
 };
 
-function GalleryArrow({ direction }: { direction: "left" | "right" }) {
+function GalleryArrow({
+  direction,
+  onClick,
+  disabled = false
+}: {
+  direction: "left" | "right";
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ba0c2f] text-white">
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={direction === "left" ? "Previous videos" : "Next videos"}
+      className={`flex h-9 w-9 items-center justify-center rounded-full bg-[#ba0c2f] text-white transition ${
+        disabled ? "cursor-default opacity-45" : "hover:opacity-90"
+      }`}
+    >
       <svg
         viewBox="0 0 20 20"
         className={`h-4 w-4 ${direction === "left" ? "rotate-180" : ""}`}
@@ -30,7 +46,7 @@ function GalleryArrow({ direction }: { direction: "left" | "right" }) {
         <path d="M4 10h11" />
         <path d="m11 5 5 5-5 5" />
       </svg>
-    </span>
+    </button>
   );
 }
 
@@ -130,6 +146,7 @@ function VideoCard({
   return (
     <button
       type="button"
+      data-video-card-button="true"
       onClick={togglePlayback}
       className="group relative overflow-hidden rounded-[24px] text-left"
       aria-label={item.title || `Video ${index + 1}`}
@@ -169,6 +186,139 @@ function VideoCard({
 
 export function VideoGallery({ title, items }: VideoGalleryProps) {
   const [activeId, setActiveId] = useState("");
+  const desktopScrollerRef = useRef<HTMLDivElement | null>(null);
+  const desktopDraggingRef = useRef(false);
+  const desktopSuppressClickRef = useRef(false);
+  const desktopAdjustingRef = useRef(false);
+  const desktopStartXRef = useRef(0);
+  const desktopStartScrollRef = useRef(0);
+
+  const canShiftDesktopGallery = items.length > 3;
+  const desktopLoopItems = useMemo(
+    () => (canShiftDesktopGallery ? [...items, ...items, ...items] : items),
+    [canShiftDesktopGallery, items]
+  );
+
+  useEffect(() => {
+    const scroller = desktopScrollerRef.current;
+
+    if (!scroller || !canShiftDesktopGallery) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      scroller.scrollLeft = scroller.scrollWidth / 3;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [canShiftDesktopGallery, desktopLoopItems.length]);
+
+  function normalizeDesktopScrollPosition() {
+    const scroller = desktopScrollerRef.current;
+
+    if (!scroller || !canShiftDesktopGallery || desktopAdjustingRef.current) {
+      return;
+    }
+
+    const segmentWidth = scroller.scrollWidth / 3;
+    const minThreshold = segmentWidth * 0.5;
+    const maxThreshold = segmentWidth * 1.5;
+
+    if (scroller.scrollLeft > minThreshold && scroller.scrollLeft < maxThreshold) {
+      return;
+    }
+
+    desktopAdjustingRef.current = true;
+
+    while (scroller.scrollLeft <= minThreshold) {
+      scroller.scrollLeft += segmentWidth;
+    }
+
+    while (scroller.scrollLeft >= maxThreshold) {
+      scroller.scrollLeft -= segmentWidth;
+    }
+
+    requestAnimationFrame(() => {
+      desktopAdjustingRef.current = false;
+    });
+  }
+
+  function shiftDesktopGallery(direction: "left" | "right") {
+    const scroller = desktopScrollerRef.current;
+
+    if (!scroller || !canShiftDesktopGallery) {
+      return;
+    }
+
+    const firstCard = scroller.querySelector<HTMLElement>("[data-video-gallery-card='true']");
+    const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth / 3;
+    const nextOffset = cardWidth + 20;
+
+    scroller.scrollBy({
+      left: direction === "left" ? -nextOffset : nextOffset,
+      behavior: "smooth"
+    });
+  }
+
+  function handleDesktopPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse") {
+      return;
+    }
+
+    const scroller = desktopScrollerRef.current;
+
+    if (!scroller || !canShiftDesktopGallery) {
+      return;
+    }
+
+    desktopDraggingRef.current = true;
+    desktopSuppressClickRef.current = false;
+    desktopStartXRef.current = event.clientX;
+    desktopStartScrollRef.current = scroller.scrollLeft;
+  }
+
+  function handleDesktopPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (!desktopDraggingRef.current) {
+      return;
+    }
+
+    const scroller = desktopScrollerRef.current;
+
+    if (!scroller) {
+      return;
+    }
+
+    const delta = event.clientX - desktopStartXRef.current;
+
+    if (Math.abs(delta) > 6) {
+      desktopSuppressClickRef.current = true;
+    }
+
+    scroller.scrollLeft = desktopStartScrollRef.current - delta;
+    normalizeDesktopScrollPosition();
+  }
+
+  function handleDesktopPointerUp(event: React.PointerEvent<HTMLDivElement>) {
+    if (!desktopDraggingRef.current) {
+      return;
+    }
+
+    desktopDraggingRef.current = false;
+
+    normalizeDesktopScrollPosition();
+  }
+
+  function handleDesktopClickCapture(event: React.MouseEvent<HTMLDivElement>) {
+    if (!desktopSuppressClickRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    desktopSuppressClickRef.current = false;
+  }
 
   return (
     <section className="space-y-8">
@@ -181,16 +331,35 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
         </div>
 
         <div className="hidden gap-3 md:flex">
-          <GalleryArrow direction="left" />
-          <GalleryArrow direction="right" />
+          <GalleryArrow direction="left" onClick={() => shiftDesktopGallery("left")} disabled={!canShiftDesktopGallery} />
+          <GalleryArrow direction="right" onClick={() => shiftDesktopGallery("right")} disabled={!canShiftDesktopGallery} />
         </div>
       </div>
 
-      <div className="-mx-8 overflow-x-auto px-8 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max gap-5 md:grid md:w-auto md:grid-cols-3">
+      <div className="-mx-8 overflow-x-auto px-8 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-5">
           {items.map((item, index) => (
-            <div key={`${item.id}-${index}`} className="w-[255px] shrink-0 snap-start sm:w-[300px] md:w-auto">
+            <div key={`${item.id}-${index}`} className="w-[255px] shrink-0 snap-start sm:w-[300px]">
               <VideoCard item={item} index={index} isActive={activeId === item.id} onToggle={setActiveId} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        ref={desktopScrollerRef}
+        className="hidden overflow-x-auto overscroll-x-contain [scrollbar-width:none] md:block [&::-webkit-scrollbar]:hidden"
+        onPointerDown={handleDesktopPointerDown}
+        onPointerMove={handleDesktopPointerMove}
+        onPointerUp={handleDesktopPointerUp}
+        onPointerCancel={handleDesktopPointerUp}
+        onScroll={normalizeDesktopScrollPosition}
+        onClickCapture={handleDesktopClickCapture}
+      >
+        <div className="grid min-w-full grid-flow-col auto-cols-[calc((100%-40px)/3)] gap-5 pr-5">
+          {desktopLoopItems.map((item, index) => (
+            <div key={`${item.id}-${index}`} data-video-gallery-card="true" className="min-w-0 shrink-0">
+              <VideoCard item={item} index={index % items.length} isActive={activeId === item.id} onToggle={setActiveId} />
             </div>
           ))}
         </div>

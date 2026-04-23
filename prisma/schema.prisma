@@ -72,6 +72,7 @@ model Product {
   storeContactsRu    String?
   storeContactsEn    String?
   skinTypes          String?
+  categoryIds        String?
   size               String?
   price              Int
   discountAmount     Int      @default(0)

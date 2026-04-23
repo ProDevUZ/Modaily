@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { Locale } from "@/lib/i18n";
@@ -34,6 +35,74 @@ type ProductLightboxProps = {
   initialIndex: number;
   onClose: () => void;
 };
+
+const VIEWED_PRODUCTS_LIMIT = 8;
+
+function viewedProductsStorageKey(locale: Locale) {
+  return `modaily:viewed-products:${locale}`;
+}
+
+function createViewedProductSnapshot(product: StorefrontProductDetail): StorefrontProduct {
+  return {
+    id: product.id,
+    sku: product.sku,
+    slug: product.slug,
+    category: product.category,
+    categoryId: product.categoryId,
+    categorySlug: product.categorySlug,
+    categories: product.categories,
+    categorySlugs: product.categorySlugs,
+    skinTypes: product.skinTypes,
+    size: product.size,
+    price: product.price,
+    discountAmount: product.discountAmount,
+    hidePrice: product.hidePrice,
+    stock: product.stock,
+    colors: product.colors,
+    badges: product.badges,
+    name: product.name,
+    shortName: product.shortName,
+    shortDescription: product.shortDescription,
+    description: product.description,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
+    h1: product.h1,
+    imageUrl: product.imageUrl
+  };
+}
+
+function readViewedProducts(locale: Locale) {
+  if (typeof window === "undefined") {
+    return [] as StorefrontProduct[];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(viewedProductsStorageKey(locale));
+
+    if (!raw) {
+      return [] as StorefrontProduct[];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [] as StorefrontProduct[];
+    }
+
+    return parsed.filter((item): item is StorefrontProduct => {
+      return Boolean(
+        item &&
+          typeof item === "object" &&
+          "id" in item &&
+          "slug" in item &&
+          "name" in item &&
+          "imageUrl" in item
+      );
+    });
+  } catch {
+    return [] as StorefrontProduct[];
+  }
+}
 
 function Stars({ rating, subtle = false }: { rating: number; subtle?: boolean }) {
   return (
@@ -356,6 +425,7 @@ const reviewSortLabels: Record<
 export function ProductDetailView({ locale, copy, product, recommendations, hideCommerce = false }: ProductDetailViewProps) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState<StorefrontProductReview[]>(product.reviews);
+  const [viewedProducts, setViewedProducts] = useState<StorefrontProduct[]>([]);
   const [authorName, setAuthorName] = useState("");
   const [body, setBody] = useState("");
   const [rating, setRating] = useState(5);
@@ -408,6 +478,39 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
     return nextReviews;
   }, [reviewSort, reviews]);
+
+  const ingredientsContent = useMemo(() => {
+    const rawIngredients = product.ingredients as
+      | string
+      | { uz?: string | null; ru?: string | null; en?: string | null }
+      | null
+      | undefined;
+
+    if (!rawIngredients) {
+      return null;
+    }
+
+    if (typeof rawIngredients === "string") {
+      return rawIngredients.length > 0 ? rawIngredients : null;
+    }
+
+    const localizedValue =
+      locale === "uz" ? rawIngredients.uz : locale === "ru" ? rawIngredients.ru : rawIngredients.en;
+
+    return typeof localizedValue === "string" && localizedValue.length > 0 ? localizedValue : null;
+  }, [locale, product.ingredients]);
+
+  useEffect(() => {
+    const currentProduct = createViewedProductSnapshot(product);
+    const existingProducts = readViewedProducts(locale);
+    const nextHistory = [currentProduct, ...existingProducts.filter((item) => item.id !== currentProduct.id)].slice(
+      0,
+      VIEWED_PRODUCTS_LIMIT
+    );
+
+    window.localStorage.setItem(viewedProductsStorageKey(locale), JSON.stringify(nextHistory));
+    setViewedProducts(nextHistory.filter((item) => item.id !== currentProduct.id));
+  }, [locale, product]);
 
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -526,11 +629,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 aria-label={`Open ${product.name} media ${index + 1}`}
                 className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
               >
-                {index === 0 ? (
-                  <span className="absolute left-4 top-4 z-10 inline-flex rounded-[6px] bg-white px-4 py-2 text-lg font-semibold text-black shadow-sm">
-                    {copy.badges.novelty}
-                  </span>
-                ) : null}
+                {index === 0 ? <ProductBadgeStack badges={product.badges} className="left-4 top-4" /> : null}
                 <ProductMediaFrame
                   item={item}
                   alt={product.name}
@@ -622,6 +721,11 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 </div>
               </div>
             </AccordionSection>
+            {ingredientsContent ? (
+              <AccordionSection title={copy.labels.ingredients}>
+                <p className="whitespace-pre-line">{ingredientsContent}</p>
+              </AccordionSection>
+            ) : null}
             <AccordionSection title={copy.labels.features}>
               <p>{product.feature || product.description}</p>
             </AccordionSection>
@@ -792,31 +896,35 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
       {recommendations.length > 0 ? (
         <section className="mt-20">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-[2.1rem] uppercase text-black">{copy.labels.recommended}</h2>
-            <Link href={`/${locale}/catalog`} className="text-sm font-medium text-[#ba0c2f]">
-              {copy.breadcrumbs.catalog} →
-            </Link>
-          </div>
+          <h2 className="text-[2.1rem] uppercase text-black">{copy.labels.recommended}</h2>
 
-          <div className="mt-6 grid gap-y-5 gap-x-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
+          <div className="mt-6 grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
             {recommendations.map((item) => (
-              <Link key={item.id} href={`/${locale}/catalog/${item.slug}`} className="group overflow-hidden rounded-[0.25rem] bg-white">
-                <div className="relative overflow-hidden bg-[#f5f5f2]">
-                  <ProductBadgeStack badges={item.badges} />
-                  <FallbackImage
-                    src={item.imageUrl}
-                    fallbackSrc="/images/home/mainpage.jpg"
-                    alt={item.name}
-                    className="h-[280px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
-                </div>
-                <div className="space-y-2 pt-4">
-                  <p className="text-[0.95rem] uppercase leading-6 text-black">{item.name}</p>
-                  <p className="text-sm text-black/50">{item.size}</p>
-                  {!hideCommerce ? <p className="text-base text-black">{formatPrice(item.price)} сум</p> : null}
-                </div>
-              </Link>
+              <ProductCard
+                key={item.id}
+                locale={locale}
+                product={item}
+                variant="catalog"
+                hideCommerce={hideCommerce}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {viewedProducts.length > 0 ? (
+        <section className="mt-20">
+          <h2 className="text-[2.1rem] uppercase text-black">{copy.labels.recentlyViewed}</h2>
+
+          <div className="mt-6 grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
+            {viewedProducts.map((item) => (
+              <ProductCard
+                key={item.id}
+                locale={locale}
+                product={item}
+                variant="catalog"
+                hideCommerce={hideCommerce}
+              />
             ))}
           </div>
         </section>

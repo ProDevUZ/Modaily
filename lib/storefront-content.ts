@@ -10,6 +10,32 @@ const promoButtonLabels = {
   en: "Learn more"
 } as const;
 
+function localizeInternalLink(link: string | null | undefined, locale: Locale, fallback: string) {
+  const value = link?.trim();
+
+  if (!value) {
+    return fallback;
+  }
+
+  if (/^https?:\/\//i.test(value) || value.startsWith("#")) {
+    return value;
+  }
+
+  if (value.startsWith("/uz/") || value.startsWith("/ru/") || value.startsWith("/en/")) {
+    return `/${locale}${value.slice(3)}`;
+  }
+
+  if (value === "/uz" || value === "/ru" || value === "/en") {
+    return `/${locale}`;
+  }
+
+  if (value.startsWith("/")) {
+    return `/${locale}${value}`;
+  }
+
+  return fallback;
+}
+
 function localizedValue(entry: Record<string, unknown>, base: string, locale: Locale) {
   const localizedKey = `${base}${locale.slice(0, 1).toUpperCase()}${locale.slice(1)}`;
   const fallbackKey = `${base}En`;
@@ -105,7 +131,7 @@ export async function getHomePageContent(locale: Locale) {
   const heroPrimaryCtaLink =
     heroRow?.heroProduct?.active && heroRow.heroProduct.slug
       ? `/${locale}/catalog/${heroRow.heroProduct.slug}`
-      : hero.primaryCtaLink || `/${locale}/catalog`;
+      : localizeInternalLink(hero.primaryCtaLink, locale, `/${locale}/catalog`);
 
   return {
     hero: {
@@ -115,7 +141,7 @@ export async function getHomePageContent(locale: Locale) {
       primaryCta: localizedValue(hero, "primaryCta", locale),
       primaryCtaLink: heroPrimaryCtaLink,
       secondaryCta: localizedValue(hero, "secondaryCta", locale),
-      secondaryCtaLink: hero.secondaryCtaLink || `/${locale}/catalog`,
+      secondaryCtaLink: localizeInternalLink(hero.secondaryCtaLink, locale, `/${locale}/catalog`),
       imageUrl: hero.imageUrl || ""
     },
     bestsellers: bestsellers.map((product) => ({

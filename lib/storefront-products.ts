@@ -44,6 +44,7 @@ type ProductWithCategory = {
   sku: string;
   slug: string;
   skinTypes: string | null;
+  categoryIds: string | null;
   size: string | null;
   price: number;
   discountAmount: number;
@@ -81,6 +82,8 @@ export type StorefrontProduct = {
   category: string;
   categoryId: string;
   categorySlug: string;
+  categories: { id: string; slug: string; name: string }[];
+  categorySlugs: string[];
   skinTypes: string[];
   size: string;
   price: number;
@@ -203,18 +206,54 @@ function localizedCategoryName(category: ProductCategory, locale: Locale) {
   return locale === "uz" ? category.nameUz : locale === "ru" ? category.nameRu || category.nameEn : category.nameEn;
 }
 
-function mapStorefrontProduct(product: ProductWithCategory, locale: Locale): StorefrontProduct {
+function resolveCategoryIds(product: ProductWithCategory) {
+  const normalized = (product.categoryIds || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (product.category?.id && !normalized.includes(product.category.id)) {
+    normalized.unshift(product.category.id);
+  }
+
+  return normalized.filter((entry, index, collection) => collection.indexOf(entry) === index);
+}
+
+function buildLocalizedCategories(
+  product: ProductWithCategory,
+  locale: Locale,
+  categoriesById: Map<string, NonNullable<ProductCategory>>
+) {
+  return resolveCategoryIds(product)
+    .map((categoryId) => categoriesById.get(categoryId))
+    .filter((category): category is NonNullable<ProductCategory> => Boolean(category))
+    .map((category) => ({
+      id: category.id,
+      slug: category.slug,
+      name: localizedCategoryName(category, locale)
+    }));
+}
+
+function mapStorefrontProduct(
+  product: ProductWithCategory,
+  locale: Locale,
+  categoriesById: Map<string, NonNullable<ProductCategory>>
+): StorefrontProduct {
   const name = localizedProductValue(product, locale, "name");
   const shortDescription = localizedProductValue(product, locale, "shortDescription");
   const description = localizedProductValue(product, locale, "description");
+  const localizedCategories = buildLocalizedCategories(product, locale, categoriesById);
+  const primaryCategory = localizedCategories[0];
 
   return {
     id: product.id,
     sku: product.sku,
     slug: product.slug,
-    category: localizedCategoryName(product.category, locale),
-    categoryId: product.category?.id || "",
-    categorySlug: product.category?.slug || "",
+    category: primaryCategory?.name || localizedCategoryName(product.category, locale),
+    categoryId: primaryCategory?.id || product.category?.id || "",
+    categorySlug: primaryCategory?.slug || product.category?.slug || "",
+    categories: localizedCategories,
+    categorySlugs: localizedCategories.map((category) => category.slug),
     skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
     size: product.size || "",
     price: product.price,
@@ -232,6 +271,20 @@ function mapStorefrontProduct(product: ProductWithCategory, locale: Locale): Sto
     h1: name,
     imageUrl: product.imageUrl || ""
   };
+}
+
+async function getCategoriesById() {
+  const categories = await prisma.category.findMany({
+    select: {
+      id: true,
+      slug: true,
+      nameUz: true,
+      nameRu: true,
+      nameEn: true
+    }
+  });
+
+  return new Map(categories.map((category) => [category.id, category]));
 }
 
 function mapReviews(reviews: ProductReviewRecord[]): StorefrontProductReview[] {
@@ -285,7 +338,7 @@ function buildGallery(primaryImage: string | null, galleryImages: ProductGallery
     });
   }
 
-  return images.slice(0, 6);
+  return images;
 }
 
 function calculateAverageRating(reviews: ProductReviewRecord[]) {
@@ -311,6 +364,7 @@ function buildStoreInfo(product: ProductWithCategory, locale: Locale): Storefron
 
 export async function getStorefrontProducts(locale: Locale) {
   noStore();
+  const categoriesById = await getCategoriesById();
   const products = await prisma.product.findMany({
     where: { active: true },
     include: {
@@ -327,11 +381,12 @@ export async function getStorefrontProducts(locale: Locale) {
     orderBy: [{ homeSortOrder: "asc" }, { createdAt: "asc" }]
   });
 
-  return products.map((product) => mapStorefrontProduct(product, locale));
+  return products.map((product) => mapStorefrontProduct(product, locale, categoriesById));
 }
 
 export async function getStorefrontProduct(locale: Locale, slug: string) {
   noStore();
+  const categoriesById = await getCategoriesById();
   const product = await prisma.product.findFirst({
     where: {
       slug,
@@ -354,11 +409,12 @@ export async function getStorefrontProduct(locale: Locale, slug: string) {
     return null;
   }
 
-  return mapStorefrontProduct(product, locale);
+  return mapStorefrontProduct(product, locale, categoriesById);
 }
 
 export async function getStorefrontProductDetail(locale: Locale, slug: string) {
   noStore();
+  const categoriesById = await getCategoriesById();
   const product = await prisma.product.findFirst({
     where: {
       slug,
@@ -394,7 +450,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
     return null;
   }
 
-  const baseProduct = mapStorefrontProduct(product, locale);
+  const baseProduct = mapStorefrontProduct(product, locale, categoriesById);
   const media = buildGallery(product.imageUrl, product.galleryImages);
   const reviews = mapReviews(product.reviews);
 
@@ -413,6 +469,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
 
 export async function getRecommendedProducts(locale: Locale, currentProductId: string, categoryId: string) {
   noStore();
+  const categoriesById = await getCategoriesById();
   const recommendationLinks = await prisma.productRecommendation.findMany({
     where: {
       sourceProductId: currentProductId,
@@ -438,7 +495,7 @@ export async function getRecommendedProducts(locale: Locale, currentProductId: s
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
   });
 
-  return recommendationLinks.map((entry) => mapStorefrontProduct(entry.recommendedProduct, locale));
+  return recommendationLinks.map((entry) => mapStorefrontProduct(entry.recommendedProduct, locale, categoriesById));
 }
 
 export async function getStorefrontProductSlugs() {

@@ -71,6 +71,7 @@ export type AdminProduct = {
   storeContactsRu: string | null;
   storeContactsEn: string | null;
   skinTypes: string | null;
+  categoryIds: string[];
   size: string | null;
   price: number;
   discountAmount: number;
