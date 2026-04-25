@@ -37,12 +37,14 @@ export function ProductCard({
         </p>
       </div>
 
-      <Link
-        href={href}
-        className="inline-flex h-[46px] w-full items-center justify-center border border-black px-6 text-center text-[13px] uppercase tracking-[0.16em] text-black transition hover:bg-black hover:text-white sm:w-[256px]"
-      >
-        {buttonLabel}
-      </Link>
+      <div className="flex w-full justify-end">
+        <Link
+          href={href}
+          className="inline-flex h-[46px] w-full items-center justify-center border border-black px-6 text-center text-[13px] uppercase tracking-[0.16em] text-black transition hover:bg-black hover:text-white sm:w-[256px]"
+        >
+          {buttonLabel}
+        </Link>
+      </div>
     </article>
   );
 }

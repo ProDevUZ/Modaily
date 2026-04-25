@@ -326,18 +326,34 @@ model Testimonial {
 model BlogPost {
   id               String            @id @default(cuid())
   cardTitle        String
+  cardTitleUz      String?
+  cardTitleRu      String?
+  cardTitleEn      String?
   excerpt          String
+  excerptUz        String?
+  excerptRu        String?
+  excerptEn        String?
   coverImage       String
   publishDate      DateTime
   category         String
+  categoryUz       String?
+  categoryRu       String?
+  categoryEn       String?
   slug             String            @unique
   featured         Boolean           @default(false)
   linkedProductId  String?
   mainTitle        String
+  mainTitleUz      String?
+  mainTitleRu      String?
+  mainTitleEn      String?
   introDescription String
+  introDescriptionUz String?
+  introDescriptionRu String?
+  introDescriptionEn String?
   seoTitle         String
   metaDescription  String
   dynamicSections  BlogPostSection[]
+  media            BlogPostMedia[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   linkedProduct    Product?          @relation("BlogPostLinkedProduct", fields: [linkedProductId], references: [id], onDelete: SetNull)
@@ -348,10 +364,30 @@ model BlogPost {
   @@index([linkedProductId])
 }
 
+model BlogPostMedia {
+  id        String          @id @default(cuid())
+  type      GalleryItemType @default(IMAGE)
+  imageUrl  String?
+  videoUrl  String?
+  sortOrder Int             @default(0)
+  postId    String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  post      BlogPost        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, sortOrder])
+}
+
 model BlogPostSection {
   id          String   @id @default(cuid())
   title       String
+  titleUz     String?
+  titleRu     String?
+  titleEn     String?
   description String
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
   sortOrder   Int      @default(0)
   postId      String
   createdAt   DateTime @default(now())

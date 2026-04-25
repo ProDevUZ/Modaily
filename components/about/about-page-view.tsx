@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ContactMessageForm } from "@/components/about/contact-message-form";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { Locale } from "@/lib/i18n";
+import { renderRichText } from "@/lib/rich-text";
 
 type AboutPageViewProps = {
   locale: Locale;
@@ -23,7 +24,6 @@ type AboutPageViewProps = {
     footerTelegramLink: string;
     footerInstagram: string;
     footerInstagramLink: string;
-    storeAddress: string;
     storeMapLink: string;
     footerAddress: string;
   };
@@ -169,7 +169,7 @@ function ContactCard({
   href?: string;
 }) {
   const content = (
-    <div className="flex min-h-[96px] flex-col items-center justify-center rounded-[3px] bg-[#ba0c2f] px-4 py-5 text-center text-white">
+    <div className="flex h-full min-h-[96px] flex-col items-center justify-center rounded-[3px] bg-[#ba0c2f] px-4 py-5 text-center text-white">
       <div className="mb-4 flex h-8 w-8 items-center justify-center text-white" aria-hidden="true">
         {icon}
       </div>
@@ -183,7 +183,7 @@ function ContactCard({
   }
 
   return (
-    <a href={href} className="block transition hover:opacity-90" target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>
+    <a href={href} className="block h-full transition hover:opacity-90" target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>
       {content}
     </a>
   );
@@ -197,15 +197,14 @@ export function AboutPageView({
   siteSettings
 }: AboutPageViewProps) {
   const labels = copy[locale];
-  const storeLabel = siteSettings.storeAddress || siteSettings.footerAddress;
+  const storeLabel = siteSettings.footerAddress;
   const phoneHref = getPhoneHref(siteSettings.footerPhone);
   const whatsappHref = getWhatsAppHref(siteSettings.footerPhone);
   const emailHref = getEmailHref(siteSettings.footerEmail);
   const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
   const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
-  const mapQuery = siteSettings.storeAddress || siteSettings.footerAddress;
-  const primaryPanelText = content.secondaryDescription || content.description;
-  const secondaryPanelText = content.bottomDescription || content.secondaryDescription || content.description;
+  const mapQuery = siteSettings.footerAddress;
+  const secondaryPanelText = content.secondaryDescription || content.bottomDescription || content.description;
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-[1180px] px-5 pb-16 pt-6 sm:px-6 lg:px-8 lg:pb-20 lg:pt-8">
@@ -239,10 +238,12 @@ export function AboutPageView({
           </div>
 
           <div className="bg-[#ba0c2f] px-6 py-7 text-white lg:px-8 lg:py-8">
-            <div className="space-y-5 text-[13px] leading-7 text-white/90 md:text-[14px]">
-              <p>{primaryPanelText}</p>
-              <p>{secondaryPanelText}</p>
-            </div>
+            {renderRichText(secondaryPanelText, {
+              containerClassName: "space-y-5 text-[13px] leading-7 text-white/90 md:text-[14px]",
+              blockClassName: "whitespace-pre-wrap",
+              listClassName: "space-y-2 pl-5",
+              listItemClassName: "whitespace-pre-wrap"
+            })}
           </div>
         </div>
 
@@ -250,7 +251,7 @@ export function AboutPageView({
           <h2 className="text-[1.9rem] tracking-[-0.03em] text-black md:text-[2.3rem]">{labels.contacts}</h2>
         </div>
 
-        <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-7 grid gap-3 sm:auto-rows-[1fr] sm:grid-cols-2 lg:grid-cols-3">
           <ContactCard
             icon={
               <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.9">
@@ -307,7 +308,7 @@ export function AboutPageView({
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div>
+          <div id="feedback" className="scroll-mt-28">
             <ContactMessageForm
               locale={locale}
               labels={{

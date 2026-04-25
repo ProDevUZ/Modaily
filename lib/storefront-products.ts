@@ -134,68 +134,88 @@ export type StorefrontProductDetail = StorefrontProduct & {
   averageRating: number;
 };
 
+function normalizeDisplayText(value: string) {
+  return value.replace(/[＋﹢⁺₊➕✚✛✜⊕⨁]/g, "+");
+}
+
 function localizedProductValue(
   product: LocalizedProductFields,
   locale: Locale,
   field: "name" | "shortDescription" | "description" | "feature" | "ingredients" | "usage" | "storeLocation" | "storeContacts"
 ) {
   if (field === "name") {
-    return locale === "uz" ? product.nameUz : locale === "ru" ? product.nameRu || product.nameEn : product.nameEn;
+    return normalizeDisplayText(
+      locale === "uz" ? product.nameUz : locale === "ru" ? product.nameRu || product.nameEn : product.nameEn
+    );
   }
 
   if (field === "shortDescription") {
-    return locale === "uz"
-      ? product.shortDescriptionUz || product.shortDescriptionEn || ""
-      : locale === "ru"
-        ? product.shortDescriptionRu || product.shortDescriptionEn || ""
-        : product.shortDescriptionEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.shortDescriptionUz || product.shortDescriptionEn || ""
+        : locale === "ru"
+          ? product.shortDescriptionRu || product.shortDescriptionEn || ""
+          : product.shortDescriptionEn || ""
+    );
   }
 
   if (field === "description") {
-    return locale === "uz"
-      ? product.descriptionUz || product.shortDescriptionUz || product.descriptionEn || product.shortDescriptionEn || ""
-      : locale === "ru"
-        ? product.descriptionRu || product.shortDescriptionRu || product.descriptionEn || product.shortDescriptionEn || ""
-        : product.descriptionEn || product.shortDescriptionEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.descriptionUz || product.shortDescriptionUz || product.descriptionEn || product.shortDescriptionEn || ""
+        : locale === "ru"
+          ? product.descriptionRu || product.shortDescriptionRu || product.descriptionEn || product.shortDescriptionEn || ""
+          : product.descriptionEn || product.shortDescriptionEn || ""
+    );
   }
 
   if (field === "feature") {
-    return locale === "uz"
-      ? product.featureUz || product.descriptionUz || product.featureEn || product.descriptionEn || ""
-      : locale === "ru"
-        ? product.featureRu || product.descriptionRu || product.featureEn || product.descriptionEn || ""
-        : product.featureEn || product.descriptionEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.featureUz || product.descriptionUz || product.featureEn || product.descriptionEn || ""
+        : locale === "ru"
+          ? product.featureRu || product.descriptionRu || product.featureEn || product.descriptionEn || ""
+          : product.featureEn || product.descriptionEn || ""
+    );
   }
 
   if (field === "ingredients") {
-    return locale === "uz"
-      ? product.ingredientsUz || product.ingredientsEn || ""
-      : locale === "ru"
-        ? product.ingredientsRu || product.ingredientsEn || ""
-        : product.ingredientsEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.ingredientsUz || product.ingredientsEn || ""
+        : locale === "ru"
+          ? product.ingredientsRu || product.ingredientsEn || ""
+          : product.ingredientsEn || ""
+    );
   }
 
   if (field === "storeLocation") {
-    return locale === "uz"
-      ? product.storeLocationUz || product.storeLocationEn || ""
-      : locale === "ru"
-        ? product.storeLocationRu || product.storeLocationEn || ""
-        : product.storeLocationEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.storeLocationUz || product.storeLocationEn || ""
+        : locale === "ru"
+          ? product.storeLocationRu || product.storeLocationEn || ""
+          : product.storeLocationEn || ""
+    );
   }
 
   if (field === "storeContacts") {
-    return locale === "uz"
-      ? product.storeContactsUz || product.storeContactsEn || ""
-      : locale === "ru"
-        ? product.storeContactsRu || product.storeContactsEn || ""
-        : product.storeContactsEn || "";
+    return normalizeDisplayText(
+      locale === "uz"
+        ? product.storeContactsUz || product.storeContactsEn || ""
+        : locale === "ru"
+          ? product.storeContactsRu || product.storeContactsEn || ""
+          : product.storeContactsEn || ""
+    );
   }
 
-  return locale === "uz"
-    ? product.usageUz || product.usageEn || ""
-    : locale === "ru"
-      ? product.usageRu || product.usageEn || ""
-      : product.usageEn || "";
+  return normalizeDisplayText(
+    locale === "uz"
+      ? product.usageUz || product.usageEn || ""
+      : locale === "ru"
+        ? product.usageRu || product.usageEn || ""
+        : product.usageEn || ""
+  );
 }
 
 function localizedCategoryName(category: ProductCategory, locale: Locale) {

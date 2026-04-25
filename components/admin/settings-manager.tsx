@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
+import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 import { type AdminSiteSettings, requestJson } from "@/components/admin/admin-types";
 
 function Field({
@@ -55,6 +56,34 @@ function Area({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+      />
+      {hint ? <p className="admin-form-hint">{hint}</p> : null}
+    </div>
+  );
+}
+
+function RichArea({
+  label,
+  hint,
+  value,
+  placeholder,
+  onChange
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-slate-800">{label}</label>
+      <RichTextTextarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        ariaLabel={label}
+        className="admin-input admin-textarea mt-2 min-h-[112px]"
       />
       {hint ? <p className="admin-form-hint">{hint}</p> : null}
     </div>
@@ -233,35 +262,32 @@ export function SettingsManager() {
             placeholder="https://instagram.com/modaily_cis"
           />
           <Field
-            label="Адрес магазина"
-            value={settings?.storeAddress || ""}
-            onChange={(value) => setSettings((current) => (current ? { ...current, storeAddress: value } : current))}
-            placeholder="Yunusobod, Tashkent, ko'cha va uy raqam"
-            hint="Используется в карточке магазина и на карте."
-          />
-          <Field
             label="Ссылка на карту"
             value={settings?.storeMapLink || ""}
             onChange={(value) => setSettings((current) => (current ? { ...current, storeMapLink: value } : current))}
             placeholder="https://maps.google.com/..."
+            hint="Карта для блока контактов на странице «О нас»."
           />
           <Area
             label="Адрес в футере UZ"
             value={settings?.footerAddressUz || ""}
             onChange={(value) => setSettings((current) => (current ? { ...current, footerAddressUz: value } : current))}
             rows={3}
+            hint="Этот адрес используется и в футере, и в карточке магазина на странице «О нас»."
           />
           <Area
             label="Адрес в футере RU"
             value={settings?.footerAddressRu || ""}
             onChange={(value) => setSettings((current) => (current ? { ...current, footerAddressRu: value } : current))}
             rows={3}
+            hint="Этот адрес используется и в футере, и в карточке магазина на странице «О нас»."
           />
           <Area
             label="Адрес в футере EN"
             value={settings?.footerAddressEn || ""}
             onChange={(value) => setSettings((current) => (current ? { ...current, footerAddressEn: value } : current))}
             rows={3}
+            hint="Этот адрес используется и в футере, и в карточке магазина на странице «О нас»."
           />
         </div>
       </Section>
@@ -286,24 +312,6 @@ export function SettingsManager() {
               value={settings?.aboutTitleEn || ""}
               onChange={(value) => setSettings((current) => (current ? { ...current, aboutTitleEn: value } : current))}
               placeholder="ABOUT MODAILY"
-            />
-            <Field
-              label="Слово-бренд UZ"
-              value={settings?.aboutBrandTitleUz || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutBrandTitleUz: value } : current))}
-              placeholder="MODAILY"
-            />
-            <Field
-              label="Слово-бренд RU"
-              value={settings?.aboutBrandTitleRu || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutBrandTitleRu: value } : current))}
-              placeholder="MODAILY"
-            />
-            <Field
-              label="Слово-бренд EN"
-              value={settings?.aboutBrandTitleEn || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutBrandTitleEn: value } : current))}
-              placeholder="MODAILY"
             />
             <Field
               label="URL изображения"
@@ -357,35 +365,23 @@ export function SettingsManager() {
               value={settings?.aboutDescriptionEn || ""}
               onChange={(value) => setSettings((current) => (current ? { ...current, aboutDescriptionEn: value } : current))}
             />
-            <Area
-              label="Красный блок: первый абзац UZ"
+            <RichArea
+              label="Красный блок: текст UZ"
               value={settings?.aboutPanelDescriptionUz || ""}
               onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionUz: value } : current))}
+              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
             />
-            <Area
-              label="Красный блок: первый абзац RU"
+            <RichArea
+              label="Красный блок: текст RU"
               value={settings?.aboutPanelDescriptionRu || ""}
               onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionRu: value } : current))}
+              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
             />
-            <Area
-              label="Красный блок: первый абзац EN"
+            <RichArea
+              label="Красный блок: текст EN"
               value={settings?.aboutPanelDescriptionEn || ""}
               onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionEn: value } : current))}
-            />
-            <Area
-              label="Красный блок: второй абзац UZ"
-              value={settings?.aboutPanelSecondaryDescriptionUz || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelSecondaryDescriptionUz: value } : current))}
-            />
-            <Area
-              label="Красный блок: второй абзац RU"
-              value={settings?.aboutPanelSecondaryDescriptionRu || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelSecondaryDescriptionRu: value } : current))}
-            />
-            <Area
-              label="Красный блок: второй абзац EN"
-              value={settings?.aboutPanelSecondaryDescriptionEn || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelSecondaryDescriptionEn: value } : current))}
+              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
             />
           </div>
         </div>

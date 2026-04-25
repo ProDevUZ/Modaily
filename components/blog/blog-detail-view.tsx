@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { BlogPostLinkedProduct, StorefrontBlogPost } from "@/lib/blog-post-types";
 import type { Locale } from "@/lib/i18n";
+import { renderRichText } from "@/lib/rich-text";
 
 const dateLocales: Record<Locale, string> = {
   uz: "uz-UZ",
@@ -28,10 +29,6 @@ function formatPrice(value: number) {
   return `${new Intl.NumberFormat("ru-RU").format(value)} сум`;
 }
 
-function containsHtml(value: string) {
-  return /<\/?[a-z][\s\S]*>/i.test(value);
-}
-
 function getProductName(product: BlogPostLinkedProduct, locale: Locale) {
   if (locale === "uz") {
     return product.nameUz || product.nameRu || product.nameEn;
@@ -45,28 +42,16 @@ function getProductName(product: BlogPostLinkedProduct, locale: Locale) {
 }
 
 function renderBodyContent(value: string, keyPrefix: string) {
-  const normalized = value.trim();
-
-  if (!normalized) {
-    return null;
-  }
-
-  if (containsHtml(normalized)) {
-    return (
-      <div
-        className="space-y-4 text-[0.95rem] leading-[2] text-[#4f4f4f] [&_a]:text-[#a10f2b] [&_a]:underline [&_em]:italic [&_li]:ml-5 [&_li]:list-disc [&_ol]:space-y-2 [&_ol]:pl-5 [&_p]:mb-4 [&_strong]:font-semibold [&_ul]:space-y-2 [&_ul]:pl-5 lg:text-[0.98rem]"
-        dangerouslySetInnerHTML={{ __html: normalized }}
-      />
-    );
-  }
-
-  const paragraphs = normalized.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
-
-  return paragraphs.map((paragraph, index) => (
-    <p key={`${keyPrefix}-${index}`} className="whitespace-pre-line text-[0.95rem] leading-[2] text-[#4f4f4f] lg:text-[0.98rem]">
-      {paragraph}
-    </p>
-  ));
+  return (
+    <div key={keyPrefix}>
+      {renderRichText(value, {
+        containerClassName: "space-y-4 text-[0.95rem] leading-[2] text-[#4f4f4f] lg:text-[0.98rem]",
+        blockClassName: "whitespace-pre-wrap",
+        listClassName: "space-y-2 pl-5",
+        listItemClassName: "whitespace-pre-wrap"
+      })}
+    </div>
+  );
 }
 
 type BlogDetailViewProps = {

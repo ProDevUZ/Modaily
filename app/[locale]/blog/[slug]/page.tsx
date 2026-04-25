@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
 
-  const post = await getStorefrontBlogPost(slug);
+  const post = await getStorefrontBlogPost(locale, slug);
 
   if (!post) {
     return {};
@@ -64,7 +64,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const post = await getStorefrontBlogPost(slug);
+  const post = await getStorefrontBlogPost(locale, slug);
 
   if (!post) {
     notFound();

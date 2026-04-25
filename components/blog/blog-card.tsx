@@ -96,9 +96,11 @@ export function BlogCard({
           </div>
 
           <div className="flex min-h-[170px] flex-1 flex-col justify-between px-6 py-6 lg:px-7 lg:py-7">
-            <h2 className="max-w-[20ch] text-[1.45rem] leading-[1.08] tracking-[-0.035em] text-slate-950 transition group-hover:text-[var(--brand)]">
-              {post.cardTitle}
-            </h2>
+            <div>
+              <h2 className="max-w-[20ch] text-[1.45rem] leading-[1.08] tracking-[-0.035em] text-slate-950 transition group-hover:text-[var(--brand)]">
+                {post.cardTitle}
+              </h2>
+            </div>
 
             <p className="mt-8 text-[0.8rem] text-slate-400">{formattedDate}</p>
           </div>
@@ -148,7 +150,7 @@ export function BlogCard({
         </div>
 
         <div className="space-y-2">
-          <h2 className="min-h-[3.1rem] text-[1rem] leading-6 text-slate-900 transition group-hover:text-[var(--brand)]">
+          <h2 className="text-[1rem] leading-6 text-slate-900 transition group-hover:text-[var(--brand)]">
             {post.cardTitle}
           </h2>
           <p className="text-[0.78rem] text-slate-400">{formattedDate}</p>

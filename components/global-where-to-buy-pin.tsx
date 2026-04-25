@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Locale } from "@/lib/i18n";
@@ -60,8 +61,13 @@ function buildMapHref(address: string) {
 }
 
 export function GlobalWhereToBuyPin({ locale, locations }: GlobalWhereToBuyPinProps) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const labels = copy[locale];
+  const isProductPage = useMemo(
+    () => new RegExp(`^/${locale}/catalog/[^/]+$`).test(pathname || ""),
+    [locale, pathname]
+  );
   const orderedLocations = useMemo(
     () =>
       [...locations].sort((left, right) => {
@@ -96,34 +102,55 @@ export function GlobalWhereToBuyPin({ locale, locations }: GlobalWhereToBuyPinPr
     };
   }, [open]);
 
+  useEffect(() => {
+    function handleOpenRequest() {
+      setOpen(true);
+    }
+
+    window.addEventListener("modaily:open-where-to-buy", handleOpenRequest);
+
+    return () => {
+      window.removeEventListener("modaily:open-where-to-buy", handleOpenRequest);
+    };
+  }, []);
+
   return (
     <>
-      <button
-        type="button"
-        aria-label={labels.button}
-        onClick={() => setOpen(true)}
-        className="where-to-buy-pin group fixed bottom-6 right-4 z-[260] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-transform duration-300 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ba0c2f]/35 focus-visible:ring-offset-2 sm:bottom-10 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 lg:bottom-12"
-      >
-        <span className="where-to-buy-pin-tail pointer-events-none absolute left-1/2 top-[67px] h-[26px] w-[26px] -translate-x-1/2 rotate-45 rounded-[7px] border-r border-b border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] sm:top-[79px] sm:h-[30px] sm:w-[30px]" />
-        <span className="pointer-events-none absolute inset-[1px] rounded-[999px] bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.12))]" />
-        <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d11842] shadow-[0_0_14px_rgba(209,24,66,0.65)]">
-          <span className="where-to-buy-signal absolute inset-0 rounded-full bg-[#d11842]/45" />
-        </span>
-        <span className="relative z-10 flex flex-col items-center gap-1 text-center">
-          <span className="where-to-buy-icon relative flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/72 shadow-[0_10px_20px_rgba(255,255,255,0.22)] sm:h-12 sm:w-12">
-            <span className="pointer-events-none absolute h-[18px] w-[18px] rounded-full border border-[#c41a43]/30 sm:h-[22px] sm:w-[22px]" />
-            <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth="1.85" aria-hidden="true">
-              <path d="M4 9.5 12 4l8 5.5" />
-              <path d="M5.5 10.5h13v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
-              <path d="M9 19.5v-5h6v5" />
-              <path d="M9.5 10.5V8h5v2.5" />
-            </svg>
+      {!isProductPage ? (
+        <button
+          type="button"
+          aria-label={labels.button}
+          onClick={() => setOpen(true)}
+          className="where-to-buy-pin group fixed bottom-6 right-4 z-[260] flex h-[86px] w-[86px] items-start justify-center rounded-[999px] border border-white/55 pt-3 text-[#8e1431] shadow-[0_18px_40px_rgba(104,34,49,0.18)] backdrop-blur-xl transition-transform duration-300 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ba0c2f]/35 focus-visible:ring-offset-2 sm:bottom-10 sm:right-8 sm:h-[102px] sm:w-[102px] sm:pt-4 lg:bottom-12"
+        >
+          <span className="where-to-buy-pin-tail pointer-events-none absolute left-1/2 top-[67px] h-[26px] w-[26px] -translate-x-1/2 rotate-45 rounded-[7px] border-r border-b border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] sm:top-[79px] sm:h-[30px] sm:w-[30px]" />
+          <span className="pointer-events-none absolute inset-[1px] rounded-[999px] bg-[linear-gradient(180deg,rgba(255,255,255,0.44),rgba(255,255,255,0.12))]" />
+          <span className="pointer-events-none absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d11842] shadow-[0_0_14px_rgba(209,24,66,0.65)]">
+            <span className="where-to-buy-signal absolute inset-0 rounded-full bg-[#d11842]/45" />
           </span>
-          <span className="px-2 text-[9px] font-semibold uppercase leading-tight tracking-[0.18em] text-[#7a1029] sm:text-[10px]">
-            {labels.button}
+          <span className="relative z-10 flex flex-col items-center gap-1 text-center">
+            <span className="where-to-buy-icon relative flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/72 shadow-[0_10px_20px_rgba(255,255,255,0.22)] sm:h-12 sm:w-12">
+              <span className="pointer-events-none absolute h-[18px] w-[18px] rounded-full border border-[#c41a43]/30 sm:h-[22px] sm:w-[22px]" />
+              <svg viewBox="0 0 24 24" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" strokeWidth="1.85" aria-hidden="true">
+                <path d="M4 9.5 12 4l8 5.5" />
+                <path d="M5.5 10.5h13v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1z" />
+                <path d="M9 19.5v-5h6v5" />
+                <path d="M9.5 10.5V8h5v2.5" />
+              </svg>
+            </span>
+            {locale === "uz" ? (
+              <span className="max-w-[64px] px-2 text-center text-[8px] font-semibold leading-[1.12] tracking-[0.08em] text-[#7a1029] sm:max-w-[72px] sm:text-[9px]">
+                <span className="block whitespace-nowrap">Qayerdan</span>
+                <span className="block whitespace-nowrap">sotib olish</span>
+              </span>
+            ) : (
+              <span className="px-2 text-[9px] font-semibold uppercase leading-tight tracking-[0.18em] text-[#7a1029] sm:text-[10px]">
+                {labels.button}
+              </span>
+            )}
           </span>
-        </span>
-      </button>
+        </button>
+      ) : null}
 
       {open ? (
         <div className="fixed inset-0 z-[320] flex items-end justify-center bg-[#1b1020]/38 px-4 py-4 backdrop-blur-[8px] sm:items-center sm:px-6" onClick={() => setOpen(false)}>

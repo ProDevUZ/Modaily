@@ -4,15 +4,33 @@ import { prisma } from "@/lib/prisma";
 import type {
   BlogPostDynamicSection,
   BlogPostLinkedProduct,
+  BlogPostMediaItem,
   BlogPostRecord,
   StorefrontBlogPost,
   StorefrontBlogPostCard
 } from "@/lib/blog-post-types";
+import type { Locale } from "@/lib/i18n";
+
+type BlogPostMediaRow = {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  imageUrl: string | null;
+  videoUrl: string | null;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 type BlogPostSectionRow = {
   id: string;
   title: string;
+  titleUz: string | null;
+  titleRu: string | null;
+  titleEn: string | null;
   description: string;
+  descriptionUz: string | null;
+  descriptionRu: string | null;
+  descriptionEn: string | null;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -21,19 +39,35 @@ type BlogPostSectionRow = {
 type BlogPostRow = {
   id: string;
   cardTitle: string;
+  cardTitleUz: string | null;
+  cardTitleRu: string | null;
+  cardTitleEn: string | null;
   excerpt: string;
+  excerptUz: string | null;
+  excerptRu: string | null;
+  excerptEn: string | null;
   coverImage: string;
   publishDate: Date;
   category: string;
+  categoryUz: string | null;
+  categoryRu: string | null;
+  categoryEn: string | null;
   slug: string;
   featured: boolean;
   linkedProductId: string | null;
   mainTitle: string;
+  mainTitleUz: string | null;
+  mainTitleRu: string | null;
+  mainTitleEn: string | null;
   introDescription: string;
+  introDescriptionUz: string | null;
+  introDescriptionRu: string | null;
+  introDescriptionEn: string | null;
   seoTitle: string;
   metaDescription: string;
   createdAt: Date;
   updatedAt: Date;
+  media: BlogPostMediaRow[];
   dynamicSections: BlogPostSectionRow[];
   linkedProduct: {
     id: string;
@@ -60,11 +94,67 @@ export const blogPostLinkedProductSelect = {
   active: true
 } as const;
 
-function serializeDynamicSection(section: BlogPostSectionRow): BlogPostDynamicSection {
+function resolveLocalizedValue(
+  locale: Locale,
+  values: {
+    uz: string | null;
+    ru: string | null;
+    en: string | null;
+  },
+  legacy?: string | null
+) {
+  const normalizedLegacy = legacy || null;
+
+  if (locale === "uz") {
+    return values.uz || normalizedLegacy || values.ru || values.en || "";
+  }
+
+  if (locale === "en") {
+    return values.en || normalizedLegacy || values.ru || values.uz || "";
+  }
+
+  return values.ru || normalizedLegacy || values.en || values.uz || "";
+}
+
+function serializeMediaItem(item: BlogPostMediaRow): BlogPostMediaItem {
+  return {
+    id: item.id,
+    type: item.type,
+    imageUrl: item.imageUrl,
+    videoUrl: item.videoUrl,
+    sortOrder: item.sortOrder,
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString()
+  };
+}
+
+function serializeDynamicSection(section: BlogPostSectionRow, locale: Locale): BlogPostDynamicSection {
   return {
     id: section.id,
-    title: section.title,
-    description: section.description,
+    title: resolveLocalizedValue(
+      locale,
+      {
+        uz: section.titleUz,
+        ru: section.titleRu,
+        en: section.titleEn
+      },
+      section.title
+    ),
+    titleUz: section.titleUz,
+    titleRu: section.titleRu,
+    titleEn: section.titleEn,
+    description: resolveLocalizedValue(
+      locale,
+      {
+        uz: section.descriptionUz,
+        ru: section.descriptionRu,
+        en: section.descriptionEn
+      },
+      section.description
+    ),
+    descriptionUz: section.descriptionUz,
+    descriptionRu: section.descriptionRu,
+    descriptionEn: section.descriptionEn,
     sortOrder: section.sortOrder,
     createdAt: section.createdAt.toISOString(),
     updatedAt: section.updatedAt.toISOString()
@@ -91,21 +181,94 @@ function serializeLinkedProduct(
   };
 }
 
-export function serializeBlogPost(post: BlogPostRow): BlogPostRecord {
+export function serializeBlogPost(post: BlogPostRow, locale: Locale = "ru"): BlogPostRecord {
+  const serializedMedia =
+    post.media.length > 0
+      ? post.media.map(serializeMediaItem)
+      : post.coverImage
+        ? [
+            {
+              id: `${post.id}-cover`,
+              type: "IMAGE" as const,
+              imageUrl: post.coverImage,
+              videoUrl: null,
+              sortOrder: 0,
+              createdAt: post.createdAt.toISOString(),
+              updatedAt: post.updatedAt.toISOString()
+            }
+          ]
+        : [];
+
   return {
     id: post.id,
-    cardTitle: post.cardTitle,
-    excerpt: post.excerpt,
+    cardTitle: resolveLocalizedValue(
+      locale,
+      {
+        uz: post.cardTitleUz,
+        ru: post.cardTitleRu,
+        en: post.cardTitleEn
+      },
+      post.cardTitle
+    ),
+    cardTitleUz: post.cardTitleUz,
+    cardTitleRu: post.cardTitleRu,
+    cardTitleEn: post.cardTitleEn,
+    excerpt: resolveLocalizedValue(
+      locale,
+      {
+        uz: post.excerptUz,
+        ru: post.excerptRu,
+        en: post.excerptEn
+      },
+      post.excerpt
+    ),
+    excerptUz: post.excerptUz,
+    excerptRu: post.excerptRu,
+    excerptEn: post.excerptEn,
     coverImage: post.coverImage,
     publishDate: post.publishDate.toISOString(),
-    category: post.category,
+    category: resolveLocalizedValue(
+      locale,
+      {
+        uz: post.categoryUz,
+        ru: post.categoryRu,
+        en: post.categoryEn
+      },
+      post.category
+    ),
+    categoryUz: post.categoryUz,
+    categoryRu: post.categoryRu,
+    categoryEn: post.categoryEn,
     slug: post.slug,
     featured: post.featured,
     linkedProductId: post.linkedProductId,
     linkedProduct: serializeLinkedProduct(post.linkedProduct),
-    mainTitle: post.mainTitle,
-    introDescription: post.introDescription,
-    dynamicSections: post.dynamicSections.map(serializeDynamicSection),
+    mainTitle: resolveLocalizedValue(
+      locale,
+      {
+        uz: post.mainTitleUz,
+        ru: post.mainTitleRu,
+        en: post.mainTitleEn
+      },
+      post.mainTitle
+    ),
+    mainTitleUz: post.mainTitleUz,
+    mainTitleRu: post.mainTitleRu,
+    mainTitleEn: post.mainTitleEn,
+    introDescription: resolveLocalizedValue(
+      locale,
+      {
+        uz: post.introDescriptionUz,
+        ru: post.introDescriptionRu,
+        en: post.introDescriptionEn
+      },
+      post.introDescription
+    ),
+    introDescriptionUz: post.introDescriptionUz,
+    introDescriptionRu: post.introDescriptionRu,
+    introDescriptionEn: post.introDescriptionEn,
+    media: serializedMedia,
+    dynamicSections: post.dynamicSections.map((section) => serializeDynamicSection(section, locale)),
     seoTitle: post.seoTitle,
     metaDescription: post.metaDescription,
     createdAt: post.createdAt.toISOString(),
@@ -134,7 +297,7 @@ function publishedAtOrBeforeNow() {
   };
 }
 
-export async function getStorefrontBlogPosts(options?: {
+export async function getStorefrontBlogPosts(locale: Locale, options?: {
   category?: string;
   featured?: boolean;
   limit?: number;
@@ -153,20 +316,23 @@ export async function getStorefrontBlogPosts(options?: {
       linkedProduct: {
         select: blogPostLinkedProductSelect
       },
+      media: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+      },
       dynamicSections: {
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
       }
     }
   });
 
-  return rows.map((row) => mapBlogPostCard(serializeBlogPost(row)));
+  return rows.map((row) => mapBlogPostCard(serializeBlogPost(row, locale)));
 }
 
-export async function getStorefrontFeaturedBlogPosts(limit = 3) {
-  return getStorefrontBlogPosts({ featured: true, limit });
+export async function getStorefrontFeaturedBlogPosts(locale: Locale, limit = 3) {
+  return getStorefrontBlogPosts(locale, { featured: true, limit });
 }
 
-export async function getStorefrontBlogPost(slug: string): Promise<StorefrontBlogPost | null> {
+export async function getStorefrontBlogPost(locale: Locale, slug: string): Promise<StorefrontBlogPost | null> {
   noStore();
 
   const row = await prisma.blogPost.findFirst({
@@ -178,13 +344,16 @@ export async function getStorefrontBlogPost(slug: string): Promise<StorefrontBlo
       linkedProduct: {
         select: blogPostLinkedProductSelect
       },
+      media: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+      },
       dynamicSections: {
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
       }
     }
   });
 
-  return row ? serializeBlogPost(row) : null;
+  return row ? serializeBlogPost(row, locale) : null;
 }
 
 export async function getStorefrontBlogPostSlugs() {

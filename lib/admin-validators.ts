@@ -230,22 +230,49 @@ export type TestimonialPayload = {
 };
 
 export type BlogPostSectionPayload = {
-  title: string;
-  description: string;
+  titleUz: string;
+  titleRu: string;
+  titleEn: string;
+  descriptionUz: string;
+  descriptionRu: string;
+  descriptionEn: string;
+  sortOrder: number;
+};
+
+export type BlogPostMediaPayload = {
+  type: "IMAGE" | "VIDEO";
+  imageUrl: string | null;
+  videoUrl: string | null;
   sortOrder: number;
 };
 
 export type BlogPostPayload = {
   cardTitle: string;
+  cardTitleUz: string;
+  cardTitleRu: string;
+  cardTitleEn: string;
   excerpt: string;
+  excerptUz: string;
+  excerptRu: string;
+  excerptEn: string;
   coverImage: string;
+  media: BlogPostMediaPayload[];
   publishDate: Date;
   category: string;
+  categoryUz: string;
+  categoryRu: string;
+  categoryEn: string;
   slug: string;
   featured: boolean;
   linkedProductId: string | null;
   mainTitle: string;
+  mainTitleUz: string;
+  mainTitleRu: string;
+  mainTitleEn: string;
   introDescription: string;
+  introDescriptionUz: string;
+  introDescriptionRu: string;
+  introDescriptionEn: string;
   dynamicSections: BlogPostSectionPayload[];
   seoTitle: string;
   metaDescription: string;
@@ -825,47 +852,53 @@ export function validateTestimonialPayload(body: unknown): ValidationResult<Test
 export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPostPayload> {
   const payload = body as Record<string, unknown>;
 
-  const cardTitle = asString(payload.cardTitle);
-  const excerpt = asString(payload.excerpt);
-  const coverImage = asString(payload.coverImage);
+  const cardTitleUz = asString(payload.cardTitleUz);
+  const cardTitleRu = asString(payload.cardTitleRu);
+  const cardTitleEn = asString(payload.cardTitleEn);
+  const excerptUz = asString(payload.excerptUz);
+  const excerptRu = asString(payload.excerptRu);
+  const excerptEn = asString(payload.excerptEn);
   const publishDate = asDate(payload.publishDate);
-  const category = asString(payload.category);
-  const slug = toSlug(asString(payload.slug) || cardTitle || asString(payload.mainTitle));
-  const mainTitle = asString(payload.mainTitle);
-  const introDescription = asString(payload.introDescription);
+  const categoryUz = asString(payload.categoryUz);
+  const categoryRu = asString(payload.categoryRu);
+  const categoryEn = asString(payload.categoryEn);
+  const mainTitleUz = asString(payload.mainTitleUz);
+  const mainTitleRu = asString(payload.mainTitleRu);
+  const mainTitleEn = asString(payload.mainTitleEn);
+  const introDescriptionUz = asString(payload.introDescriptionUz);
+  const introDescriptionRu = asString(payload.introDescriptionRu);
+  const introDescriptionEn = asString(payload.introDescriptionEn);
+  const cardTitle = cardTitleRu || cardTitleEn || cardTitleUz;
+  const excerpt = excerptRu || excerptEn || excerptUz;
+  const category = categoryRu || categoryEn || categoryUz;
+  const mainTitle = mainTitleRu || mainTitleEn || mainTitleUz;
+  const introDescription = introDescriptionRu || introDescriptionEn || introDescriptionUz;
+  const slug = toSlug(asString(payload.slug) || cardTitle || mainTitle);
   const seoTitle = asString(payload.seoTitle) || mainTitle;
-  const metaDescription = asString(payload.metaDescription) || excerpt;
+  const metaDescription = asString(payload.metaDescription) || introDescription || excerpt;
 
-  if (!cardTitle) {
-    return { success: false, error: "Card title is required." };
-  }
-
-  if (!excerpt) {
-    return { success: false, error: "Excerpt is required." };
-  }
-
-  if (!coverImage) {
-    return { success: false, error: "Cover image is required." };
+  if (!cardTitleUz || !cardTitleRu || !cardTitleEn) {
+    return { success: false, error: "Card title is required for UZ, RU and EN." };
   }
 
   if (!publishDate) {
     return { success: false, error: "Valid publish date is required." };
   }
 
-  if (!category) {
-    return { success: false, error: "Category is required." };
+  if (!categoryUz || !categoryRu || !categoryEn) {
+    return { success: false, error: "Category is required for UZ, RU and EN." };
   }
 
   if (!slug) {
     return { success: false, error: "Slug is required." };
   }
 
-  if (!mainTitle) {
-    return { success: false, error: "Main title is required." };
+  if (!mainTitleUz || !mainTitleRu || !mainTitleEn) {
+    return { success: false, error: "Main title is required for UZ, RU and EN." };
   }
 
-  if (!introDescription) {
-    return { success: false, error: "Intro description is required." };
+  if (!introDescriptionUz || !introDescriptionRu || !introDescriptionEn) {
+    return { success: false, error: "Intro description is required for UZ, RU and EN." };
   }
 
   if (!seoTitle) {
@@ -874,6 +907,60 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
 
   if (!metaDescription) {
     return { success: false, error: "Meta description is required." };
+  }
+
+  if (!Array.isArray(payload.media)) {
+    return { success: false, error: "Media must be an array." };
+  }
+
+  if (payload.media.length === 0) {
+    return { success: false, error: "Add at least one image or video." };
+  }
+
+  if (payload.media.length > 6) {
+    return { success: false, error: "No more than 6 media items are allowed." };
+  }
+
+  const media: BlogPostMediaPayload[] = [];
+
+  for (const [index, entry] of payload.media.entries()) {
+    if (!entry || typeof entry !== "object") {
+      return { success: false, error: "Each media item must be an object." };
+    }
+
+    const row = entry as Record<string, unknown>;
+    const type = asString(row.type).toUpperCase();
+
+    if (type !== "IMAGE" && type !== "VIDEO") {
+      return { success: false, error: "Each media item must be IMAGE or VIDEO." };
+    }
+
+    const imageUrl = asOptionalString(row.imageUrl);
+    const videoUrl = asOptionalString(row.videoUrl);
+
+    if (type === "IMAGE" && !imageUrl) {
+      return { success: false, error: "Each image item must include image URL." };
+    }
+
+    if (type === "VIDEO" && !videoUrl) {
+      return { success: false, error: "Each video item must include video URL." };
+    }
+
+    media.push({
+      type,
+      imageUrl: type === "IMAGE" ? imageUrl : null,
+      videoUrl: type === "VIDEO" ? videoUrl : null,
+      sortOrder: asInteger(row.sortOrder, index)
+    });
+  }
+
+  const coverImage = media.find((entry) => entry.type === "IMAGE" && entry.imageUrl)?.imageUrl;
+
+  if (!coverImage) {
+    return {
+      success: false,
+      error: "Add at least one image. The first image is used as the blog cover."
+    };
   }
 
   if (!Array.isArray(payload.dynamicSections)) {
@@ -888,20 +975,38 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
     }
 
     const row = entry as Record<string, unknown>;
-    const title = asString(row.title);
-    const description = asString(row.description);
+    const titleUz = asString(row.titleUz);
+    const titleRu = asString(row.titleRu);
+    const titleEn = asString(row.titleEn);
+    const descriptionUz = asString(row.descriptionUz);
+    const descriptionRu = asString(row.descriptionRu);
+    const descriptionEn = asString(row.descriptionEn);
 
-    if (!title && !description) {
+    if (
+      !titleUz &&
+      !titleRu &&
+      !titleEn &&
+      !descriptionUz &&
+      !descriptionRu &&
+      !descriptionEn
+    ) {
       continue;
     }
 
-    if (!title || !description) {
-      return { success: false, error: "Each dynamic section must include title and description." };
+    if (!titleUz || !titleRu || !titleEn || !descriptionUz || !descriptionRu || !descriptionEn) {
+      return {
+        success: false,
+        error: "Each dynamic section must include title and description for UZ, RU and EN."
+      };
     }
 
     dynamicSections.push({
-      title,
-      description,
+      titleUz,
+      titleRu,
+      titleEn,
+      descriptionUz,
+      descriptionRu,
+      descriptionEn,
       sortOrder: asInteger(row.sortOrder, index)
     });
   }
@@ -910,15 +1015,31 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
     success: true,
     data: {
       cardTitle,
+      cardTitleUz,
+      cardTitleRu,
+      cardTitleEn,
       excerpt,
+      excerptUz,
+      excerptRu,
+      excerptEn,
       coverImage,
+      media,
       publishDate,
       category,
+      categoryUz,
+      categoryRu,
+      categoryEn,
       slug,
       featured: asBoolean(payload.featured),
       linkedProductId: asOptionalString(payload.linkedProductId),
       mainTitle,
+      mainTitleUz,
+      mainTitleRu,
+      mainTitleEn,
       introDescription,
+      introDescriptionUz,
+      introDescriptionRu,
+      introDescriptionEn,
       dynamicSections,
       seoTitle,
       metaDescription

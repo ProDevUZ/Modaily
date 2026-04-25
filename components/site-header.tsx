@@ -349,7 +349,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
               <Link
                 href={`/${locale}`}
-                className="brand-wordmark inline-flex h-[17px] w-[132px] items-center overflow-hidden whitespace-nowrap text-[16px] uppercase leading-[17px] text-[var(--brand)]"
+                className="brand-wordmark inline-flex h-[17px] w-[132px] translate-y-[1px] items-center overflow-hidden whitespace-nowrap text-[16px] uppercase leading-[17px] text-[var(--brand)]"
               >
                 {siteSettings.brandName}
               </Link>
@@ -424,20 +424,25 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   </svg>
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {locales.map((entry) => (
-                  <Link
-                    key={entry}
-                    href={switchLocale(entry)}
-                    className={`rounded-full px-3 py-1 text-[11px] ${
-                      entry === locale ? "bg-black text-white" : "border border-black/10 text-black/55"
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {localeCopy[entry]}
-                  </Link>
-                ))}
-              </div>
+              {isLocaleOpen ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {locales.map((entry) => (
+                    <Link
+                      key={entry}
+                      href={switchLocale(entry)}
+                      className={`rounded-full px-3 py-1 text-[11px] ${
+                        entry === locale ? "bg-black text-white" : "border border-black/10 text-black/55"
+                      }`}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setIsLocaleOpen(false);
+                      }}
+                    >
+                      {localeCopy[entry]}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}

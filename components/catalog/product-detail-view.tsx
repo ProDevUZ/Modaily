@@ -9,6 +9,7 @@ import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { Locale } from "@/lib/i18n";
 import type { ProductPageCopy } from "@/lib/product-page-copy";
+import { renderRichText } from "@/lib/rich-text";
 import type {
   StorefrontProduct,
   StorefrontProductDetail,
@@ -37,6 +38,14 @@ type ProductLightboxProps = {
 };
 
 const VIEWED_PRODUCTS_LIMIT = 8;
+
+function openWhereToBuyOverlay() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event("modaily:open-where-to-buy"));
+}
 
 function viewedProductsStorageKey(locale: Locale) {
   return `modaily:viewed-products:${locale}`;
@@ -652,7 +661,14 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
           <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">{product.name}</h1>
 
-          <p className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">{product.shortDescription || product.description}</p>
+          <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
+            {renderRichText(product.shortDescription || product.description, {
+              containerClassName: "space-y-3",
+              blockClassName: "whitespace-pre-wrap",
+              listClassName: "space-y-2 pl-5",
+              listItemClassName: "whitespace-pre-wrap"
+            })}
+          </div>
 
           {!hideCommerce ? <div className="mt-6 text-[2.3rem] leading-none text-black">{formatPrice(product.price)} сум</div> : null}
 
@@ -665,6 +681,14 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </div>
             <p className="mt-3 text-[1.8rem] text-black">{product.size || "-"}</p>
           </div>
+
+          <button
+            type="button"
+            onClick={openWhereToBuyOverlay}
+            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-[8px] bg-[#ba0c2f] px-6 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            {copy.actions.whereToBuy}
+          </button>
 
           {!hideCommerce ? (
             <>
@@ -707,8 +731,20 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 <div>
                   <p className="font-medium text-black/55">{copy.labels.details}</p>
                   <div className="mt-3 space-y-4">
-                    <p>{product.description}</p>
-                    <p>{product.shortDescription || product.description}</p>
+                    {renderRichText(product.description, {
+                      containerClassName: "space-y-4",
+                      blockClassName: "whitespace-pre-wrap",
+                      listClassName: "space-y-2 pl-5",
+                      listItemClassName: "whitespace-pre-wrap"
+                    })}
+                    {product.shortDescription && product.shortDescription !== product.description
+                      ? renderRichText(product.shortDescription, {
+                          containerClassName: "space-y-4",
+                          blockClassName: "whitespace-pre-wrap",
+                          listClassName: "space-y-2 pl-5",
+                          listItemClassName: "whitespace-pre-wrap"
+                        })
+                      : null}
                   </div>
                 </div>
                 <div>
@@ -723,14 +759,29 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </AccordionSection>
             {ingredientsContent ? (
               <AccordionSection title={copy.labels.ingredients}>
-                <p className="whitespace-pre-line">{ingredientsContent}</p>
+                {renderRichText(ingredientsContent, {
+                  containerClassName: "space-y-4",
+                  blockClassName: "whitespace-pre-wrap",
+                  listClassName: "space-y-2 pl-5",
+                  listItemClassName: "whitespace-pre-wrap"
+                })}
               </AccordionSection>
             ) : null}
             <AccordionSection title={copy.labels.features}>
-              <p>{product.feature || product.description}</p>
+              {renderRichText(product.feature || product.description, {
+                containerClassName: "space-y-4",
+                blockClassName: "whitespace-pre-wrap",
+                listClassName: "space-y-2 pl-5",
+                listItemClassName: "whitespace-pre-wrap"
+              })}
             </AccordionSection>
             <AccordionSection title={copy.labels.usage}>
-              <p>{product.usage || product.description}</p>
+              {renderRichText(product.usage || product.description, {
+                containerClassName: "space-y-4",
+                blockClassName: "whitespace-pre-wrap",
+                listClassName: "space-y-2 pl-5",
+                listItemClassName: "whitespace-pre-wrap"
+              })}
             </AccordionSection>
           </div>
         </div>
@@ -896,36 +947,44 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
       {recommendations.length > 0 ? (
         <section className="mt-20">
-          <h2 className="text-[2.1rem] uppercase text-black">{copy.labels.recommended}</h2>
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.3rem]">{copy.labels.recommended}</h2>
 
-          <div className="mt-6 grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
-            {recommendations.map((item) => (
-              <ProductCard
-                key={item.id}
-                locale={locale}
-                product={item}
-                variant="catalog"
-                hideCommerce={hideCommerce}
-              />
-            ))}
+          <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-[repeat(2,minmax(0,170px))] md:justify-start md:gap-x-4 md:gap-y-8 xl:grid-cols-[repeat(4,minmax(0,185px))] xl:gap-x-4">
+              {recommendations.map((item) => (
+                <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
+                  <ProductCard
+                    locale={locale}
+                    product={item}
+                    variant="catalog"
+                    hideCommerce={hideCommerce}
+                    compactMobile
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
 
       {viewedProducts.length > 0 ? (
         <section className="mt-20">
-          <h2 className="text-[2.1rem] uppercase text-black">{copy.labels.recentlyViewed}</h2>
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.3rem]">{copy.labels.recentlyViewed}</h2>
 
-          <div className="mt-6 grid gap-x-5 gap-y-10 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3">
-            {viewedProducts.map((item) => (
-              <ProductCard
-                key={item.id}
-                locale={locale}
-                product={item}
-                variant="catalog"
-                hideCommerce={hideCommerce}
-              />
-            ))}
+          <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-[repeat(2,minmax(0,170px))] md:justify-start md:gap-x-4 md:gap-y-8 xl:grid-cols-[repeat(4,minmax(0,185px))] xl:gap-x-4">
+              {viewedProducts.map((item) => (
+                <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
+                  <ProductCard
+                    locale={locale}
+                    product={item}
+                    variant="catalog"
+                    hideCommerce={hideCommerce}
+                    compactMobile
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}

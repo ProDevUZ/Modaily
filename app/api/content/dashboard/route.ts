@@ -18,6 +18,9 @@ export async function GET() {
           linkedProduct: {
             select: blogPostLinkedProductSelect
           },
+          media: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+          },
           dynamicSections: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
           }
@@ -33,7 +36,7 @@ export async function GET() {
       promoCards,
       galleryItems,
       testimonials,
-      blogPosts: blogPosts.map(serializeBlogPost)
+      blogPosts: blogPosts.map((post) => serializeBlogPost(post))
     });
   } catch (error) {
     console.error("content dashboard fallback", error);

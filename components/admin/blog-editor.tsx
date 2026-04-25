@@ -16,29 +16,43 @@ import {
   type AdminProduct,
   requestJson
 } from "@/components/admin/admin-types";
+import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 import type { BlogPostLinkedProduct } from "@/lib/blog-post-types";
 
 type BlogEditorProps = {
   postId?: string;
 };
 
+type LocalizedText = {
+  uz: string;
+  ru: string;
+  en: string;
+};
+
 type BlogSectionFormItem = {
   id: string;
-  title: string;
-  description: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  sortOrder: number;
+};
+
+type BlogMediaFormItem = {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  imageUrl: string;
+  videoUrl: string;
   sortOrder: number;
 };
 
 type BlogFormState = {
-  cardTitle: string;
-  excerpt: string;
-  coverImage: string;
+  cardTitle: LocalizedText;
+  media: BlogMediaFormItem[];
   publishDate: string;
-  category: string;
+  category: LocalizedText;
   slug: string;
   featured: boolean;
-  mainTitle: string;
-  introDescription: string;
+  mainTitle: LocalizedText;
+  introDescription: LocalizedText;
   linkedProductId: string;
   dynamicSections: BlogSectionFormItem[];
   seoTitle: string;
@@ -54,27 +68,36 @@ type ProductSummary = Pick<
   "id" | "sku" | "slug" | "nameUz" | "nameRu" | "nameEn" | "imageUrl" | "price" | "active"
 >;
 
+function createLocalizedText(initial = ""): LocalizedText {
+  return {
+    uz: initial,
+    ru: initial,
+    en: initial
+  };
+}
+
 const emptyForm: BlogFormState = {
-  cardTitle: "",
-  excerpt: "",
-  coverImage: "",
+  cardTitle: createLocalizedText(),
+  media: [],
   publishDate: new Date().toISOString().slice(0, 10),
-  category: "",
+  category: createLocalizedText(),
   slug: "",
   featured: false,
-  mainTitle: "",
-  introDescription: "",
+  mainTitle: createLocalizedText(),
+  introDescription: createLocalizedText(),
   linkedProductId: "",
   dynamicSections: [],
   seoTitle: "",
   metaDescription: ""
 };
+const MAX_BLOG_MEDIA_ITEMS = 6;
+const RICH_TEXT_HINT = "Поддерживаются **жирный**, *курсив*, списки (-, 1.) и переносы строк.";
 
 function createLocalSection(index: number): BlogSectionFormItem {
   return {
     id: `section-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    title: "",
-    description: "",
+    title: createLocalizedText(),
+    description: createLocalizedText(),
     sortOrder: index
   };
 }
@@ -86,23 +109,92 @@ function normalizeSections(sections: BlogSectionFormItem[]) {
   }));
 }
 
+function createLocalMedia(item: {
+  id?: string;
+  type: "IMAGE" | "VIDEO";
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  sortOrder?: number;
+}): BlogMediaFormItem {
+  return {
+    id: item.id || `media-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    type: item.type,
+    imageUrl: item.imageUrl || "",
+    videoUrl: item.videoUrl || "",
+    sortOrder: item.sortOrder ?? 0
+  };
+}
+
+function normalizeMedia(media: BlogMediaFormItem[]) {
+  return media.map((item, index) => ({
+    ...item,
+    sortOrder: index
+  }));
+}
+
 function buildFormFromPost(post: AdminBlogPost): BlogFormState {
   return {
-    cardTitle: post.cardTitle,
-    excerpt: post.excerpt,
-    coverImage: post.coverImage,
+    cardTitle: {
+      uz: post.cardTitleUz || post.cardTitle,
+      ru: post.cardTitleRu || post.cardTitle,
+      en: post.cardTitleEn || post.cardTitle
+    },
+    media: normalizeMedia(
+      (post.media.length
+        ? post.media
+        : post.coverImage
+          ? [
+              {
+                id: `${post.id}-cover`,
+                type: "IMAGE" as const,
+                imageUrl: post.coverImage,
+                videoUrl: null,
+                sortOrder: 0
+              }
+            ]
+          : []
+      ).map((item) =>
+        createLocalMedia({
+          id: item.id,
+          type: item.type,
+          imageUrl: item.imageUrl,
+          videoUrl: item.videoUrl,
+          sortOrder: item.sortOrder
+        })
+      )
+    ),
     publishDate: post.publishDate.slice(0, 10),
-    category: post.category,
+    category: {
+      uz: post.categoryUz || post.category,
+      ru: post.categoryRu || post.category,
+      en: post.categoryEn || post.category
+    },
     slug: post.slug,
     featured: post.featured,
-    mainTitle: post.mainTitle,
-    introDescription: post.introDescription,
+    mainTitle: {
+      uz: post.mainTitleUz || post.mainTitle,
+      ru: post.mainTitleRu || post.mainTitle,
+      en: post.mainTitleEn || post.mainTitle
+    },
+    introDescription: {
+      uz: post.introDescriptionUz || post.introDescription,
+      ru: post.introDescriptionRu || post.introDescription,
+      en: post.introDescriptionEn || post.introDescription
+    },
     linkedProductId: post.linkedProductId || "",
     dynamicSections: normalizeSections(
       post.dynamicSections.map((section, index) => ({
         id: section.id || `section-${index}`,
-        title: section.title,
-        description: section.description,
+        title: {
+          uz: section.titleUz || section.title,
+          ru: section.titleRu || section.title,
+          en: section.titleEn || section.title
+        },
+        description: {
+          uz: section.descriptionUz || section.description,
+          ru: section.descriptionRu || section.description,
+          en: section.descriptionEn || section.description
+        },
         sortOrder: section.sortOrder
       }))
     ),
@@ -163,6 +255,10 @@ function getPublicationStatusLabel(value: string) {
   return publishDate > now ? "Запланирован" : "Готов к публикации";
 }
 
+function getPrimaryLocalizedValue(value: LocalizedText) {
+  return value.ru || value.en || value.uz || "";
+}
+
 function FieldGroup({
   children,
   hint,
@@ -182,6 +278,77 @@ function FieldGroup({
       {children}
       {support}
       <p className="admin-form-hint">{hint}</p>
+    </div>
+  );
+}
+
+function LocalizedInputFields({
+  value,
+  onChange,
+  required = false,
+  placeholder
+}: {
+  value: LocalizedText;
+  onChange: (value: LocalizedText) => void;
+  required?: boolean;
+  placeholder?: string;
+}) {
+  return (
+    <div className="grid gap-3">
+      {(["uz", "ru", "en"] as const).map((localeKey) => (
+        <div key={localeKey} className="grid gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            {localeKey.toUpperCase()}
+          </p>
+          <input
+            className="admin-input h-12"
+            required={required}
+            placeholder={placeholder}
+            value={value[localeKey]}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                [localeKey]: event.target.value
+              })
+            }
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LocalizedTextareaFields({
+  value,
+  onChange,
+  required = false,
+  minHeightClassName = "min-h-[110px]"
+}: {
+  value: LocalizedText;
+  onChange: (value: LocalizedText) => void;
+  required?: boolean;
+  minHeightClassName?: string;
+}) {
+  return (
+    <div className="grid gap-3">
+      {(["uz", "ru", "en"] as const).map((localeKey) => (
+        <div key={localeKey} className="grid gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            {localeKey.toUpperCase()}
+          </p>
+          <RichTextTextarea
+            className={`admin-textarea ${minHeightClassName}`}
+            required={required}
+            value={value[localeKey]}
+            onChange={(nextValue) =>
+              onChange({
+                ...value,
+                [localeKey]: nextValue
+              })
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }
@@ -258,6 +425,14 @@ function UploadPlaceholderIcon({ className }: { className?: string }) {
   );
 }
 
+function MediaTypeBadge({ type }: { type: BlogMediaFormItem["type"] }) {
+  return (
+    <span className="inline-flex rounded-full border border-[#dde5ef] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+      {type === "IMAGE" ? "Image" : "Video"}
+    </span>
+  );
+}
+
 function SectionActionButton({
   label,
   onClick,
@@ -325,11 +500,17 @@ export function BlogEditor({ postId }: BlogEditorProps) {
   const [initialLinkedProduct, setInitialLinkedProduct] = useState<BlogPostLinkedProduct | null>(null);
   const [form, setForm] = useState<BlogFormState>(emptyForm);
   const [loading, setLoading] = useState(true);
-  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingMediaImages, setUploadingMediaImages] = useState(false);
+  const [uploadingMediaVideos, setUploadingMediaVideos] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<BlogSubmitError | null>(null);
   const [linkedProductQuery, setLinkedProductQuery] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  const coverMedia = useMemo(
+    () => form.media.find((item) => item.type === "IMAGE" && item.imageUrl) || null,
+    [form.media]
+  );
 
   const selectedProduct = useMemo(() => {
     if (!form.linkedProductId) {
@@ -420,48 +601,141 @@ export function BlogEditor({ postId }: BlogEditorProps) {
     };
   }, [postId]);
 
-  async function handleCoverUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+  async function uploadBlogImage(file: File) {
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    return requestJson<{ url: string }>("/api/uploads/promo-image", {
+      method: "POST",
+      body: uploadFormData
+    });
+  }
 
-    if (!file) {
+  async function uploadBlogVideo(file: File) {
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+    return requestJson<{ url: string }>("/api/uploads/product-video", {
+      method: "POST",
+      body: uploadFormData
+    });
+  }
+
+  async function handleMediaImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || []).slice(
+      0,
+      Math.max(0, MAX_BLOG_MEDIA_ITEMS - form.media.length)
+    );
+
+    if (files.length === 0) {
       return;
     }
 
     setError(null);
     setMessage(null);
-    setUploadingCover(true);
+    setUploadingMediaImages(true);
 
     try {
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
+      const uploaded = await Promise.all(files.map((file) => uploadBlogImage(file)));
 
-      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
-        method: "POST",
-        body: uploadFormData
+      setForm((current) => {
+        const nextMedia = [...current.media];
+
+        uploaded.forEach((item) => {
+          nextMedia.push(
+            createLocalMedia({
+              type: "IMAGE",
+              imageUrl: item.url,
+              sortOrder: nextMedia.length
+            })
+          );
+        });
+
+        return {
+          ...current,
+          media: normalizeMedia(nextMedia.slice(0, MAX_BLOG_MEDIA_ITEMS))
+        };
       });
-
-      setForm((current) => ({
-        ...current,
-        coverImage: payload.url
-      }));
-      setMessage("Обложка загружена.");
+      setMessage("Изображения загружены.");
     } catch (uploadError) {
       setError({
-        message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить обложку."
+        message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображения."
       });
     } finally {
-      setUploadingCover(false);
+      setUploadingMediaImages(false);
       event.target.value = "";
     }
   }
 
-  function updateCardTitle(value: string) {
+  async function handleMediaVideoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || []).slice(
+      0,
+      Math.max(0, MAX_BLOG_MEDIA_ITEMS - form.media.length)
+    );
+
+    if (files.length === 0) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingMediaVideos(true);
+
+    try {
+      const uploaded = await Promise.all(files.map((file) => uploadBlogVideo(file)));
+
+      setForm((current) => {
+        const nextMedia = [...current.media];
+
+        uploaded.forEach((item) => {
+          nextMedia.push(
+            createLocalMedia({
+              type: "VIDEO",
+              videoUrl: item.url,
+              sortOrder: nextMedia.length
+            })
+          );
+        });
+
+        return {
+          ...current,
+          media: normalizeMedia(nextMedia.slice(0, MAX_BLOG_MEDIA_ITEMS))
+        };
+      });
+      setMessage("Видео загружены.");
+    } catch (uploadError) {
+      setError({
+        message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить видео."
+      });
+    } finally {
+      setUploadingMediaVideos(false);
+      event.target.value = "";
+    }
+  }
+
+  function moveMedia(index: number, direction: -1 | 1) {
+    setForm((current) => {
+      const targetIndex = index + direction;
+
+      if (targetIndex < 0 || targetIndex >= current.media.length) {
+        return current;
+      }
+
+      const nextMedia = [...current.media];
+      const [item] = nextMedia.splice(index, 1);
+      nextMedia.splice(targetIndex, 0, item);
+
+      return {
+        ...current,
+        media: normalizeMedia(nextMedia)
+      };
+    });
+  }
+
+  function removeMedia(id: string) {
     setForm((current) => ({
       ...current,
-      cardTitle: value,
-      slug: slugManuallyEdited ? current.slug : slugify(value)
-    }));
-  }
+      media: normalizeMedia(current.media.filter((item) => item.id !== id))
+  }));
+}
 
   function addSection() {
     setForm((current) => ({
@@ -522,11 +796,37 @@ export function BlogEditor({ postId }: BlogEditorProps) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          ...form,
+          publishDate: form.publishDate,
+          slug: form.slug,
+          featured: form.featured,
           linkedProductId: form.linkedProductId || null,
+          seoTitle: form.seoTitle,
+          metaDescription: form.metaDescription,
+          cardTitleUz: form.cardTitle.uz,
+          cardTitleRu: form.cardTitle.ru,
+          cardTitleEn: form.cardTitle.en,
+          categoryUz: form.category.uz,
+          categoryRu: form.category.ru,
+          categoryEn: form.category.en,
+          mainTitleUz: form.mainTitle.uz,
+          mainTitleRu: form.mainTitle.ru,
+          mainTitleEn: form.mainTitle.en,
+          introDescriptionUz: form.introDescription.uz,
+          introDescriptionRu: form.introDescription.ru,
+          introDescriptionEn: form.introDescription.en,
+          media: normalizeMedia(form.media).map((item, index) => ({
+            type: item.type,
+            imageUrl: item.type === "IMAGE" ? item.imageUrl : null,
+            videoUrl: item.type === "VIDEO" ? item.videoUrl : null,
+            sortOrder: index
+          })),
           dynamicSections: normalizeSections(form.dynamicSections).map((section, index) => ({
-            title: section.title,
-            description: section.description,
+            titleUz: section.title.uz,
+            titleRu: section.title.ru,
+            titleEn: section.title.en,
+            descriptionUz: section.description.uz,
+            descriptionRu: section.description.ru,
+            descriptionEn: section.description.en,
             sortOrder: index
           }))
         })
@@ -614,44 +914,17 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             <EditorCard title="Publication">
               <div className="grid gap-5 md:grid-cols-2">
                 <FieldGroup className="md:col-span-2" label="Card title" hint="Заголовок карточки в списке блога и превью." >
-                  <input
-                    className="admin-input h-12"
+                  <LocalizedInputFields
                     required
                     value={form.cardTitle}
-                    onChange={(event) => updateCardTitle(event.target.value)}
+                    onChange={(value) => {
+                      setForm((current) => ({
+                        ...current,
+                        cardTitle: value,
+                        slug: slugManuallyEdited ? current.slug : slugify(value.ru || value.en || value.uz)
+                      }));
+                    }}
                   />
-                </FieldGroup>
-
-                <FieldGroup className="md:col-span-2" label="Excerpt" hint="Короткое описание для списка и мета-превью статьи.">
-                  <textarea
-                    className="admin-textarea min-h-[110px]"
-                    required
-                    value={form.excerpt}
-                    onChange={(event) => setForm((current) => ({ ...current, excerpt: event.target.value }))}
-                  />
-                </FieldGroup>
-
-                <FieldGroup className="md:col-span-2" label="Cover image" hint="URL обложки. Можно вставить вручную или загрузить файл.">
-                  <div className="space-y-3">
-                    <input
-                      className="admin-input h-12"
-                      required
-                      placeholder="https://..."
-                      value={form.coverImage}
-                      onChange={(event) => setForm((current) => ({ ...current, coverImage: event.target.value }))}
-                    />
-                    <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
-                      <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
-                      {uploadingCover ? "Загрузка..." : "Загрузить обложку"}
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.webp"
-                        className="hidden"
-                        onChange={handleCoverUpload}
-                        disabled={uploadingCover}
-                      />
-                    </label>
-                  </div>
                 </FieldGroup>
 
                 <FieldGroup label="Publish date" hint="Дата публикации или отложенного выхода статьи.">
@@ -676,13 +949,22 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                         <div className="flex flex-wrap gap-2">
                           {existingCategories.map((category) => {
                             const selected =
-                              form.category.trim().toLowerCase() === category.trim().toLowerCase();
+                              getPrimaryLocalizedValue(form.category).trim().toLowerCase() === category.trim().toLowerCase();
 
                             return (
                               <button
                                 key={category}
                                 type="button"
-                                onClick={() => setForm((current) => ({ ...current, category }))}
+                                onClick={() =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    category: {
+                                      uz: current.category.uz || category,
+                                      ru: category,
+                                      en: current.category.en || category
+                                    }
+                                  }))
+                                }
                                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                                   selected
                                     ? "border-slate-900 bg-slate-900 text-white"
@@ -698,11 +980,10 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                     ) : null
                   }
                 >
-                  <input
-                    className="admin-input h-12"
+                  <LocalizedInputFields
                     required
                     value={form.category}
-                    onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+                    onChange={(value) => setForm((current) => ({ ...current, category: value }))}
                   />
                 </FieldGroup>
 
@@ -729,25 +1010,131 @@ export function BlogEditor({ postId }: BlogEditorProps) {
               </div>
             </EditorCard>
 
+            <EditorCard title="Media">
+              <div className="space-y-5">
+                <FieldGroup
+                  label="Файлы публикации"
+                  hint="Загрузите до 6 изображений или видео. Первая фотография автоматически станет cover для карточек и страницы статьи."
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
+                      <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
+                      {uploadingMediaImages ? "Загрузка..." : "Добавить image"}
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        multiple
+                        className="hidden"
+                        onChange={handleMediaImageUpload}
+                        disabled={uploadingMediaImages || form.media.length >= MAX_BLOG_MEDIA_ITEMS}
+                      />
+                    </label>
+                    <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
+                      <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
+                      {uploadingMediaVideos ? "Загрузка..." : "Добавить video"}
+                      <input
+                        type="file"
+                        accept=".mp4,.webm,.mov"
+                        multiple
+                        className="hidden"
+                        onChange={handleMediaVideoUpload}
+                        disabled={uploadingMediaVideos || form.media.length >= MAX_BLOG_MEDIA_ITEMS}
+                      />
+                    </label>
+                  </div>
+                </FieldGroup>
+
+                {form.media.length ? (
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {form.media.map((item, index) => {
+                      const isCover = item.type === "IMAGE" && coverMedia?.id === item.id;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="overflow-hidden rounded-[1.25rem] border border-[#e4e9f1] bg-white"
+                        >
+                          <div className="relative flex h-[180px] items-center justify-center overflow-hidden bg-[#f8fafc]">
+                            {item.type === "IMAGE" && item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={`Media ${index + 1}`}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : item.videoUrl ? (
+                              <video
+                                src={item.videoUrl}
+                                className="h-full w-full object-cover"
+                                muted
+                                playsInline
+                                preload="metadata"
+                              />
+                            ) : (
+                              <UploadPlaceholderIcon className="h-8 w-8 text-slate-300" />
+                            )}
+
+                            <div className="absolute left-3 top-3 flex items-center gap-2">
+                              <MediaTypeBadge type={item.type} />
+                              {isCover ? (
+                                <span className="inline-flex rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
+                                  Cover
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 px-4 py-4">
+                            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                              Позиция {index + 1} из {MAX_BLOG_MEDIA_ITEMS}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <SectionActionButton
+                                label="Влево"
+                                disabled={index === 0}
+                                onClick={() => moveMedia(index, -1)}
+                              />
+                              <SectionActionButton
+                                label="Вправо"
+                                disabled={index === form.media.length - 1}
+                                onClick={() => moveMedia(index, 1)}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeMedia(item.id)}
+                                className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-5 py-6 text-sm text-slate-500">
+                    Медиа пока не добавлены. Загрузите хотя бы одну фотографию, чтобы пост получил cover.
+                  </div>
+                )}
+              </div>
+            </EditorCard>
+
             <EditorCard title="Article Header">
               <div className="space-y-5">
                 <FieldGroup label="Main title" hint="Главный заголовок статьи на detail page.">
-                  <input
-                    className="admin-input h-12"
+                  <LocalizedInputFields
                     required
                     value={form.mainTitle}
-                    onChange={(event) => setForm((current) => ({ ...current, mainTitle: event.target.value }))}
+                    onChange={(value) => setForm((current) => ({ ...current, mainTitle: value }))}
                   />
                 </FieldGroup>
 
-                <FieldGroup label="Intro description" hint="Вводный абзац под основным заголовком статьи.">
-                  <textarea
-                    className="admin-textarea min-h-[140px]"
+                <FieldGroup label="Intro description" hint={`Вводный абзац под основным заголовком статьи. ${RICH_TEXT_HINT}`}>
+                  <LocalizedTextareaFields
+                    minHeightClassName="min-h-[140px]"
                     required
                     value={form.introDescription}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, introDescription: event.target.value }))
-                    }
+                    onChange={(value) => setForm((current) => ({ ...current, introDescription: value }))}
                   />
                 </FieldGroup>
               </div>
@@ -873,18 +1260,17 @@ export function BlogEditor({ postId }: BlogEditorProps) {
 
                       <div className="mt-4 space-y-4">
                         <FieldGroup label="Title" hint="Заголовок внутри тела статьи.">
-                          <input
-                            className="admin-input h-12"
+                          <LocalizedInputFields
                             value={section.title}
-                            onChange={(event) => updateSection(section.id, { title: event.target.value })}
+                            onChange={(value) => updateSection(section.id, { title: value })}
                           />
                         </FieldGroup>
 
-                        <FieldGroup label="Description" hint="Основной текст секции.">
-                          <textarea
-                            className="admin-textarea min-h-[150px]"
+                        <FieldGroup label="Description" hint={`Основной текст секции. ${RICH_TEXT_HINT}`}>
+                          <LocalizedTextareaFields
+                            minHeightClassName="min-h-[150px]"
                             value={section.description}
-                            onChange={(event) => updateSection(section.id, { description: event.target.value })}
+                            onChange={(value) => updateSection(section.id, { description: value })}
                           />
                         </FieldGroup>
                       </div>
@@ -906,13 +1292,11 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                 </FieldGroup>
 
                 <FieldGroup label="Meta description" hint="Краткое описание страницы для search snippets.">
-                  <textarea
+                  <RichTextTextarea
                     className="admin-textarea min-h-[120px]"
                     required
                     value={form.metaDescription}
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, metaDescription: event.target.value }))
-                    }
+                    onChange={(value) => setForm((current) => ({ ...current, metaDescription: value }))}
                   />
                 </FieldGroup>
               </div>
@@ -939,11 +1323,15 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Category</p>
-                    <p className="mt-1 font-medium text-slate-800">{form.category || "Не указана"}</p>
+                    <p className="mt-1 font-medium text-slate-800">{getPrimaryLocalizedValue(form.category) || "Не указана"}</p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Featured</p>
                     <p className="mt-1 font-medium text-slate-800">{form.featured ? "Да" : "Нет"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Media</p>
+                    <p className="mt-1 font-medium text-slate-800">{form.media.length} / {MAX_BLOG_MEDIA_ITEMS}</p>
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Dynamic sections</p>
@@ -957,18 +1345,21 @@ export function BlogEditor({ postId }: BlogEditorProps) {
               <div className="space-y-4">
                 <div className="overflow-hidden rounded-[1.2rem] border border-[#e5eaf2] bg-[#fbfcff]">
                   <div className="flex min-h-[220px] items-center justify-center bg-white">
-                    {form.coverImage ? (
-                      <img src={form.coverImage} alt={form.cardTitle || "Cover preview"} className="h-full w-full object-cover" />
+                    {coverMedia?.imageUrl ? (
+                      <img
+                        src={coverMedia.imageUrl}
+                        alt={getPrimaryLocalizedValue(form.cardTitle) || "Cover preview"}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="text-center">
                         <UploadPlaceholderIcon className="mx-auto h-10 w-10 text-slate-300" />
-                        <p className="mt-3 text-sm text-slate-400">Обложка не выбрана</p>
+                        <p className="mt-3 text-sm text-slate-400">Cover появится после первой загруженной фотографии</p>
                       </div>
                     )}
                   </div>
                   <div className="border-t border-[#e7edf6] px-4 py-4">
-                    <p className="text-base font-semibold text-slate-900">{form.cardTitle || "Card title"}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-500">{form.excerpt || "Excerpt появится здесь."}</p>
+                    <p className="text-base font-semibold text-slate-900">{getPrimaryLocalizedValue(form.cardTitle) || "Card title"}</p>
                   </div>
                 </div>
 

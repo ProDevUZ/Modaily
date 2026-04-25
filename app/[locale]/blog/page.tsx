@@ -65,7 +65,7 @@ export default async function BlogListingPage({ params, searchParams }: PageProp
   const selectedSort = rawSelectedSort === "oldest" ? "oldest" : "newest";
   const selectedView = rawSelectedView === "2" || rawSelectedView === "1" ? rawSelectedView : "3";
   const copy = getBlogPageCopy(locale as Locale);
-  const allPosts = await getStorefrontBlogPosts();
+  const allPosts = await getStorefrontBlogPosts(locale as Locale);
   const categories = Array.from(new Set(allPosts.map((post) => post.category).filter(Boolean))).sort((left, right) =>
     left.localeCompare(right, "ru")
   );

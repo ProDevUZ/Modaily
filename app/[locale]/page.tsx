@@ -385,37 +385,31 @@ export default async function HomePage({ params }: PageProps) {
       </FooterGradientBackground>
 
       <section id="about" className="px-8 py-16 lg:px-12">
-        <div className="mx-auto max-w-[1680px]">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div>
-              <h2 className="text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">{content.about.title}</h2>
-              <p className="mt-5 max-w-[560px] text-[16px] leading-8 text-black/80">{content.about.description}</p>
-            </div>
-            <div>
-              {((content.about.secondaryTitle || "MODAILY").trim().toUpperCase() === "MODAILY") ? (
-                <p className="brand-wordmark text-right text-[40px] uppercase leading-none text-[var(--brand)] md:text-[56px]">
-                  {content.about.secondaryTitle || "MODAILY"}
-                </p>
-              ) : (
-                <p className="text-right text-[40px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
-                  {content.about.secondaryTitle || "MODAILY"}
-                </p>
-              )}
-              <p className="mt-5 text-[16px] leading-8 text-black/80">{content.about.secondaryDescription || content.about.description}</p>
-            </div>
+        <div className="mx-auto max-w-[1180px]">
+          <div>
+            <h2 className="text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
+              {content.about.title}
+            </h2>
+            <p className="mt-5 max-w-[900px] text-[16px] leading-8 text-black/80">
+              {content.about.description}
+            </p>
           </div>
 
-          {content.about.bottomDescription ? (
-            <p className="mt-8 text-[16px] leading-8 text-black/80">{content.about.bottomDescription}</p>
-          ) : null}
+          <div className="mt-12 grid overflow-hidden rounded-[4px] lg:grid-cols-[1.08fr_0.92fr]">
+            <div className="bg-[#f4f1eb]">
+              <FallbackImage
+                src={content.about.imageUrl || "/images/Galary/about1.png"}
+                fallbackSrc="/images/Galary/about1.png"
+                alt={content.about.title}
+                className="h-full min-h-[260px] w-full object-cover"
+              />
+            </div>
 
-          <div className="mt-12 overflow-hidden rounded-[10px] bg-white">
-            <FallbackImage
-              src={content.about.imageUrl || "/images/Galary/about1.png"}
-              fallbackSrc="/images/Galary/about1.png"
-              alt={content.about.title}
-              className="h-[360px] w-full object-contain object-center md:h-[560px]"
-            />
+            <div className="bg-[#ba0c2f] px-6 py-7 text-white lg:px-8 lg:py-8">
+              <p className="text-[13px] leading-7 text-white/90 md:text-[14px]">
+                {content.about.secondaryDescription || content.about.bottomDescription || content.about.description}
+              </p>
+            </div>
           </div>
         </div>
       </section>

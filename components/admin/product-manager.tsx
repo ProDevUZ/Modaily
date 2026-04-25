@@ -16,6 +16,7 @@ import {
   type AdminProduct,
   requestJson
 } from "@/components/admin/admin-types";
+import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 import { getDiscountPercent } from "@/lib/product-badges";
 import { SKIN_TYPE_LABELS_RU, SKIN_TYPE_OPTIONS, SKIN_TYPE_VALUES } from "@/lib/skin-types";
 
@@ -82,6 +83,7 @@ type ProductEditorProps = {
 };
 
 const MAX_GALLERY_ITEMS = 6;
+const RICH_TEXT_HINT = "Поддерживаются **жирный**, *курсив*, списки (-, 1.) и переносы строк.";
 const STATUS_MESSAGE: Record<string, string> = {
   created: "Товар создан.",
   updated: "Изменения сохранены.",
@@ -1252,34 +1254,28 @@ export function ProductEditor({ productId }: ProductEditorProps) {
               <div className="space-y-6">
                 <EditorSubsection title="Короткое описание">
                   <div className="space-y-4">
-                    <FieldGroup label="UZ" hint="Короткий текст для карточек и превью на узбекском языке.">
-                      <textarea
+                    <FieldGroup label="UZ" hint={`Короткий текст для карточек и превью на узбекском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Короткое описание UZ"
                         value={form.shortDescriptionUz}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, shortDescriptionUz: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, shortDescriptionUz: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="RU" hint="Короткий текст для карточек и превью на русском языке.">
-                      <textarea
+                    <FieldGroup label="RU" hint={`Короткий текст для карточек и превью на русском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Короткое описание RU"
                         value={form.shortDescriptionRu}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, shortDescriptionRu: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, shortDescriptionRu: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="EN" hint="Короткий текст для карточек и превью на английском языке.">
-                      <textarea
+                    <FieldGroup label="EN" hint={`Короткий текст для карточек и превью на английском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Короткое описание EN"
                         value={form.shortDescriptionEn}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, shortDescriptionEn: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, shortDescriptionEn: value }))}
                       />
                     </FieldGroup>
                   </div>
@@ -1287,34 +1283,28 @@ export function ProductEditor({ productId }: ProductEditorProps) {
 
                 <EditorSubsection title="Полное описание">
                   <div className="space-y-4">
-                    <FieldGroup label="UZ" hint="Основное описание товара для детальной страницы на узбекском языке.">
-                      <textarea
+                    <FieldGroup label="UZ" hint={`Основное описание товара для детальной страницы на узбекском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[124px]"
                         aria-label="Описание UZ"
                         value={form.descriptionUz}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, descriptionUz: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, descriptionUz: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="RU" hint="Основное описание товара для детальной страницы на русском языке.">
-                      <textarea
+                    <FieldGroup label="RU" hint={`Основное описание товара для детальной страницы на русском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[124px]"
                         aria-label="Описание RU"
                         value={form.descriptionRu}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, descriptionRu: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, descriptionRu: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="EN" hint="Основное описание товара для детальной страницы на английском языке.">
-                      <textarea
+                    <FieldGroup label="EN" hint={`Основное описание товара для детальной страницы на английском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[124px]"
                         aria-label="Описание EN"
                         value={form.descriptionEn}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, descriptionEn: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, descriptionEn: value }))}
                       />
                     </FieldGroup>
                   </div>
@@ -1322,28 +1312,28 @@ export function ProductEditor({ productId }: ProductEditorProps) {
 
                 <EditorSubsection title="Свойства">
                   <div className="space-y-4">
-                    <FieldGroup label="UZ" hint="Текст о свойствах товара в аккордеоне на узбекском языке.">
-                      <textarea
+                    <FieldGroup label="UZ" hint={`Текст о свойствах товара в аккордеоне на узбекском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Свойства UZ"
                         value={form.featureUz}
-                        onChange={(event) => setForm((current) => ({ ...current, featureUz: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, featureUz: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="RU" hint="Текст о свойствах товара в аккордеоне на русском языке.">
-                      <textarea
+                    <FieldGroup label="RU" hint={`Текст о свойствах товара в аккордеоне на русском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Свойства RU"
                         value={form.featureRu}
-                        onChange={(event) => setForm((current) => ({ ...current, featureRu: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, featureRu: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="EN" hint="Текст о свойствах товара в аккордеоне на английском языке.">
-                      <textarea
+                    <FieldGroup label="EN" hint={`Текст о свойствах товара в аккордеоне на английском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Свойства EN"
                         value={form.featureEn}
-                        onChange={(event) => setForm((current) => ({ ...current, featureEn: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, featureEn: value }))}
                       />
                     </FieldGroup>
                   </div>
@@ -1351,34 +1341,28 @@ export function ProductEditor({ productId }: ProductEditorProps) {
 
                 <EditorSubsection title="Ингредиенты">
                   <div className="space-y-4">
-                    <FieldGroup label="UZ" hint="Текст с ключевыми ингредиентами для детальной страницы на узбекском языке.">
-                      <textarea
+                    <FieldGroup label="UZ" hint={`Текст с ключевыми ингредиентами для детальной страницы на узбекском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Ингредиенты UZ"
                         value={form.ingredientsUz}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, ingredientsUz: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, ingredientsUz: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="RU" hint="Текст с ключевыми ингредиентами для детальной страницы на русском языке.">
-                      <textarea
+                    <FieldGroup label="RU" hint={`Текст с ключевыми ингредиентами для детальной страницы на русском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Ингредиенты RU"
                         value={form.ingredientsRu}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, ingredientsRu: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, ingredientsRu: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="EN" hint="Текст с ключевыми ингредиентами для детальной страницы на английском языке.">
-                      <textarea
+                    <FieldGroup label="EN" hint={`Текст с ключевыми ингредиентами для детальной страницы на английском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Ингредиенты EN"
                         value={form.ingredientsEn}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, ingredientsEn: event.target.value }))
-                        }
+                        onChange={(value) => setForm((current) => ({ ...current, ingredientsEn: value }))}
                       />
                     </FieldGroup>
                   </div>
@@ -1386,28 +1370,28 @@ export function ProductEditor({ productId }: ProductEditorProps) {
 
                 <EditorSubsection title="Применение">
                   <div className="space-y-4">
-                    <FieldGroup label="UZ" hint="Инструкция по применению для детальной страницы на узбекском языке.">
-                      <textarea
+                    <FieldGroup label="UZ" hint={`Инструкция по применению для детальной страницы на узбекском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Применение UZ"
                         value={form.usageUz}
-                        onChange={(event) => setForm((current) => ({ ...current, usageUz: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, usageUz: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="RU" hint="Инструкция по применению для детальной страницы на русском языке.">
-                      <textarea
+                    <FieldGroup label="RU" hint={`Инструкция по применению для детальной страницы на русском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Применение RU"
                         value={form.usageRu}
-                        onChange={(event) => setForm((current) => ({ ...current, usageRu: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, usageRu: value }))}
                       />
                     </FieldGroup>
-                    <FieldGroup label="EN" hint="Инструкция по применению для детальной страницы на английском языке.">
-                      <textarea
+                    <FieldGroup label="EN" hint={`Инструкция по применению для детальной страницы на английском языке. ${RICH_TEXT_HINT}`}>
+                      <RichTextTextarea
                         className="admin-textarea min-h-[104px]"
                         aria-label="Применение EN"
                         value={form.usageEn}
-                        onChange={(event) => setForm((current) => ({ ...current, usageEn: event.target.value }))}
+                        onChange={(value) => setForm((current) => ({ ...current, usageEn: value }))}
                       />
                     </FieldGroup>
                   </div>

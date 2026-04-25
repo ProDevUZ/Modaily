@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { adminSections, type AdminSectionKey } from "@/lib/admin-navigation";
@@ -148,6 +149,34 @@ export function AdminShell({
   const showSearch = searchable ?? (current === "products" || current === "categories");
   const searchValue = searchParams.get("q") || "";
   const compactHeader = headerVariant === "compact";
+
+  useEffect(() => {
+    function resizeTextarea(textarea: HTMLTextAreaElement) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+
+    function resizeAllTextareas() {
+      document.querySelectorAll<HTMLTextAreaElement>("textarea.admin-textarea").forEach(resizeTextarea);
+    }
+
+    function handleInput(event: Event) {
+      const target = event.target;
+
+      if (target instanceof HTMLTextAreaElement && target.classList.contains("admin-textarea")) {
+        resizeTextarea(target);
+      }
+    }
+
+    const timers = [0, 120, 350, 800].map((delay) => window.setTimeout(resizeAllTextareas, delay));
+
+    document.addEventListener("input", handleInput, true);
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      document.removeEventListener("input", handleInput, true);
+    };
+  }, [pathname]);
 
   function handleSearchChange(value: string) {
     const nextParams = new URLSearchParams(searchParams.toString());

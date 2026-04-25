@@ -25,19 +25,22 @@ const footerLabels = {
     pages: "Sahifalar",
     stores: "Do'konlarimiz",
     blog: "Blog",
-    about: "Biz haqimizda"
+    about: "Biz haqimizda",
+    feedback: "Qayta aloqa"
   },
   ru: {
     pages: "Страницы",
     stores: "Наши магазины",
     blog: "Блог",
-    about: "О нас"
+    about: "О нас",
+    feedback: "Обратная связь"
   },
   en: {
     pages: "Pages",
     stores: "Our stores",
     blog: "Blog",
-    about: "About"
+    about: "About",
+    feedback: "Feedback"
   }
 } as const;
 
@@ -248,6 +251,9 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
               <Link href={`/${locale}/main/about-us`} className="transition hover:text-white">
                 {labels.about}
               </Link>
+              <Link href={`/${locale}/main/about-us#feedback`} className="col-span-4 mt-3 transition hover:text-white">
+                {labels.feedback}
+              </Link>
             </nav>
 
             <div className="mt-[56px]">
@@ -323,6 +329,9 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                     </Link>
                     <Link href={`/${locale}/main/about-us`} className="block transition hover:text-white">
                       {labels.about}
+                    </Link>
+                    <Link href={`/${locale}/main/about-us#feedback`} className="block transition hover:text-white">
+                      {labels.feedback}
                     </Link>
                   </nav>
                 </div>

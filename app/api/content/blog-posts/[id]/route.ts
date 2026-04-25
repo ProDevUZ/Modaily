@@ -30,6 +30,9 @@ export async function GET(_: Request, { params }: RouteProps) {
       linkedProduct: {
         select: blogPostLinkedProductSelect
       },
+      media: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+      },
       dynamicSections: {
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
       }
@@ -65,25 +68,57 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       where: { id },
       data: {
         cardTitle: parsed.data.cardTitle,
+        cardTitleUz: parsed.data.cardTitleUz,
+        cardTitleRu: parsed.data.cardTitleRu,
+        cardTitleEn: parsed.data.cardTitleEn,
         excerpt: parsed.data.excerpt,
+        excerptUz: parsed.data.excerptUz,
+        excerptRu: parsed.data.excerptRu,
+        excerptEn: parsed.data.excerptEn,
         coverImage: parsed.data.coverImage,
         publishDate: parsed.data.publishDate,
         category: parsed.data.category,
+        categoryUz: parsed.data.categoryUz,
+        categoryRu: parsed.data.categoryRu,
+        categoryEn: parsed.data.categoryEn,
         slug: parsed.data.slug,
         featured: parsed.data.featured,
         linkedProductId: parsed.data.linkedProductId,
         mainTitle: parsed.data.mainTitle,
+        mainTitleUz: parsed.data.mainTitleUz,
+        mainTitleRu: parsed.data.mainTitleRu,
+        mainTitleEn: parsed.data.mainTitleEn,
         introDescription: parsed.data.introDescription,
+        introDescriptionUz: parsed.data.introDescriptionUz,
+        introDescriptionRu: parsed.data.introDescriptionRu,
+        introDescriptionEn: parsed.data.introDescriptionEn,
         seoTitle: parsed.data.seoTitle,
         metaDescription: parsed.data.metaDescription,
+        media: {
+          deleteMany: {},
+          create: parsed.data.media
+        },
         dynamicSections: {
           deleteMany: {},
-          create: parsed.data.dynamicSections
+          create: parsed.data.dynamicSections.map((section) => ({
+            title: section.titleRu || section.titleEn || section.titleUz,
+            titleUz: section.titleUz,
+            titleRu: section.titleRu,
+            titleEn: section.titleEn,
+            description: section.descriptionRu || section.descriptionEn || section.descriptionUz,
+            descriptionUz: section.descriptionUz,
+            descriptionRu: section.descriptionRu,
+            descriptionEn: section.descriptionEn,
+            sortOrder: section.sortOrder
+          }))
         }
       },
       include: {
         linkedProduct: {
           select: blogPostLinkedProductSelect
+        },
+        media: {
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
         },
         dynamicSections: {
           orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]

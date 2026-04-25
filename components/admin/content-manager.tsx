@@ -652,18 +652,24 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
               <Field value={about.titleRu} onChange={(value) => setAbout((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Заголовок RU" />
               <Field value={about.titleEn} onChange={(value) => setAbout((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Заголовок EN" />
               <Field value={about.imageUrl} onChange={(value) => setAbout((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
-              <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
-              <Area value={about.descriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Описание RU" />
-              <Area value={about.descriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Описание EN" />
-              <Field value={about.secondaryTitleUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleUz: value } : current))} placeholder="Второй заголовок UZ" />
-              <Field value={about.secondaryTitleRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleRu: value } : current))} placeholder="Второй заголовок RU" />
-              <Field value={about.secondaryTitleEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryTitleEn: value } : current))} placeholder="Второй заголовок EN" />
-              <Area value={about.secondaryDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionUz: value } : current))} placeholder="Второе описание UZ" />
-              <Area value={about.secondaryDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionRu: value } : current))} placeholder="Второе описание RU" />
-              <Area value={about.secondaryDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionEn: value } : current))} placeholder="Второе описание EN" />
-              <Area value={about.bottomDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionUz: value } : current))} placeholder="Нижний абзац UZ" />
-              <Area value={about.bottomDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionRu: value } : current))} placeholder="Нижний абзац RU" />
-              <Area value={about.bottomDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, bottomDescriptionEn: value } : current))} placeholder="Нижний абзац EN" />
+              <div className="md:col-span-2">
+                <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
+              </div>
+              <div className="md:col-span-2">
+                <Area value={about.descriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Описание RU" />
+              </div>
+              <div className="md:col-span-2">
+                <Area value={about.descriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Описание EN" />
+              </div>
+              <div className="md:col-span-2">
+                <Area value={about.secondaryDescriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionUz: value } : current))} placeholder="Текст красного блока UZ" />
+              </div>
+              <div className="md:col-span-2">
+                <Area value={about.secondaryDescriptionRu} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionRu: value } : current))} placeholder="Текст красного блока RU" />
+              </div>
+              <div className="md:col-span-2">
+                <Area value={about.secondaryDescriptionEn} onChange={(value) => setAbout((current) => (current ? { ...current, secondaryDescriptionEn: value } : current))} placeholder="Текст красного блока EN" />
+              </div>
               <button type="submit" className="admin-button-primary md:col-span-2">
                 Сохранить блок «О бренде»
               </button>

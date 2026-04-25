@@ -64,20 +64,25 @@ function PlayButton({ playing }: { playing: boolean }) {
   );
 }
 
+function formatPlaybackTime(value: number) {
+  if (!Number.isFinite(value) || value < 0) {
+    return "0:00";
+  }
+
+  const totalSeconds = Math.floor(value);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 function VideoPreviewSurface({ item, index }: { item: VideoItem; index: number }) {
   if (item.imageUrl?.trim()) {
-    return (
-      <FallbackImage
-        src={item.imageUrl}
-        fallbackSrc="/images/home/mainpage.jpg"
-        alt={item.title || `Video ${index + 1}`}
-        className="absolute inset-0 h-[420px] w-full object-cover md:h-[720px]"
-      />
-    );
+    return null;
   }
 
   return (
-    <div className="absolute inset-0 flex h-[420px] w-full items-center justify-center bg-[linear-gradient(180deg,#f3f1ed_0%,#ece7df_100%)] md:h-[720px]">
+    <div className="absolute inset-0 flex h-[420px] w-full items-center justify-center bg-[linear-gradient(180deg,#f3f1ed_0%,#ece7df_100%)] md:h-[576px]">
       <div className="flex flex-col items-center gap-4 text-center text-[#8b7d75]">
         <span className="text-[11px] uppercase tracking-[0.34em] text-[#ba0c2f]/70">Video Preview</span>
         <span className="max-w-[14ch] text-[15px] font-medium leading-6 text-[#7a6f68]">
@@ -101,6 +106,8 @@ function VideoCard({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     if (!videoRef.current || !item.videoUrl) {
@@ -112,20 +119,12 @@ function VideoCard({
       videoRef.current.currentTime = 0;
       videoRef.current.muted = true;
       setPlaying(false);
+      setCurrentTime(0);
     }
   }, [isActive, item.videoUrl]);
 
-  async function togglePlayback() {
+  async function startPlayback() {
     if (!videoRef.current || !item.videoUrl) {
-      return;
-    }
-
-    if (isActive) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-      videoRef.current.muted = true;
-      setPlaying(false);
-      onToggle("");
       return;
     }
 
@@ -136,23 +135,61 @@ function VideoCard({
       await videoRef.current.play();
       setPlaying(true);
     } catch {
-      // iOS/webviews can reject autoplay-like transitions; keep the card selected.
-      setPlaying(false);
+      try {
+        videoRef.current.muted = true;
+        await videoRef.current.play();
+        setPlaying(true);
+      } catch {
+        // iOS/webviews can reject autoplay-like transitions; keep the card selected.
+        setPlaying(false);
+      }
     }
 
     onToggle(item.id);
   }
 
+  async function togglePause() {
+    if (!videoRef.current || !item.videoUrl) {
+      return;
+    }
+
+    if (videoRef.current.paused) {
+      try {
+        await videoRef.current.play();
+        setPlaying(true);
+      } catch {
+        // Keep previous visual state if play is blocked.
+      }
+      return;
+    }
+
+    videoRef.current.pause();
+    setPlaying(false);
+  }
+
+  function seekBy(seconds: number) {
+    if (!videoRef.current || !item.videoUrl) {
+      return;
+    }
+
+    const nextTime = Math.max(0, Math.min(videoRef.current.currentTime + seconds, duration || videoRef.current.duration || 0));
+    videoRef.current.currentTime = nextTime;
+    setCurrentTime(nextTime);
+  }
+
+  function handleProgressChange(nextValue: number) {
+    if (!videoRef.current || !item.videoUrl) {
+      return;
+    }
+
+    videoRef.current.currentTime = nextValue;
+    setCurrentTime(nextValue);
+  }
+
   return (
-    <button
-      type="button"
-      data-video-card-button="true"
-      onClick={togglePlayback}
-      className="group relative overflow-hidden rounded-[24px] text-left"
-      aria-label={item.title || `Video ${index + 1}`}
-    >
-      {item.videoUrl ? (
-        <>
+    <div className="group relative block w-full overflow-hidden rounded-[24px] text-left">
+      <div className="relative h-[420px] w-full md:h-[576px]">
+        {item.videoUrl ? (
           <video
             ref={videoRef}
             src={item.videoUrl}
@@ -161,26 +198,104 @@ function VideoCard({
             playsInline
             loop
             muted
-            className="h-[420px] w-full object-cover md:h-[720px]"
+            className="pointer-events-none h-full w-full object-cover object-center"
+            onLoadedMetadata={(event) => {
+              const nextDuration = event.currentTarget.duration;
+              setDuration(Number.isFinite(nextDuration) ? nextDuration : 0);
+            }}
+            onTimeUpdate={(event) => {
+              setCurrentTime(event.currentTarget.currentTime);
+            }}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onEnded={() => setPlaying(false)}
           />
-          {(!isActive || !playing) ? <VideoPreviewSurface item={item} index={index} /> : null}
-        </>
-      ) : (
-        <FallbackImage
-          src={item.imageUrl || "https://placehold.co/375x667"}
-          fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
-          alt={item.title || `Video ${index + 1}`}
-          className="h-[420px] w-full object-cover md:h-[720px]"
-        />
-      )}
+        ) : (
+          <FallbackImage
+            src={item.imageUrl || "https://placehold.co/375x667"}
+            fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
+            alt={item.title || `Video ${index + 1}`}
+            className="h-full w-full object-cover object-center"
+          />
+        )}
 
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10 transition group-hover:bg-black/15">
-        <PlayButton playing={playing} />
-      </span>
-    </button>
+        {(!isActive || !playing) ? <VideoPreviewSurface item={item} index={index} /> : null}
+
+        {!isActive ? (
+          <button
+            type="button"
+            data-video-interactive="true"
+            data-video-card-button="true"
+            onClick={startPlayback}
+            aria-label={item.title || `Video ${index + 1}`}
+            className="absolute inset-0 flex items-center justify-center bg-black/10 transition group-hover:bg-black/15"
+          >
+            <PlayButton playing={playing} />
+          </button>
+        ) : (
+          <>
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+            {item.videoUrl ? (
+              <div
+                data-video-interactive="true"
+                className="absolute inset-x-3 bottom-3 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
+              >
+                <div className="flex items-center gap-2 md:gap-3">
+                  <button
+                    type="button"
+                    onClick={() => seekBy(-10)}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 text-sm transition hover:bg-white/14"
+                    aria-label="Rewind 10 seconds"
+                  >
+                    -10
+                  </button>
+                  <button
+                    type="button"
+                    onClick={togglePause}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 transition hover:bg-white/14"
+                    aria-label={playing ? "Pause video" : "Play video"}
+                  >
+                    {playing ? (
+                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M5 4h3v12H5zm7 0h3v12h-3z" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 20 20" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
+                        <path d="M5.5 3.5 16 10 5.5 16.5V3.5Z" />
+                      </svg>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => seekBy(10)}
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 text-sm transition hover:bg-white/14"
+                    aria-label="Forward 10 seconds"
+                  >
+                    +10
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 0}
+                      step="0.1"
+                      value={Math.min(currentTime, duration || 0)}
+                      onChange={(event) => handleProgressChange(Number(event.target.value))}
+                      className="h-1.5 w-full cursor-pointer accent-white"
+                      aria-label="Video progress"
+                    />
+                    <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
+                      <span>{formatPlaybackTime(currentTime)}</span>
+                      <span>{formatPlaybackTime(duration)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -253,8 +368,14 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
     }
 
     const firstCard = scroller.querySelector<HTMLElement>("[data-video-gallery-card='true']");
+    const columnGap = Number.parseFloat(
+      firstCard?.parentElement
+        ? window.getComputedStyle(firstCard.parentElement).columnGap ||
+            window.getComputedStyle(firstCard.parentElement).gap
+        : "0"
+    );
     const cardWidth = firstCard?.offsetWidth ?? scroller.clientWidth / 3;
-    const nextOffset = cardWidth + 20;
+    const nextOffset = cardWidth + (Number.isFinite(columnGap) ? columnGap : 0);
 
     scroller.scrollBy({
       left: direction === "left" ? -nextOffset : nextOffset,
@@ -264,6 +385,10 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
 
   function handleDesktopPointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.pointerType !== "mouse") {
+      return;
+    }
+
+    if ((event.target as HTMLElement).closest("[data-video-interactive='true']")) {
       return;
     }
 
@@ -356,7 +481,7 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
         onScroll={normalizeDesktopScrollPosition}
         onClickCapture={handleDesktopClickCapture}
       >
-        <div className="grid min-w-full grid-flow-col auto-cols-[calc((100%-40px)/3)] gap-5 pr-5">
+        <div className="grid min-w-full grid-flow-col auto-cols-[calc((100%-60px)/3)] gap-[30px] pr-[30px]">
           {desktopLoopItems.map((item, index) => (
             <div key={`${item.id}-${index}`} data-video-gallery-card="true" className="min-w-0 shrink-0">
               <VideoCard item={item} index={index % items.length} isActive={activeId === item.id} onToggle={setActiveId} />
