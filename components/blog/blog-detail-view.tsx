@@ -25,10 +25,6 @@ function formatPublishDate(value: string, locale: Locale) {
   }).format(date);
 }
 
-function formatPrice(value: number) {
-  return `${new Intl.NumberFormat("ru-RU").format(value)} сум`;
-}
-
 function getProductName(product: BlogPostLinkedProduct, locale: Locale) {
   if (locale === "uz") {
     return product.nameUz || product.nameRu || product.nameEn;
@@ -138,11 +134,7 @@ export function BlogDetailView({ locale, post, labels }: BlogDetailViewProps) {
 
           {post.linkedProduct ? (
             <div className="mt-12 rounded-[1.6rem] border border-[#e8e1d7] bg-[#faf7f2] p-5 lg:p-6">
-              <p className="text-[0.72rem] uppercase tracking-[0.18em] text-[#8d8d8d]">
-                {labels.linkedProductLabel}
-              </p>
-
-              <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="h-[98px] w-[98px] shrink-0 overflow-hidden rounded-[1rem] bg-white">
                   <FallbackImage
                     src={post.linkedProduct.imageUrl || ""}
@@ -158,9 +150,6 @@ export function BlogDetailView({ locale, post, labels }: BlogDetailViewProps) {
                   </p>
                   <p className="mt-1 text-sm uppercase tracking-[0.16em] text-slate-400">
                     {post.linkedProduct.slug}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-slate-700">
-                    {formatPrice(post.linkedProduct.price)}
                   </p>
                 </div>
 

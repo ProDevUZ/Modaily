@@ -14,11 +14,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   type AdminCategory,
   type AdminProduct,
+  type AdminSkinTypeOption,
   requestJson
 } from "@/components/admin/admin-types";
 import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 import { getDiscountPercent } from "@/lib/product-badges";
-import { SKIN_TYPE_LABELS_RU, SKIN_TYPE_OPTIONS, SKIN_TYPE_VALUES } from "@/lib/skin-types";
+import { getSkinTypeLabel } from "@/lib/skin-types";
 
 type GalleryFormItem = {
   type: "IMAGE" | "VIDEO";
@@ -80,6 +81,15 @@ type ProductFormState = {
 
 type ProductEditorProps = {
   productId?: string;
+};
+
+type DynamicOptionCard = {
+  value: string;
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+  disabled?: boolean;
 };
 
 const MAX_GALLERY_ITEMS = 6;
@@ -192,6 +202,46 @@ function EditorSubsection({
   );
 }
 
+function DynamicOptionChecklist({ items }: { items: DynamicOptionCard[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+      {items.map((item) => (
+        <label
+          key={item.value}
+          className={`group relative flex items-center gap-3 rounded-[1rem] border px-4 py-3 pr-12 text-sm font-medium transition ${
+            item.checked
+              ? "border-slate-900 bg-slate-50 text-slate-900"
+              : "border-[#dbe3f0] bg-white text-slate-600"
+          } ${item.disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+        >
+          <input
+            type="checkbox"
+            checked={item.checked}
+            disabled={item.disabled}
+            onChange={item.onToggle}
+          />
+          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          <button
+            type="button"
+            aria-label={`Удалить ${item.label}`}
+            className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full border border-red-100 bg-red-50 text-red-500 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              item.onDelete();
+            }}
+          >
+            <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M4 4l8 8" strokeLinecap="round" />
+              <path d="M12 4 4 12" strokeLinecap="round" />
+            </svg>
+          </button>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function ToggleRow({
   title,
   description,
@@ -241,10 +291,11 @@ function UploadPlaceholderIcon({ className }: { className?: string }) {
   );
 }
 
-function buildInitialForm(categoryId: string) {
+function buildInitialForm(categoryId: string, skinTypeValue: string) {
   return {
     ...emptyForm,
-    categoryIds: categoryId ? [categoryId] : []
+    categoryIds: categoryId ? [categoryId] : [],
+    skinTypes: skinTypeValue ? [skinTypeValue] : []
   };
 }
 
@@ -253,9 +304,7 @@ function normalizeEditableSkinTypes(skinTypes?: string | null) {
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean)
-    .filter((entry): entry is (typeof SKIN_TYPE_VALUES)[number] =>
-      SKIN_TYPE_VALUES.includes(entry as (typeof SKIN_TYPE_VALUES)[number])
-    );
+    .filter((entry, index, collection) => collection.indexOf(entry) === index);
 
   return normalized.length > 0 ? normalized : ["universal"];
 }
@@ -349,7 +398,10 @@ function formatCategoryNames(categoryIds: string[] | undefined, categoriesById: 
   return labels.length > 0 ? labels.join(", ") : null;
 }
 
-function formatSkinTypes(skinTypes?: string | null) {
+function formatSkinTypes(
+  skinTypes: string | null | undefined,
+  skinTypeLabelMap: Map<string, string>
+) {
   if (!skinTypes) {
     return null;
   }
@@ -358,7 +410,7 @@ function formatSkinTypes(skinTypes?: string | null) {
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean)
-    .map((entry) => SKIN_TYPE_LABELS_RU[entry] || entry);
+    .map((entry) => skinTypeLabelMap.get(entry) || entry);
 
   return labels.length > 0 ? labels.join(", ") : null;
 }
@@ -491,6 +543,7 @@ export function ProductListManager() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [skinTypeOptions, setSkinTypeOptions] = useState<AdminSkinTypeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchValue = searchParams.get("q") || "";
@@ -513,6 +566,13 @@ export function ProductListManager() {
     () => new Map(categoryOptions.map((category) => [category.value, category.label])),
     [categoryOptions]
   );
+  const skinTypeLabelMap = useMemo(
+    () =>
+      new Map(
+        skinTypeOptions.map((option) => [option.value, getSkinTypeLabel(option, "ru")])
+      ),
+    [skinTypeOptions]
+  );
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -528,7 +588,7 @@ export function ProductListManager() {
           product.category?.nameRu,
           product.category?.nameEn,
           ...(product.categoryIds || []).map((categoryId) => categoryNameMap.get(categoryId)),
-          formatSkinTypes(product.skinTypes)
+          formatSkinTypes(product.skinTypes, skinTypeLabelMap)
         ]
           .filter(Boolean)
           .join(" ")
@@ -550,7 +610,15 @@ export function ProductListManager() {
 
       return matchesSearch && matchesCategory && matchesStatus && matchesSkinType;
     });
-  }, [products, searchQuery, categoryFilter, productStatusFilter, skinTypeFilter, categoryNameMap]);
+  }, [
+    products,
+    searchQuery,
+    categoryFilter,
+    productStatusFilter,
+    skinTypeFilter,
+    categoryNameMap,
+    skinTypeLabelMap
+  ]);
 
   const hasFilters = Boolean(searchValue || categoryFilter || productStatusFilter || skinTypeFilter);
 
@@ -562,13 +630,15 @@ export function ProductListManager() {
       setError(null);
 
       try {
-        const [productsPayload, categoriesPayload] = await Promise.all([
+        const [productsPayload, categoriesPayload, skinTypeOptionsPayload] = await Promise.all([
           requestJson<AdminProduct[]>("/api/products"),
-          requestJson<AdminCategory[]>("/api/categories")
+          requestJson<AdminCategory[]>("/api/categories"),
+          requestJson<AdminSkinTypeOption[]>("/api/skin-types")
         ]);
         if (active) {
           setProducts(productsPayload);
           setCategories(categoriesPayload);
+          setSkinTypeOptions(skinTypeOptionsPayload);
         }
       } catch (loadError) {
         if (active) {
@@ -682,9 +752,9 @@ export function ProductListManager() {
             onChange={(value) => updateFilterParam("skinType", value)}
           >
             <option value="">Все типы кожи</option>
-            {SKIN_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.labelRu}
+            {skinTypeOptions.map((option) => (
+              <option key={option.id} value={option.value}>
+                {getSkinTypeLabel(option, "ru")}
               </option>
             ))}
           </FilterSelect>
@@ -713,7 +783,7 @@ export function ProductListManager() {
           <>
             <div className="divide-y divide-[#edf2f7]">
               {filteredProducts.map((product) => {
-                const skinTypeLabel = formatSkinTypes(product.skinTypes);
+                const skinTypeLabel = formatSkinTypes(product.skinTypes, skinTypeLabelMap);
                 const categoryLabel = formatCategoryNames(product.categoryIds, categoryNameMap) || getCategoryDisplayName(product.category);
 
                 return (
@@ -845,14 +915,23 @@ export function ProductEditor({ productId }: ProductEditorProps) {
   const router = useRouter();
   const isEditing = Boolean(productId);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [skinTypeOptions, setSkinTypeOptions] = useState<AdminSkinTypeOption[]>([]);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [form, setForm] = useState<ProductFormState>(emptyForm);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<ProductSubmitError | null>(null);
+  const [categoryOptionError, setCategoryOptionError] = useState<string | null>(null);
+  const [skinTypeOptionError, setSkinTypeOptionError] = useState<string | null>(null);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGalleryImages, setUploadingGalleryImages] = useState(false);
   const [uploadingGalleryVideos, setUploadingGalleryVideos] = useState(false);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [creatingSkinType, setCreatingSkinType] = useState(false);
+  const [deletingSkinTypeId, setDeletingSkinTypeId] = useState<string | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newSkinTypeName, setNewSkinTypeName] = useState("");
   const [recommendationQuery, setRecommendationQuery] = useState("");
   const discountPercent = getDiscountPercent(Number(form.price), Number(form.discountAmount));
 
@@ -864,8 +943,9 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       setError(null);
 
       try {
-        const [categoriesPayload, productsPayload, productPayload] = await Promise.all([
+        const [categoriesPayload, skinTypeOptionsPayload, productsPayload, productPayload] = await Promise.all([
           requestJson<AdminCategory[]>("/api/categories"),
+          requestJson<AdminSkinTypeOption[]>("/api/skin-types"),
           requestJson<AdminProduct[]>("/api/products"),
           productId ? requestJson<AdminProduct>(`/api/products/${productId}`) : Promise.resolve(null)
         ]);
@@ -875,11 +955,12 @@ export function ProductEditor({ productId }: ProductEditorProps) {
         }
 
         setCategories(categoriesPayload);
+        setSkinTypeOptions(skinTypeOptionsPayload);
         setProducts(productsPayload);
         setForm(
           productPayload
             ? buildFormFromProduct(productPayload)
-            : buildInitialForm(categoriesPayload[0]?.id || "")
+            : buildInitialForm(categoriesPayload[0]?.id || "", skinTypeOptionsPayload[0]?.value || "universal")
         );
       } catch (loadError) {
         if (active) {
@@ -1048,6 +1129,143 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     } finally {
       setUploadingGalleryVideos(false);
       event.target.value = "";
+    }
+  }
+
+  async function handleCreateCategoryOption() {
+    const label = newCategoryName.trim();
+
+    if (!label || creatingCategory) {
+      return;
+    }
+
+    setCategoryOptionError(null);
+    setCreatingCategory(true);
+
+    try {
+      const category = await requestJson<AdminCategory>("/api/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          slug: "",
+          nameUz: label,
+          nameRu: label,
+          nameEn: label,
+          descriptionUz: "",
+          descriptionRu: "",
+          descriptionEn: ""
+        })
+      });
+
+      setCategories((current) =>
+        [...current, category].sort((left, right) =>
+          getCategoryDisplayName(left).localeCompare(getCategoryDisplayName(right), "ru")
+        )
+      );
+      setForm((current) => ({
+        ...current,
+        categoryIds: current.categoryIds.includes(category.id)
+          ? current.categoryIds
+          : [...current.categoryIds, category.id]
+      }));
+      setNewCategoryName("");
+    } catch (createError) {
+      setCategoryOptionError(
+        createError instanceof Error ? createError.message : "Не удалось добавить категорию."
+      );
+    } finally {
+      setCreatingCategory(false);
+    }
+  }
+
+  async function handleDeleteCategoryOption(category: AdminCategory) {
+    if (deletingCategoryId) {
+      return;
+    }
+
+    setCategoryOptionError(null);
+    setDeletingCategoryId(category.id);
+
+    try {
+      await requestJson(`/api/categories/${category.id}`, { method: "DELETE" });
+      setCategories((current) => current.filter((entry) => entry.id !== category.id));
+      setForm((current) => ({
+        ...current,
+        categoryIds: current.categoryIds.filter((entry) => entry !== category.id)
+      }));
+    } catch (deleteError) {
+      setCategoryOptionError(
+        deleteError instanceof Error ? deleteError.message : "Не удалось удалить категорию."
+      );
+    } finally {
+      setDeletingCategoryId(null);
+    }
+  }
+
+  async function handleCreateSkinTypeOption() {
+    const label = newSkinTypeName.trim();
+
+    if (!label || creatingSkinType) {
+      return;
+    }
+
+    setSkinTypeOptionError(null);
+    setCreatingSkinType(true);
+
+    try {
+      const option = await requestJson<AdminSkinTypeOption>("/api/skin-types", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          value: "",
+          nameUz: label,
+          nameRu: label,
+          nameEn: label
+        })
+      });
+
+      setSkinTypeOptions((current) => [...current, option]);
+      setForm((current) => ({
+        ...current,
+        skinTypes: current.skinTypes.includes(option.value)
+          ? current.skinTypes
+          : [...current.skinTypes, option.value]
+      }));
+      setNewSkinTypeName("");
+    } catch (createError) {
+      setSkinTypeOptionError(
+        createError instanceof Error ? createError.message : "Не удалось добавить тип кожи."
+      );
+    } finally {
+      setCreatingSkinType(false);
+    }
+  }
+
+  async function handleDeleteSkinTypeOption(option: AdminSkinTypeOption) {
+    if (deletingSkinTypeId) {
+      return;
+    }
+
+    setSkinTypeOptionError(null);
+    setDeletingSkinTypeId(option.id);
+
+    try {
+      await requestJson(`/api/skin-types/${option.id}`, { method: "DELETE" });
+      setSkinTypeOptions((current) => current.filter((entry) => entry.id !== option.id));
+      setForm((current) => ({
+        ...current,
+        skinTypes: current.skinTypes.filter((entry) => entry !== option.value)
+      }));
+    } catch (deleteError) {
+      setSkinTypeOptionError(
+        deleteError instanceof Error ? deleteError.message : "Не удалось удалить тип кожи."
+      );
+    } finally {
+      setDeletingSkinTypeId(null);
     }
   }
 
@@ -1640,36 +1858,50 @@ export function ProductEditor({ productId }: ProductEditorProps) {
           <div className="space-y-6">
             <EditorCard title="Атрибуты">
               <div className="space-y-5">
-                <FieldGroup label="Тип кожи" hint="Выберите один или несколько типов кожи. Хотя бы один вариант обязателен для сохранения товара.">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    {SKIN_TYPE_OPTIONS.map((option) => {
-                      const checked = form.skinTypes.includes(option.value);
-
-                      return (
-                        <label
-                          key={option.value}
-                          className={`flex items-center gap-3 rounded-[1rem] border px-4 py-3 text-sm font-medium transition ${
-                            checked
-                              ? "border-slate-900 bg-slate-50 text-slate-900"
-                              : "border-[#dbe3f0] bg-white text-slate-600"
-                          }`}
-                          >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              setForm((current) => ({
-                                ...current,
-                                skinTypes: current.skinTypes.includes(option.value)
-                                  ? current.skinTypes.filter((entry) => entry !== option.value)
-                                  : [...current.skinTypes, option.value]
-                              }))
-                            }
-                          />
-                          {option.labelRu}
-                        </label>
-                      );
-                    })}
+                <FieldGroup label="Тип кожи" hint="Выберите один или несколько типов кожи. Новые варианты можно добавлять прямо отсюда, а удалить их можно при наведении курсора.">
+                  <DynamicOptionChecklist
+                    items={skinTypeOptions.map((option) => ({
+                      value: option.value,
+                      label: getSkinTypeLabel(option, "ru"),
+                      checked: form.skinTypes.includes(option.value),
+                      disabled: deletingSkinTypeId === option.id,
+                      onToggle: () =>
+                        setForm((current) => ({
+                          ...current,
+                          skinTypes: current.skinTypes.includes(option.value)
+                            ? current.skinTypes.filter((entry) => entry !== option.value)
+                            : [...current.skinTypes, option.value]
+                        })),
+                      onDelete: () => void handleDeleteSkinTypeOption(option)
+                    }))}
+                  />
+                  <div className="rounded-[1rem] border border-dashed border-[#dbe3f0] bg-[#fbfcfe] px-4 py-4">
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <input
+                        className="admin-input h-12 flex-1 bg-white"
+                        aria-label="Новый тип кожи"
+                        placeholder="Добавить новый тип кожи"
+                        value={newSkinTypeName}
+                        onChange={(event) => setNewSkinTypeName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void handleCreateSkinTypeOption();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="admin-button-secondary h-12 shrink-0"
+                        disabled={creatingSkinType || !newSkinTypeName.trim()}
+                        onClick={() => void handleCreateSkinTypeOption()}
+                      >
+                        {creatingSkinType ? "Добавляем..." : "Добавить"}
+                      </button>
+                    </div>
+                    {skinTypeOptionError ? (
+                      <p className="mt-3 text-sm font-medium text-red-600">{skinTypeOptionError}</p>
+                    ) : null}
                   </div>
                 </FieldGroup>
 
@@ -1683,37 +1915,54 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                   />
                 </FieldGroup>
 
-                <FieldGroup label="Категория" hint="Выберите одну или несколько категорий. Первый выбранный вариант станет основной категорией товара.">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                    {categories.map((category) => {
-                      const checked = form.categoryIds.includes(category.id);
+                <FieldGroup label="Категория" hint="Выберите одну или несколько категорий. Новые категории тоже можно добавить прямо в форме, а удалить при наведении.">
+                  <DynamicOptionChecklist
+                    items={categories.map((category) => {
                       const label = category.nameRu || category.nameEn || category.nameUz;
 
-                      return (
-                        <label
-                          key={category.id}
-                          className={`flex items-center gap-3 rounded-[1rem] border px-4 py-3 text-sm font-medium transition ${
-                            checked
-                              ? "border-slate-900 bg-slate-50 text-slate-900"
-                              : "border-[#dbe3f0] bg-white text-slate-600"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() =>
-                              setForm((current) => ({
-                                ...current,
-                                categoryIds: current.categoryIds.includes(category.id)
-                                  ? current.categoryIds.filter((entry) => entry !== category.id)
-                                  : [...current.categoryIds, category.id]
-                              }))
-                            }
-                          />
-                          {label}
-                        </label>
-                      );
+                      return {
+                        value: category.id,
+                        label,
+                        checked: form.categoryIds.includes(category.id),
+                        disabled: deletingCategoryId === category.id,
+                        onToggle: () =>
+                          setForm((current) => ({
+                            ...current,
+                            categoryIds: current.categoryIds.includes(category.id)
+                              ? current.categoryIds.filter((entry) => entry !== category.id)
+                              : [...current.categoryIds, category.id]
+                          })),
+                        onDelete: () => void handleDeleteCategoryOption(category)
+                      };
                     })}
+                  />
+                  <div className="rounded-[1rem] border border-dashed border-[#dbe3f0] bg-[#fbfcfe] px-4 py-4">
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <input
+                        className="admin-input h-12 flex-1 bg-white"
+                        aria-label="Новая категория"
+                        placeholder="Добавить новую категорию"
+                        value={newCategoryName}
+                        onChange={(event) => setNewCategoryName(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void handleCreateCategoryOption();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="admin-button-secondary h-12 shrink-0"
+                        disabled={creatingCategory || !newCategoryName.trim()}
+                        onClick={() => void handleCreateCategoryOption()}
+                      >
+                        {creatingCategory ? "Добавляем..." : "Добавить"}
+                      </button>
+                    </div>
+                    {categoryOptionError ? (
+                      <p className="mt-3 text-sm font-medium text-red-600">{categoryOptionError}</p>
+                    ) : null}
                   </div>
                 </FieldGroup>
 

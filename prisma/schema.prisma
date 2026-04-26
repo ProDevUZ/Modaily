@@ -42,6 +42,18 @@ model Category {
   products      Product[]
 }
 
+model SkinTypeOption {
+  id        String   @id @default(cuid())
+  value     String   @unique
+  nameUz    String
+  nameRu    String
+  nameEn    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
 model Product {
   id                 String   @id @default(cuid())
   sku                String   @unique
@@ -237,6 +249,7 @@ model HomeHero {
   secondaryCtaEn   String?
   secondaryCtaLink String?
   imageUrl         String?
+  mobileImageUrl   String?
   heroProductId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -301,6 +314,18 @@ model GalleryItem {
   active         Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+}
+
+model GallerySectionHeading {
+  id        String          @id @default(cuid())
+  type      GalleryItemType
+  textUz    String?
+  textRu    String?
+  textEn    String?
+  sortOrder Int             @default(0)
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model Testimonial {

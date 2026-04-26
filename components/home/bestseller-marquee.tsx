@@ -67,12 +67,33 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
     [baseProducts]
   );
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const progressRailRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
   const draggingRef = useRef(false);
   const adjustingRef = useRef(false);
   const suppressClickRef = useRef(false);
   const startXRef = useRef(0);
   const startScrollRef = useRef(0);
+
+  function syncProgressIndicator() {
+    const scroller = scrollerRef.current;
+    const progressRail = progressRailRef.current;
+
+    if (!scroller || !progressRail) {
+      return;
+    }
+
+    const segmentWidth = scroller.scrollWidth / 3;
+
+    if (!segmentWidth) {
+      return;
+    }
+
+    const normalizedProgress =
+      (((scroller.scrollLeft % segmentWidth) + segmentWidth) % segmentWidth) / segmentWidth;
+
+    progressRail.style.transform = `translate3d(-${normalizedProgress * 50}%, 0, 0)`;
+  }
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -82,6 +103,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
     }
 
     scroller.scrollLeft = scroller.scrollWidth / 3;
+    syncProgressIndicator();
 
     let frameId = 0;
     let lastTimestamp = 0;
@@ -98,6 +120,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
       if (!pausedRef.current && !draggingRef.current) {
         scroller.scrollLeft += delta * speed;
         normalizeScrollPosition();
+        syncProgressIndicator();
       }
 
       frameId = window.requestAnimationFrame(step);
@@ -134,6 +157,8 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
     while (scroller.scrollLeft >= maxThreshold) {
       scroller.scrollLeft -= segmentWidth;
     }
+
+    syncProgressIndicator();
 
     requestAnimationFrame(() => {
       adjustingRef.current = false;
@@ -178,6 +203,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
 
     scroller.scrollLeft = startScrollRef.current - delta;
     normalizeScrollPosition();
+    syncProgressIndicator();
   }
 
   function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
@@ -223,45 +249,64 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
   }
 
   return (
-    <div
-      ref={scrollerRef}
-      className="bestseller-scroller mt-7 overflow-x-auto overscroll-x-contain"
-      onMouseEnter={() => {
-        pausedRef.current = true;
-      }}
-      onMouseLeave={() => {
-        if (!draggingRef.current) {
-          pausedRef.current = false;
-        }
-      }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onScroll={normalizeScrollPosition}
-      onClickCapture={handleClickCapture}
-    >
-      <div className="flex w-max items-start gap-4 pr-4 lg:gap-[10px] lg:pr-[10px]">
-        {loopProducts.map((product, index) => (
-          <Link
-            key={`${product.id}-${index}`}
-            href={`/${locale}/catalog/${product.slug}`}
-            data-bestseller-link="true"
-            className="relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[290px] xl:w-[320px]"
-            aria-label={product.name}
-          >
-            <div className="relative flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
-              <ProductBadgeStack badges={product.badges || []} />
-              <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
-            </div>
-            <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:leading-6">
-              {product.name}
-            </h3>
-            <span className="relative z-[2] mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">
-              {learnMoreLabel}
-            </span>
-          </Link>
-        ))}
+    <div className="mt-7">
+      <div
+        ref={scrollerRef}
+        className="bestseller-scroller -mx-8 overflow-x-auto overscroll-x-contain md:mx-0"
+        onMouseEnter={() => {
+          pausedRef.current = true;
+        }}
+        onMouseLeave={() => {
+          if (!draggingRef.current) {
+            pausedRef.current = false;
+          }
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onScroll={() => {
+          normalizeScrollPosition();
+          syncProgressIndicator();
+        }}
+        onClickCapture={handleClickCapture}
+      >
+        <div className="flex w-max items-start gap-4 pr-0 lg:gap-[10px] lg:pr-[10px]">
+          {loopProducts.map((product, index) => (
+            <Link
+              key={`${product.id}-${index}`}
+              href={`/${locale}/catalog/${product.slug}`}
+              data-bestseller-link="true"
+              className="relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[290px] xl:w-[320px]"
+              aria-label={product.name}
+            >
+              <div className="relative flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
+                <ProductBadgeStack badges={product.badges || []} />
+                <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
+              </div>
+              <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:leading-6">
+                {product.name}
+              </h3>
+              <span className="relative z-[2] mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">
+                {learnMoreLabel}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-center px-8 md:mt-7 md:px-0">
+        <div className="relative h-[6px] w-full max-w-[210px] overflow-hidden rounded-full bg-black/12 lg:max-w-[280px]">
+          <div ref={progressRailRef} className="absolute inset-y-0 left-0 flex w-[200%] will-change-transform">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="flex h-full w-1/2 items-center gap-[14px] pr-[14px]">
+                <span className="h-full flex-[0_0_44%] rounded-full bg-[var(--brand)]/88" />
+                <span className="h-full flex-[0_0_18%] rounded-full bg-[var(--brand)]/34" />
+                <span className="h-full flex-1 rounded-full bg-[var(--brand)]/66" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

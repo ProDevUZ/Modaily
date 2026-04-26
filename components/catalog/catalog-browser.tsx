@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product-card";
 import type { Locale } from "@/lib/i18n";
-import { SKIN_TYPE_LABELS_EN, SKIN_TYPE_LABELS_RU, SKIN_TYPE_LABELS_UZ, SKIN_TYPE_VALUES } from "@/lib/skin-types";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
 type CatalogBrowserProps = {
   locale: Locale;
   products: StorefrontProduct[];
+  skinTypeOptions: { value: string; label: string }[];
   hideCommerce?: boolean;
   initialCategorySlugs?: string[];
 };
@@ -58,8 +58,6 @@ const copyByLocale = {
     sensitive: "Sensitive"
   }
 } as const;
-
-const skinTypeOrder = SKIN_TYPE_VALUES;
 
 function FilterSection({ title, children, defaultOpen = true }: FilterSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
@@ -110,11 +108,11 @@ function formatPrice(price: number) {
 export function CatalogBrowser({
   locale,
   products,
+  skinTypeOptions,
   hideCommerce = false,
   initialCategorySlugs = []
 }: CatalogBrowserProps) {
   const copy = copyByLocale[locale];
-  const skinTypeLabels = locale === "ru" ? SKIN_TYPE_LABELS_RU : locale === "en" ? SKIN_TYPE_LABELS_EN : SKIN_TYPE_LABELS_UZ;
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategorySlugs);
   const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
@@ -152,6 +150,11 @@ export function CatalogBrowser({
     return Array.from(map.entries()).map(([slug, name]) => ({ slug, name }));
   }, [products]);
 
+  const skinTypeLabelMap = useMemo(
+    () => new Map(skinTypeOptions.map((option) => [option.value, option.label])),
+    [skinTypeOptions]
+  );
+
   const availableSkinTypes = useMemo(() => {
     const set = new Set<string>();
 
@@ -159,8 +162,11 @@ export function CatalogBrowser({
       product.skinTypes.forEach((skinType) => set.add(skinType));
     });
 
-    return skinTypeOrder.filter((skinType) => set.has(skinType));
-  }, [products]);
+    const ordered = skinTypeOptions.map((option) => option.value).filter((skinType) => set.has(skinType));
+    const fallback = Array.from(set).filter((skinType) => !ordered.includes(skinType)).sort((left, right) => left.localeCompare(right, locale));
+
+    return [...ordered, ...fallback];
+  }, [locale, products, skinTypeOptions]);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = search.trim().toLowerCase();
@@ -279,7 +285,7 @@ export function CatalogBrowser({
           {availableSkinTypes.map((skinType) => (
             <CheckboxRow
               key={skinType}
-              label={skinTypeLabels[skinType] || skinType}
+              label={skinTypeLabelMap.get(skinType) || skinType}
               checked={selectedSkinTypes.includes(skinType)}
               onChange={() =>
                 setSelectedSkinTypes((current) =>
@@ -349,11 +355,7 @@ export function CatalogBrowser({
             </div>
           </div>
 
-          {mobileFiltersOpen ? (
-            <div className="rounded-[16px] border border-black/8 bg-white p-4.5 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-              {filtersContent}
-            </div>
-          ) : null}
+          {mobileFiltersOpen ? <div>{filtersContent}</div> : null}
         </div>
       ) : null}
 

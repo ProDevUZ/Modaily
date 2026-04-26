@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { CatalogBrowser } from "@/components/catalog/catalog-browser";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
+import { getLocalizedSkinTypeOptions } from "@/lib/skin-type-options";
 import { getStorefrontProducts } from "@/lib/storefront-products";
 import { getLocalizedSiteSettings } from "@/lib/storefront-content";
 
@@ -55,7 +56,10 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
       ? resolvedSearchParams.category.split(",").map((entry) => entry.trim()).filter(Boolean)
       : [];
 
-  const products = await getStorefrontProducts(locale);
+  const [products, skinTypeOptions] = await Promise.all([
+    getStorefrontProducts(locale),
+    getLocalizedSkinTypeOptions(locale)
+  ]);
   const siteSettings = await getLocalizedSiteSettings(locale);
 
   return (
@@ -79,6 +83,7 @@ export default async function CatalogPage({ params, searchParams }: PageProps) {
           <CatalogBrowser
             locale={locale}
             products={products}
+            skinTypeOptions={skinTypeOptions}
             hideCommerce={siteSettings.hideCommerce}
             initialCategorySlugs={initialCategorySlugs}
           />

@@ -256,12 +256,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
               </Link>
             </nav>
 
-            <div className="mt-[56px]">
-              <p className="text-[17px] font-medium leading-[1.25] text-white">{labels.stores}</p>
-              <p className="mt-[18px] max-w-[320px] text-[17px] leading-[1.45] text-white/82">{siteSettings.footerAddress}</p>
-            </div>
-
-            <div className="mt-[64px] h-px bg-white/42" />
+            <div className="mt-[56px] h-px bg-white/42" />
 
             <div className="mt-[38px] flex items-center justify-center gap-[24px]">
               {phoneHref ? <FooterIconOnlyLink href={phoneHref} iconSrc="/icons/call.svg" iconAlt="Phone" /> : null}
@@ -285,7 +280,7 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
               <div
                 className="grid items-start"
                 style={{
-                  gridTemplateColumns: "289px 232px 74px 178px 302px"
+                  gridTemplateColumns: "289px 278px 220px"
                 }}
               >
                 <div className="col-[1]">
@@ -334,13 +329,6 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                       {labels.feedback}
                     </Link>
                   </nav>
-                </div>
-
-                <div className="col-[5] pt-[4px]">
-                  <p className="text-[16px] font-medium leading-[23px] text-white">{labels.stores}</p>
-                  <p className="mt-[38px] min-h-[95px] w-[302px] text-[16px] leading-[1.35] text-white/82">
-                    {siteSettings.footerAddress}
-                  </p>
                 </div>
               </div>
 

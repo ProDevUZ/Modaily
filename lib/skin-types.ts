@@ -1,23 +1,73 @@
-export const SKIN_TYPE_OPTIONS = [
-  { value: "universal", labelRu: "Универсальная кожа", labelUz: "Universal teri", labelEn: "Universal skin" },
-  { value: "normal", labelRu: "Нормальная кожа", labelUz: "Normal teri", labelEn: "Normal skin" },
-  { value: "dry", labelRu: "Сухая кожа", labelUz: "Quruq teri", labelEn: "Dry skin" },
-  { value: "combination", labelRu: "Комбинированная кожа", labelUz: "Kombinatsiyalangan teri", labelEn: "Combination skin" },
-  { value: "oily", labelRu: "Жирная кожа", labelUz: "Yog'li teri", labelEn: "Oily skin" },
-  { value: "sensitive", labelRu: "Чувствительная кожа", labelUz: "Sezgir teri", labelEn: "Sensitive skin" },
-  { value: "problematic", labelRu: "Проблемная кожа", labelUz: "Muammoli teri", labelEn: "Problem skin" }
-] as const;
+import type { Locale } from "@/lib/i18n";
 
-export const SKIN_TYPE_VALUES = SKIN_TYPE_OPTIONS.map((option) => option.value);
+export type SkinTypeOptionRecord = {
+  id: string;
+  value: string;
+  nameUz: string;
+  nameRu: string;
+  nameEn: string;
+};
 
-export const SKIN_TYPE_LABELS_RU: Record<string, string> = Object.fromEntries(
-  SKIN_TYPE_OPTIONS.map((option) => [option.value, option.labelRu])
-);
+export const defaultSkinTypeOptions = [
+  {
+    value: "universal",
+    nameUz: "Universal teri",
+    nameRu: "Универсальная кожа",
+    nameEn: "Universal skin"
+  },
+  {
+    value: "normal",
+    nameUz: "Normal teri",
+    nameRu: "Нормальная кожа",
+    nameEn: "Normal skin"
+  },
+  {
+    value: "dry",
+    nameUz: "Quruq teri",
+    nameRu: "Сухая кожа",
+    nameEn: "Dry skin"
+  },
+  {
+    value: "combination",
+    nameUz: "Kombinatsiyalangan teri",
+    nameRu: "Комбинированная кожа",
+    nameEn: "Combination skin"
+  },
+  {
+    value: "oily",
+    nameUz: "Yog'li teri",
+    nameRu: "Жирная кожа",
+    nameEn: "Oily skin"
+  },
+  {
+    value: "sensitive",
+    nameUz: "Sezgir teri",
+    nameRu: "Чувствительная кожа",
+    nameEn: "Sensitive skin"
+  },
+  {
+    value: "problematic",
+    nameUz: "Muammoli teri",
+    nameRu: "Проблемная кожа",
+    nameEn: "Problem skin"
+  }
+] as const satisfies readonly Omit<SkinTypeOptionRecord, "id">[];
 
-export const SKIN_TYPE_LABELS_UZ: Record<string, string> = Object.fromEntries(
-  SKIN_TYPE_OPTIONS.map((option) => [option.value, option.labelUz])
-);
+export function getSkinTypeLabel(option: SkinTypeOptionRecord, locale: Locale) {
+  if (locale === "uz") {
+    return option.nameUz || option.nameEn || option.nameRu;
+  }
 
-export const SKIN_TYPE_LABELS_EN: Record<string, string> = Object.fromEntries(
-  SKIN_TYPE_OPTIONS.map((option) => [option.value, option.labelEn])
-);
+  if (locale === "ru") {
+    return option.nameRu || option.nameEn || option.nameUz;
+  }
+
+  return option.nameEn || option.nameRu || option.nameUz;
+}
+
+export function buildSkinTypeLabelMap(
+  options: SkinTypeOptionRecord[],
+  locale: Locale
+) {
+  return new Map(options.map((option) => [option.value, getSkinTypeLabel(option, locale)]));
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { RotatingSectionHeading } from "@/components/home/rotating-section-heading";
 import { FallbackImage } from "@/components/ui/fallback-image";
 
 type GalleryItem = {
@@ -12,6 +13,7 @@ type GalleryItem = {
 
 type GalleryProps = {
   title: string;
+  headings?: string[];
   items: GalleryItem[];
 };
 
@@ -271,16 +273,20 @@ function GalleryRow({
   );
 }
 
-export function Gallery({ title, items }: GalleryProps) {
+export function Gallery({ title, headings, items }: GalleryProps) {
   const { topRow, bottomRow } = useMemo(() => buildRows(items), [items]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   return (
     <>
       <section className="space-y-8">
-        <h2 className="px-8 text-[42px] tracking-[-0.04em] text-black md:px-10 md:text-[56px] lg:px-12">
-          {title}
-        </h2>
+        <div className="px-8 md:px-10 lg:px-12">
+          <RotatingSectionHeading
+            fallback={title}
+            texts={headings}
+            textClassName="text-[34px] leading-[1.08] tracking-[-0.04em] text-black md:text-[48px] lg:text-[56px]"
+          />
+        </div>
 
         <div className="space-y-4 sm:space-y-5">
           <GalleryRow items={topRow} allItems={items} animationClass="gallery-marquee-left" onOpen={setLightboxIndex} />

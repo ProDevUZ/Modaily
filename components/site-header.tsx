@@ -179,7 +179,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
     : [];
 
   return (
-    <header className="relative z-50 bg-white [font-family:var(--font-body)]">
+    <header className="sticky top-0 z-[70] bg-white [font-family:var(--font-body)]">
       <div className="flex h-[30px] items-center justify-center bg-[#1a1a1a] px-4 text-center text-[11px] font-normal leading-none text-white md:h-[32px] md:text-[12px]">
         <div className="mx-auto flex max-w-[1440px] items-center justify-center gap-5 overflow-hidden whitespace-nowrap px-6">
           <span className="text-white/88">{announcementCopy.text}</span>
@@ -331,7 +331,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
 
         <div className="mx-auto flex h-[65px] max-w-[1760px] items-center px-5 sm:px-6 lg:hidden [font-family:var(--font-body)]">
           <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-[15px]">
               <button
                 type="button"
                 className="flex h-[34px] w-[34px] items-center justify-center text-black"
@@ -342,14 +342,20 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   setIsProfileOpen(false);
                 }}
               >
-                <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.9">
-                  <path d="M4 7h16M4 12h16M4 17h16" />
-                </svg>
+                {isOpen ? (
+                  <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+                    <path d="M6 6 18 18M18 6 6 18" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-[19px] w-[19px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+                    <path d="M4 7h16M4 12h16M4 17h16" />
+                  </svg>
+                )}
               </button>
 
               <Link
                 href={`/${locale}`}
-                className="brand-wordmark inline-flex h-[17px] w-[132px] translate-y-[1px] items-center overflow-hidden whitespace-nowrap text-[16px] uppercase leading-[17px] text-[var(--brand)]"
+                className="brand-wordmark inline-flex h-[21px] w-[150px] max-w-[calc(100vw-168px)] translate-y-[4px] items-center overflow-visible whitespace-nowrap text-[17px] uppercase leading-[18px] text-[var(--brand)]"
               >
                 {siteSettings.brandName}
               </Link>
@@ -383,66 +389,79 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
         </div>
 
         {isOpen ? (
-          <div className="border-t border-black/8 px-4 py-3 lg:hidden">
-            <div className="mx-auto flex max-w-[1760px] flex-col gap-3 px-4 text-[13px]">
-              {!siteSettings.hideCommerce && isLoggedIn && profile ? (
-                <div className="rounded-[14px] border border-black/8 bg-[#faf8f6] px-4 py-3">
-                  <p className="text-[11px] text-black/35">{profileCopy.profile}</p>
-                  <p className="mt-1 text-[13px] font-medium text-black">{profile.fullName}</p>
-                  <p className="mt-1 text-[12px] text-black/55">{profile.phone}</p>
-                  <button
-                    type="button"
-                    className="mt-3 text-[12px] text-[#ba0c2f]"
-                    onClick={() => {
-                      clearProfile();
-                      setIsOpen(false);
-                    }}
-                  >
-                    {profileCopy.logout}
-                  </button>
-                </div>
-              ) : !siteSettings.hideCommerce ? (
-                <Link href={`/${locale}/login`} className="text-black" onClick={() => setIsOpen(false)}>
-                  {profileCopy.login}
-                </Link>
-              ) : null}
-
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className="text-black" onClick={() => setIsOpen(false)}>
-                  {item.label}
-                </Link>
-              ))}
-              <div className="relative pt-1">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 text-[13px] text-black"
-                  onClick={() => setIsLocaleOpen((current) => !current)}
-                >
-                  <span>{localeCopy.trigger}</span>
-                  <svg viewBox="0 0 16 16" className={`h-4 w-4 transition ${isLocaleOpen ? "rotate-180" : ""}`} fill="currentColor">
-                    <path d="M4.2 6.1 8 9.9l3.8-3.8" />
-                  </svg>
-                </button>
-              </div>
-              {isLocaleOpen ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {locales.map((entry) => (
-                    <Link
-                      key={entry}
-                      href={switchLocale(entry)}
-                      className={`rounded-full px-3 py-1 text-[11px] ${
-                        entry === locale ? "bg-black text-white" : "border border-black/10 text-black/55"
-                      }`}
+          <div className="fixed inset-x-0 bottom-0 top-[95px] z-40 lg:hidden">
+            <button
+              type="button"
+              aria-label="Close menu"
+              className="absolute inset-0 bg-black/22"
+              onClick={() => {
+                setIsOpen(false);
+                setIsLocaleOpen(false);
+              }}
+            />
+            <div className="relative h-full w-[min(86vw,360px)] overflow-y-auto border-r border-black/8 bg-white px-6 py-7 shadow-[0_18px_48px_rgba(0,0,0,0.16)]">
+              <div className="flex flex-col gap-5 text-[17px] leading-[1.25] text-black">
+                {!siteSettings.hideCommerce && isLoggedIn && profile ? (
+                  <div className="rounded-[18px] border border-black/8 bg-[#faf8f6] px-5 py-4">
+                    <p className="text-[12px] text-black/35">{profileCopy.profile}</p>
+                    <p className="mt-1.5 text-[17px] font-medium text-black">{profile.fullName}</p>
+                    <p className="mt-1 text-[14px] text-black/55">{profile.phone}</p>
+                    <button
+                      type="button"
+                      className="mt-4 text-[14px] text-[#ba0c2f]"
                       onClick={() => {
+                        clearProfile();
                         setIsOpen(false);
-                        setIsLocaleOpen(false);
                       }}
                     >
-                      {localeCopy[entry]}
-                    </Link>
-                  ))}
+                      {profileCopy.logout}
+                    </button>
+                  </div>
+                ) : !siteSettings.hideCommerce ? (
+                  <Link href={`/${locale}/login`} className="text-[17px] text-black" onClick={() => setIsOpen(false)}>
+                    {profileCopy.login}
+                  </Link>
+                ) : null}
+
+                {navItems.map((item) => (
+                  <Link key={item.href} href={item.href} className="text-[17px] text-black" onClick={() => setIsOpen(false)}>
+                    {item.label}
+                  </Link>
+                ))}
+
+                <div className="border-t border-black/8 pt-5">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 text-[17px] text-black"
+                    onClick={() => setIsLocaleOpen((current) => !current)}
+                  >
+                    <span>{localeCopy.trigger}</span>
+                    <svg viewBox="0 0 16 16" className={`h-[17px] w-[17px] transition ${isLocaleOpen ? "rotate-180" : ""}`} fill="currentColor">
+                      <path d="M4.2 6.1 8 9.9l3.8-3.8" />
+                    </svg>
+                  </button>
+
+                  {isLocaleOpen ? (
+                    <div className="flex flex-wrap gap-2.5 pt-3">
+                      {locales.map((entry) => (
+                        <Link
+                          key={entry}
+                          href={switchLocale(entry)}
+                          className={`rounded-full px-4 py-2 text-[14px] ${
+                            entry === locale ? "bg-black text-white" : "border border-black/10 text-black/55"
+                          }`}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setIsLocaleOpen(false);
+                          }}
+                        >
+                          {localeCopy[entry]}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              </div>
             </div>
           </div>
         ) : null}
@@ -451,7 +470,7 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
       {isSearchOpen ? (
         <div className="border-b border-black/8 bg-white px-4 py-4 shadow-[0_12px_30px_rgba(0,0,0,0.05)]">
           <div className="mx-auto max-w-[1760px] px-4">
-            <div className="flex flex-col gap-4 rounded-[1.25rem] border border-black/8 bg-[#faf7f5] p-4 md:p-5">
+            <div className="flex flex-col gap-4">
               <div className="relative">
                 <input
                   value={searchQuery}

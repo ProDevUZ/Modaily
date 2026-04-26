@@ -49,6 +49,15 @@ function localizedValue(entry: Record<string, unknown>, base: string, locale: Lo
       : "";
 }
 
+function localizedFlexibleValue(entry: Record<string, unknown>, base: string, locale: Locale) {
+  return (
+    localizedValue(entry, base, locale) ||
+    (typeof entry[`${base}Uz`] === "string" ? (entry[`${base}Uz`] as string) : "") ||
+    (typeof entry[`${base}Ru`] === "string" ? (entry[`${base}Ru`] as string) : "") ||
+    (typeof entry[`${base}En`] === "string" ? (entry[`${base}En`] as string) : "")
+  );
+}
+
 export async function getLocalizedSiteSettings(locale: Locale) {
   noStore();
   const settings = (await prisma.siteSettings.findFirst({
@@ -92,7 +101,7 @@ export async function getLocalizedSiteSettings(locale: Locale) {
 
 export async function getHomePageContent(locale: Locale) {
   noStore();
-  const [heroRow, aboutRow, promoRows, galleryRows, testimonialRows, bestsellers] = await Promise.all([
+  const [heroRow, aboutRow, promoRows, galleryRows, galleryHeadingRows, testimonialRows, bestsellers] = await Promise.all([
     prisma.homeHero.findFirst({
       orderBy: { createdAt: "asc" },
       include: {
@@ -118,6 +127,7 @@ export async function getHomePageContent(locale: Locale) {
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
     }),
     prisma.galleryItem.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
+    prisma.gallerySectionHeading.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.testimonial.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.product.findMany({
       where: { active: true, isBestseller: true },
@@ -135,14 +145,9 @@ export async function getHomePageContent(locale: Locale) {
 
   return {
     hero: {
-      badge: localizedValue(hero, "badge", locale),
-      title: localizedValue(hero, "title", locale),
-      description: localizedValue(hero, "description", locale),
-      primaryCta: localizedValue(hero, "primaryCta", locale),
       primaryCtaLink: heroPrimaryCtaLink,
-      secondaryCta: localizedValue(hero, "secondaryCta", locale),
-      secondaryCtaLink: localizeInternalLink(hero.secondaryCtaLink, locale, `/${locale}/catalog`),
-      imageUrl: hero.imageUrl || ""
+      imageUrl: hero.imageUrl || "",
+      mobileImageUrl: hero.mobileImageUrl || hero.imageUrl || ""
     },
     bestsellers: bestsellers.map((product) => ({
       id: product.id,
@@ -181,6 +186,10 @@ export async function getHomePageContent(locale: Locale) {
         title: localizedValue(row, "title", locale),
         imageUrl: row.imageUrl
       })),
+    galleryImageHeadings: galleryHeadingRows
+      .filter((row) => row.type === "IMAGE")
+      .map((row) => localizedFlexibleValue(row, "text", locale))
+      .filter((value) => value.trim().length > 0),
     galleryVideos: galleryRows
       .filter((row) => row.type === "VIDEO")
       .map((row) => ({
@@ -189,6 +198,10 @@ export async function getHomePageContent(locale: Locale) {
         imageUrl: row.imageUrl,
         videoUrl: row.videoUrl || ""
       })),
+    galleryVideoHeadings: galleryHeadingRows
+      .filter((row) => row.type === "VIDEO")
+      .map((row) => localizedFlexibleValue(row, "text", locale))
+      .filter((value) => value.trim().length > 0),
     testimonials: testimonialRows.map((row) => ({
       id: row.id,
       authorName: row.authorName,

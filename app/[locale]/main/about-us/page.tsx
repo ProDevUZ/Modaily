@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AboutPageView } from "@/components/about/about-page-view";
 import { defaultHomeAbout } from "@/lib/content-defaults";
 import { getDictionary, isLocale } from "@/lib/i18n";
-import { getLocalizedSiteSettings } from "@/lib/storefront-content";
+import { getHomePageContent, getLocalizedSiteSettings } from "@/lib/storefront-content";
 
 type PageProps = {
   params: Promise<{ locale: string }>;
@@ -20,9 +20,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
 
-  const siteSettings = await getLocalizedSiteSettings(locale);
-  const title = siteSettings.aboutPage?.title || defaultHomeAbout.titleRu;
-  const description = siteSettings.aboutPage?.description || defaultHomeAbout.descriptionRu;
+  const homeContent = await getHomePageContent(locale);
+  const title = homeContent.about?.title || defaultHomeAbout.titleRu;
+  const description = homeContent.about?.description || defaultHomeAbout.descriptionRu;
 
   return {
     title: `${title} | Modaily`,
@@ -40,9 +40,10 @@ export default async function AboutUsPage({ params }: PageProps) {
     notFound();
   }
 
-  const [dictionary, siteSettings] = await Promise.all([
+  const [dictionary, siteSettings, homeContent] = await Promise.all([
     getDictionary(locale),
-    getLocalizedSiteSettings(locale)
+    getLocalizedSiteSettings(locale),
+    getHomePageContent(locale)
   ]);
 
   return (
@@ -51,12 +52,12 @@ export default async function AboutUsPage({ params }: PageProps) {
       dictionaryHomeLabel={dictionary.nav.home}
       brandName={siteSettings.brandName}
       content={{
-        title: siteSettings.aboutPage.title,
-        description: siteSettings.aboutPage.description,
-        secondaryTitle: siteSettings.aboutPage.brandTitle,
-        secondaryDescription: siteSettings.aboutPage.panelDescription,
-        bottomDescription: siteSettings.aboutPage.panelSecondaryDescription,
-        imageUrl: siteSettings.aboutPage.imageUrl
+        title: homeContent.about.title,
+        description: homeContent.about.description,
+        secondaryTitle: homeContent.about.secondaryTitle,
+        secondaryDescription: homeContent.about.secondaryDescription,
+        bottomDescription: homeContent.about.bottomDescription,
+        imageUrl: homeContent.about.imageUrl
       }}
       siteSettings={siteSettings}
     />

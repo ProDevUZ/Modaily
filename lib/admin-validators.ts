@@ -1,4 +1,4 @@
-import { SKIN_TYPE_VALUES } from "@/lib/skin-types";
+import { slugifyText } from "@/lib/slugify";
 
 type ValidationResult<T> =
   | { success: true; data: T }
@@ -26,6 +26,13 @@ export type CategoryPayload = {
   descriptionUz: string | null;
   descriptionRu: string | null;
   descriptionEn: string | null;
+};
+
+export type SkinTypeOptionPayload = {
+  value: string;
+  nameUz: string;
+  nameRu: string;
+  nameEn: string;
 };
 
 export type ProductPayload = {
@@ -141,24 +148,8 @@ export type ShopLocationPayload = {
 };
 
 export type HomeHeroPayload = {
-  badgeUz: string | null;
-  badgeRu: string | null;
-  badgeEn: string | null;
-  titleUz: string;
-  titleRu: string;
-  titleEn: string;
-  descriptionUz: string | null;
-  descriptionRu: string | null;
-  descriptionEn: string | null;
-  primaryCtaUz: string | null;
-  primaryCtaRu: string | null;
-  primaryCtaEn: string | null;
-  primaryCtaLink: string | null;
-  secondaryCtaUz: string | null;
-  secondaryCtaRu: string | null;
-  secondaryCtaEn: string | null;
-  secondaryCtaLink: string | null;
   imageUrl: string | null;
+  mobileImageUrl: string | null;
   heroProductId: string | null;
 };
 
@@ -208,6 +199,15 @@ export type GalleryItemPayload = {
   descriptionEn: string | null;
   imageUrl: string;
   videoUrl: string | null;
+  sortOrder: number;
+  active: boolean;
+};
+
+export type GallerySectionHeadingPayload = {
+  type: "IMAGE" | "VIDEO";
+  textUz: string | null;
+  textRu: string | null;
+  textEn: string | null;
   sortOrder: number;
   active: boolean;
 };
@@ -315,7 +315,6 @@ function asSkinTypes(value: unknown) {
   const normalized = value
     .map((entry) => asString(entry))
     .filter(Boolean)
-    .filter((entry) => SKIN_TYPE_VALUES.includes(entry as (typeof SKIN_TYPE_VALUES)[number]))
     .filter((entry, index, array) => array.indexOf(entry) === index);
 
   return normalized.length > 0 ? normalized.join(",") : null;
@@ -333,10 +332,7 @@ function asCategoryIds(value: unknown) {
 }
 
 function toSlug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return slugifyText(value);
 }
 
 export function validateUserPayload(body: unknown): ValidationResult<UserPayload> {
@@ -416,6 +412,34 @@ export function validateCategoryPayload(body: unknown): ValidationResult<Categor
       descriptionUz: asOptionalString(payload.descriptionUz),
       descriptionRu: asOptionalString(payload.descriptionRu),
       descriptionEn: asOptionalString(payload.descriptionEn)
+    }
+  };
+}
+
+export function validateSkinTypeOptionPayload(body: unknown): ValidationResult<SkinTypeOptionPayload> {
+  const payload = body as Record<string, unknown>;
+
+  const nameUz = asString(payload.nameUz);
+  const nameRu = asString(payload.nameRu);
+  const nameEn = asString(payload.nameEn);
+  const rawValue = asString(payload.value) || nameEn || nameRu || nameUz;
+  const value = toSlug(rawValue);
+
+  if (!nameUz || !nameRu || !nameEn) {
+    return { success: false, error: "All skin type names are required." };
+  }
+
+  if (!value) {
+    return { success: false, error: "Skin type value is required." };
+  }
+
+  return {
+    success: true,
+    data: {
+      value,
+      nameUz,
+      nameRu,
+      nameEn
     }
   };
 }
@@ -622,36 +646,24 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
 
 export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHeroPayload> {
   const payload = body as Record<string, unknown>;
-  const titleUz = asString(payload.titleUz);
-  const titleRu = asString(payload.titleRu);
-  const titleEn = asString(payload.titleEn);
+  const imageUrl = asOptionalString(payload.imageUrl);
+  const mobileImageUrl = asOptionalString(payload.mobileImageUrl);
+  const heroProductId = asOptionalString(payload.heroProductId);
 
-  if (!titleUz || !titleRu || !titleEn) {
-    return { success: false, error: "All hero titles are required." };
+  if (!imageUrl || !mobileImageUrl) {
+    return { success: false, error: "Desktop and mobile hero images are required." };
+  }
+
+  if (!heroProductId) {
+    return { success: false, error: "Linked hero product is required." };
   }
 
   return {
     success: true,
     data: {
-      badgeUz: asOptionalString(payload.badgeUz),
-      badgeRu: asOptionalString(payload.badgeRu),
-      badgeEn: asOptionalString(payload.badgeEn),
-      titleUz,
-      titleRu,
-      titleEn,
-      descriptionUz: asOptionalString(payload.descriptionUz),
-      descriptionRu: asOptionalString(payload.descriptionRu),
-      descriptionEn: asOptionalString(payload.descriptionEn),
-      primaryCtaUz: asOptionalString(payload.primaryCtaUz),
-      primaryCtaRu: asOptionalString(payload.primaryCtaRu),
-      primaryCtaEn: asOptionalString(payload.primaryCtaEn),
-      primaryCtaLink: asOptionalString(payload.primaryCtaLink),
-      secondaryCtaUz: asOptionalString(payload.secondaryCtaUz),
-      secondaryCtaRu: asOptionalString(payload.secondaryCtaRu),
-      secondaryCtaEn: asOptionalString(payload.secondaryCtaEn),
-      secondaryCtaLink: asOptionalString(payload.secondaryCtaLink),
-      imageUrl: asOptionalString(payload.imageUrl),
-      heroProductId: asOptionalString(payload.heroProductId)
+      imageUrl,
+      mobileImageUrl,
+      heroProductId
     }
   };
 }
@@ -802,6 +814,34 @@ export function validateGalleryItemPayload(body: unknown): ValidationResult<Gall
       descriptionEn: asOptionalString(payload.descriptionEn),
       imageUrl: type === "VIDEO" ? imageUrl : imageUrl,
       videoUrl,
+      sortOrder: asInteger(payload.sortOrder),
+      active: asBoolean(payload.active)
+    }
+  };
+}
+
+export function validateGallerySectionHeadingPayload(body: unknown): ValidationResult<GallerySectionHeadingPayload> {
+  const payload = body as Record<string, unknown>;
+  const type = asString(payload.type).toUpperCase();
+  const textUz = asOptionalString(payload.textUz);
+  const textRu = asOptionalString(payload.textRu);
+  const textEn = asOptionalString(payload.textEn);
+
+  if (type !== "IMAGE" && type !== "VIDEO") {
+    return { success: false, error: "Gallery heading type must be IMAGE or VIDEO." };
+  }
+
+  if (!textUz && !textRu && !textEn) {
+    return { success: false, error: "At least one gallery heading text is required." };
+  }
+
+  return {
+    success: true,
+    data: {
+      type,
+      textUz,
+      textRu,
+      textEn,
       sortOrder: asInteger(payload.sortOrder),
       active: asBoolean(payload.active)
     }

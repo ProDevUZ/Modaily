@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { RotatingSectionHeading } from "@/components/home/rotating-section-heading";
 import { FallbackImage } from "@/components/ui/fallback-image";
 
 type VideoItem = {
@@ -13,6 +14,7 @@ type VideoItem = {
 
 type VideoGalleryProps = {
   title: string;
+  headings?: string[];
   items: VideoItem[];
 };
 
@@ -167,16 +169,6 @@ function VideoCard({
     setPlaying(false);
   }
 
-  function seekBy(seconds: number) {
-    if (!videoRef.current || !item.videoUrl) {
-      return;
-    }
-
-    const nextTime = Math.max(0, Math.min(videoRef.current.currentTime + seconds, duration || videoRef.current.duration || 0));
-    videoRef.current.currentTime = nextTime;
-    setCurrentTime(nextTime);
-  }
-
   function handleProgressChange(nextValue: number) {
     if (!videoRef.current || !item.videoUrl) {
       return;
@@ -236,58 +228,36 @@ function VideoCard({
           <>
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             {item.videoUrl ? (
+              <button
+                type="button"
+                data-video-interactive="true"
+                data-video-card-button="true"
+                onClick={togglePause}
+                aria-label={playing ? "Pause video" : "Play video"}
+                className="absolute inset-0 z-[1] flex items-center justify-center bg-transparent"
+              >
+                {!playing ? <PlayButton playing={false} /> : null}
+              </button>
+            ) : null}
+            {item.videoUrl ? (
               <div
                 data-video-interactive="true"
-                className="absolute inset-x-3 bottom-3 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
+                className="absolute inset-x-3 bottom-3 z-10 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
               >
-                <div className="flex items-center gap-2 md:gap-3">
-                  <button
-                    type="button"
-                    onClick={() => seekBy(-10)}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 text-sm transition hover:bg-white/14"
-                    aria-label="Rewind 10 seconds"
-                  >
-                    -10
-                  </button>
-                  <button
-                    type="button"
-                    onClick={togglePause}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 transition hover:bg-white/14"
-                    aria-label={playing ? "Pause video" : "Play video"}
-                  >
-                    {playing ? (
-                      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">
-                        <path d="M5 4h3v12H5zm7 0h3v12h-3z" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 20 20" className="ml-0.5 h-4 w-4 fill-current" aria-hidden="true">
-                        <path d="M5.5 3.5 16 10 5.5 16.5V3.5Z" />
-                      </svg>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => seekBy(10)}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/18 bg-white/8 text-sm transition hover:bg-white/14"
-                    aria-label="Forward 10 seconds"
-                  >
-                    +10
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <input
-                      type="range"
-                      min={0}
-                      max={duration || 0}
-                      step="0.1"
-                      value={Math.min(currentTime, duration || 0)}
-                      onChange={(event) => handleProgressChange(Number(event.target.value))}
-                      className="h-1.5 w-full cursor-pointer accent-white"
-                      aria-label="Video progress"
-                    />
-                    <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
-                      <span>{formatPlaybackTime(currentTime)}</span>
-                      <span>{formatPlaybackTime(duration)}</span>
-                    </div>
+                <div className="min-w-0">
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    step="0.1"
+                    value={Math.min(currentTime, duration || 0)}
+                    onChange={(event) => handleProgressChange(Number(event.target.value))}
+                    className="h-1.5 w-full cursor-pointer accent-white"
+                    aria-label="Video progress"
+                  />
+                  <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
+                    <span>{formatPlaybackTime(currentTime)}</span>
+                    <span>{formatPlaybackTime(duration)}</span>
                   </div>
                 </div>
               </div>
@@ -299,7 +269,7 @@ function VideoCard({
   );
 }
 
-export function VideoGallery({ title, items }: VideoGalleryProps) {
+export function VideoGallery({ title, headings, items }: VideoGalleryProps) {
   const [activeId, setActiveId] = useState("");
   const desktopScrollerRef = useRef<HTMLDivElement | null>(null);
   const desktopDraggingRef = useRef(false);
@@ -447,18 +417,18 @@ export function VideoGallery({ title, items }: VideoGalleryProps) {
 
   return (
     <section className="space-y-8">
-      <div className="flex items-end justify-between gap-4">
-        <div className="flex-1">
-          <div className="h-[3px] w-44 bg-[#ba0c2f] md:w-60" />
-          <h2 className="mt-5 text-[34px] text-neutral-500 md:text-[40px]">
-            {title}
-          </h2>
-        </div>
-
-        <div className="hidden gap-3 md:flex">
+      <div className="relative">
+        <div className="hidden gap-3 md:absolute md:right-0 md:top-0 md:flex">
           <GalleryArrow direction="left" onClick={() => shiftDesktopGallery("left")} disabled={!canShiftDesktopGallery} />
           <GalleryArrow direction="right" onClick={() => shiftDesktopGallery("right")} disabled={!canShiftDesktopGallery} />
         </div>
+
+        <RotatingSectionHeading
+          fallback={title}
+          texts={headings}
+          accentClassName="mx-auto mb-5 h-[3px] w-44 bg-[#ba0c2f] md:w-60"
+          textClassName="text-[34px] leading-[1.1] tracking-[-0.04em] text-center text-neutral-500 md:text-[40px]"
+        />
       </div>
 
       <div className="-mx-8 overflow-x-auto px-8 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">

@@ -7,6 +7,7 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { Locale } from "@/lib/i18n";
 import type { ProductPageCopy } from "@/lib/product-page-copy";
 import { renderRichText } from "@/lib/rich-text";
@@ -56,27 +57,50 @@ function createViewedProductSnapshot(product: StorefrontProductDetail): Storefro
     id: product.id,
     sku: product.sku,
     slug: product.slug,
-    category: product.category,
+    category: normalizeDisplayText(product.category),
     categoryId: product.categoryId,
     categorySlug: product.categorySlug,
-    categories: product.categories,
+    categories: product.categories.map((category) => ({
+      ...category,
+      name: normalizeDisplayText(category.name)
+    })),
     categorySlugs: product.categorySlugs,
     skinTypes: product.skinTypes,
-    size: product.size,
+    size: normalizeDisplayText(product.size),
     price: product.price,
     discountAmount: product.discountAmount,
     hidePrice: product.hidePrice,
     stock: product.stock,
     colors: product.colors,
     badges: product.badges,
-    name: product.name,
-    shortName: product.shortName,
-    shortDescription: product.shortDescription,
-    description: product.description,
-    metaTitle: product.metaTitle,
-    metaDescription: product.metaDescription,
-    h1: product.h1,
-    imageUrl: product.imageUrl
+    name: normalizeDisplayText(product.name),
+    shortName: normalizeDisplayText(product.shortName),
+    shortDescription: normalizeDisplayText(product.shortDescription),
+    description: normalizeDisplayText(product.description),
+    metaTitle: normalizeDisplayText(product.metaTitle),
+    metaDescription: normalizeDisplayText(product.metaDescription),
+    h1: normalizeDisplayText(product.h1),
+    imageUrl: product.imageUrl,
+    searchIndex: product.searchIndex
+  };
+}
+
+function normalizeViewedProduct(product: StorefrontProduct): StorefrontProduct {
+  return {
+    ...product,
+    category: normalizeDisplayText(product.category),
+    categories: product.categories.map((category) => ({
+      ...category,
+      name: normalizeDisplayText(category.name)
+    })),
+    size: normalizeDisplayText(product.size),
+    name: normalizeDisplayText(product.name),
+    shortName: normalizeDisplayText(product.shortName),
+    shortDescription: normalizeDisplayText(product.shortDescription),
+    description: normalizeDisplayText(product.description),
+    metaTitle: normalizeDisplayText(product.metaTitle),
+    metaDescription: normalizeDisplayText(product.metaDescription),
+    h1: normalizeDisplayText(product.h1)
   };
 }
 
@@ -98,16 +122,18 @@ function readViewedProducts(locale: Locale) {
       return [] as StorefrontProduct[];
     }
 
-    return parsed.filter((item): item is StorefrontProduct => {
-      return Boolean(
-        item &&
-          typeof item === "object" &&
-          "id" in item &&
-          "slug" in item &&
-          "name" in item &&
-          "imageUrl" in item
-      );
-    });
+    return parsed
+      .filter((item): item is StorefrontProduct => {
+        return Boolean(
+          item &&
+            typeof item === "object" &&
+            "id" in item &&
+            "slug" in item &&
+            "name" in item &&
+            "imageUrl" in item
+        );
+      })
+      .map((item) => normalizeViewedProduct(item));
   } catch {
     return [] as StorefrontProduct[];
   }
@@ -947,10 +973,10 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
       {recommendations.length > 0 ? (
         <section className="mt-20">
-          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.3rem]">{copy.labels.recommended}</h2>
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[2.1rem]">{copy.labels.recommended}</h2>
 
           <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-[repeat(2,minmax(0,170px))] md:justify-start md:gap-x-4 md:gap-y-8 xl:grid-cols-[repeat(4,minmax(0,185px))] xl:gap-x-4">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 xl:grid-cols-4 xl:gap-x-3">
               {recommendations.map((item) => (
                 <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
                   <ProductCard
@@ -969,10 +995,10 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
 
       {viewedProducts.length > 0 ? (
         <section className="mt-20">
-          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.3rem]">{copy.labels.recentlyViewed}</h2>
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[2.1rem]">{copy.labels.recentlyViewed}</h2>
 
           <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-[repeat(2,minmax(0,170px))] md:justify-start md:gap-x-4 md:gap-y-8 xl:grid-cols-[repeat(4,minmax(0,185px))] xl:gap-x-4">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 xl:grid-cols-4 xl:gap-x-3">
               {viewedProducts.map((item) => (
                 <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
                   <ProductCard

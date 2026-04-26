@@ -6,12 +6,13 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const [siteSettings, hero, about, promoCards, galleryItems, testimonials, blogPosts] = await Promise.all([
+    const [siteSettings, hero, about, promoCards, galleryItems, galleryHeadings, testimonials, blogPosts] = await Promise.all([
       prisma.siteSettings.findFirst({ orderBy: { createdAt: "asc" } }),
       prisma.homeHero.findFirst({ orderBy: { createdAt: "asc" } }),
       prisma.homeAboutSection.findFirst({ orderBy: { createdAt: "asc" } }),
       prisma.homePromoCard.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
       prisma.galleryItem.findMany({ orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
+      prisma.gallerySectionHeading.findMany({ orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
       prisma.testimonial.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
       prisma.blogPost.findMany({
         include: {
@@ -35,6 +36,7 @@ export async function GET() {
       about: about ?? defaultHomeAbout,
       promoCards,
       galleryItems,
+      galleryHeadings,
       testimonials,
       blogPosts: blogPosts.map((post) => serializeBlogPost(post))
     });
@@ -47,6 +49,7 @@ export async function GET() {
       about: defaultHomeAbout,
       promoCards: [],
       galleryItems: [],
+      galleryHeadings: [],
       testimonials: [],
       blogPosts: [],
       degraded: true

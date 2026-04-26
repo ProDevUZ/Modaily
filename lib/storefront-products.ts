@@ -1,5 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 
+import { normalizeDisplayText } from "@/lib/display-text";
 import { prisma } from "@/lib/prisma";
 import type { Locale } from "@/lib/i18n";
 import { buildProductBadges, type StorefrontProductBadge } from "@/lib/product-badges";
@@ -100,6 +101,7 @@ export type StorefrontProduct = {
   metaDescription: string;
   h1: string;
   imageUrl: string;
+  searchIndex: string;
 };
 
 export type StorefrontProductGalleryItem = {
@@ -133,10 +135,6 @@ export type StorefrontProductDetail = StorefrontProduct & {
   reviewCount: number;
   averageRating: number;
 };
-
-function normalizeDisplayText(value: string) {
-  return value.replace(/[＋﹢⁺₊➕✚✛✜⊕⨁]/g, "+");
-}
 
 function localizedProductValue(
   product: LocalizedProductFields,
@@ -254,6 +252,33 @@ function buildLocalizedCategories(
     }));
 }
 
+function buildSearchIndex(
+  product: ProductWithCategory,
+  categoriesById: Map<string, NonNullable<ProductCategory>>
+) {
+  const categoryTexts = resolveCategoryIds(product)
+    .map((categoryId) => categoriesById.get(categoryId))
+    .filter((category): category is NonNullable<ProductCategory> => Boolean(category))
+    .flatMap((category) => [category.nameUz, category.nameRu, category.nameEn, category.slug]);
+
+  return [
+    product.sku,
+    product.slug,
+    product.nameUz,
+    product.nameRu,
+    product.nameEn,
+    product.shortDescriptionUz,
+    product.shortDescriptionRu,
+    product.shortDescriptionEn,
+    product.descriptionUz,
+    product.descriptionRu,
+    product.descriptionEn,
+    ...categoryTexts
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 function mapStorefrontProduct(
   product: ProductWithCategory,
   locale: Locale,
@@ -289,7 +314,8 @@ function mapStorefrontProduct(
     metaTitle: `${name} | Modaily`,
     metaDescription: shortDescription || description,
     h1: name,
-    imageUrl: product.imageUrl || ""
+    imageUrl: product.imageUrl || "",
+    searchIndex: buildSearchIndex(product, categoriesById)
   };
 }
 

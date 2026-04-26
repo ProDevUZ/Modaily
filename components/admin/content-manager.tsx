@@ -5,6 +5,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { adminContentSections, type AdminContentSectionKey } from "@/lib/admin-content-navigation";
 import {
+  type AdminGalleryHeading,
   type AdminGalleryItem,
   type AdminHomeAbout,
   type AdminHomeHero,
@@ -13,10 +14,12 @@ import {
   type AdminTestimonial,
   requestJson
 } from "@/components/admin/admin-types";
+import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 
 type HeroForm = Omit<AdminHomeHero, "id" | "createdAt" | "updatedAt">;
 type AboutForm = Omit<AdminHomeAbout, "id" | "createdAt" | "updatedAt">;
 type PromoForm = Omit<AdminHomePromoCard, "id" | "createdAt" | "updatedAt">;
+type GalleryHeadingForm = Omit<AdminGalleryHeading, "id" | "createdAt" | "updatedAt">;
 type GalleryForm = Omit<AdminGalleryItem, "id" | "createdAt" | "updatedAt">;
 type TestimonialForm = Omit<AdminTestimonial, "id" | "createdAt" | "updatedAt">;
 
@@ -55,6 +58,15 @@ const emptyGalleryForm: GalleryForm = {
   active: true
 };
 
+const emptyGalleryHeadingForm: GalleryHeadingForm = {
+  type: "IMAGE",
+  textUz: "",
+  textRu: "",
+  textEn: "",
+  sortOrder: 0,
+  active: true
+};
+
 const emptyTestimonialForm: TestimonialForm = {
   authorName: "",
   authorRoleUz: "",
@@ -79,11 +91,11 @@ const workspaceMeta: Record<
   hero: {
     eyebrow: "Главный экран",
     title: "Рабочая зона хиро-блока",
-    description: "Первое впечатление о витрине формируется именно здесь. Текст, изображение и привязанный товар собраны в одном месте.",
+    description: "Первый экран витрины. Здесь управляются отдельные изображения для desktop и mobile, а также привязка к товару.",
     tips: [
-      "Короткий и сильный заголовок делает хиро-блок заметно профессиональнее.",
-      "После загрузки изображения его можно быстро проверить через предпросмотр в админке.",
-      "Выбор товара автоматически привязывает кнопку «Подробно»."
+      "Используйте отдельный кадр для desktop и mobile, чтобы композиция не ломалась.",
+      "После загрузки изображения его можно сразу проверить через предпросмотр.",
+      "Привязанный товар открывается по клику на весь hero-блок."
     ]
   },
   about: {
@@ -190,19 +202,23 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [hero, setHero] = useState<HeroForm | null>(null);
   const [about, setAbout] = useState<AboutForm | null>(null);
   const [promoCards, setPromoCards] = useState<AdminHomePromoCard[]>([]);
+  const [galleryHeadings, setGalleryHeadings] = useState<AdminGalleryHeading[]>([]);
   const [galleryItems, setGalleryItems] = useState<AdminGalleryItem[]>([]);
   const [testimonials, setTestimonials] = useState<AdminTestimonial[]>([]);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [promoForm, setPromoForm] = useState<PromoForm>(emptyPromoForm);
+  const [galleryHeadingForm, setGalleryHeadingForm] = useState<GalleryHeadingForm>(emptyGalleryHeadingForm);
   const [galleryForm, setGalleryForm] = useState<GalleryForm>(emptyGalleryForm);
   const [testimonialForm, setTestimonialForm] = useState<TestimonialForm>(emptyTestimonialForm);
   const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
+  const [editingGalleryHeadingId, setEditingGalleryHeadingId] = useState<string | null>(null);
   const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
   const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [heroUploadPending, setHeroUploadPending] = useState(false);
+  const [heroDesktopUploadPending, setHeroDesktopUploadPending] = useState(false);
+  const [heroMobileUploadPending, setHeroMobileUploadPending] = useState(false);
   const [promoUploadPending, setPromoUploadPending] = useState(false);
   const [galleryUploadPending, setGalleryUploadPending] = useState(false);
   const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
@@ -217,6 +233,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
           hero: HeroForm;
           about: AboutForm;
           promoCards: AdminHomePromoCard[];
+          galleryHeadings: AdminGalleryHeading[];
           galleryItems: AdminGalleryItem[];
           testimonials: AdminTestimonial[];
         }>("/api/content/dashboard"),
@@ -226,6 +243,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setHero(dashboard.hero);
       setAbout(dashboard.about);
       setPromoCards(dashboard.promoCards);
+      setGalleryHeadings(dashboard.galleryHeadings);
       setGalleryItems(dashboard.galleryItems);
       setTestimonials(dashboard.testimonials);
       setProducts(productPayload);
@@ -256,14 +274,18 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     }
   }
 
-  async function handleHeroImageUpload(event: ChangeEvent<HTMLInputElement>) {
+  async function handleHeroImageUpload(event: ChangeEvent<HTMLInputElement>, target: "desktop" | "mobile") {
     const file = event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
-    setHeroUploadPending(true);
+    if (target === "desktop") {
+      setHeroDesktopUploadPending(true);
+    } else {
+      setHeroMobileUploadPending(true);
+    }
     setError(null);
     setMessage(null);
 
@@ -276,12 +298,28 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         body: formData
       });
 
-      setHero((current) => (current ? { ...current, imageUrl: payload.url } : current));
-      setMessage("Изображение hero загружено.");
+      setHero((current) =>
+        current
+          ? target === "desktop"
+            ? { ...current, imageUrl: payload.url }
+            : { ...current, mobileImageUrl: payload.url }
+          : current
+      );
+      setMessage(target === "desktop" ? "Desktop-изображение hero загружено." : "Mobile-изображение hero загружено.");
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение hero.");
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : target === "desktop"
+            ? "Не удалось загрузить desktop-изображение hero."
+            : "Не удалось загрузить mobile-изображение hero."
+      );
     } finally {
-      setHeroUploadPending(false);
+      if (target === "desktop") {
+        setHeroDesktopUploadPending(false);
+      } else {
+        setHeroMobileUploadPending(false);
+      }
       event.target.value = "";
     }
   }
@@ -358,6 +396,26 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       await loadData();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить элемент галереи.");
+    }
+  }
+
+  async function handleGalleryHeadingSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      await requestJson(
+        editingGalleryHeadingId ? `/api/content/gallery-headings/${editingGalleryHeadingId}` : "/api/content/gallery-headings",
+        {
+          method: editingGalleryHeadingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(galleryHeadingForm)
+        }
+      );
+      setEditingGalleryHeadingId(null);
+      setGalleryHeadingForm({ ...emptyGalleryHeadingForm, type: activeGalleryType });
+      setMessage(editingGalleryHeadingId ? "Динамический текст обновлен." : "Динамический текст добавлен.");
+      await loadData();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить динамический текст.");
     }
   }
 
@@ -468,6 +526,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     .sort((first, second) => getProductOptionLabel(first).localeCompare(getProductOptionLabel(second), "ru"));
   const activeGalleryType = galleryMode === "video" ? "VIDEO" : "IMAGE";
   const activeGalleryLabel = galleryMode === "video" ? "Видео" : "Изображение";
+  const filteredGalleryHeadings = galleryHeadings.filter((item) => item.type === activeGalleryType);
   const filteredGalleryItems = galleryItems.filter((item) => item.type === activeGalleryType);
   const selectedHeroProduct = hero?.heroProductId ? products.find((product) => product.id === hero.heroProductId) ?? null : null;
   const selectedPromoProduct = promoForm.promoProductId ? products.find((product) => product.id === promoForm.promoProductId) ?? null : null;
@@ -477,17 +536,23 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     section === "promo"
       ? promoCards.length
       : section === "gallery"
-        ? filteredGalleryItems.length
+        ? filteredGalleryItems.length + filteredGalleryHeadings.length
         : section === "testimonials"
           ? testimonials.length
           : section === "bestseller"
             ? bestsellers.length
-            : 1;
+          : 1;
   useEffect(() => {
-    if (section === "gallery" && !editingGalleryId) {
-      setGalleryForm((current) => ({ ...current, type: activeGalleryType }));
+    if (section === "gallery") {
+      if (!editingGalleryId) {
+        setGalleryForm((current) => ({ ...current, type: activeGalleryType }));
+      }
+
+      if (!editingGalleryHeadingId) {
+        setGalleryHeadingForm((current) => ({ ...current, type: activeGalleryType }));
+      }
     }
-  }, [section, activeGalleryType, editingGalleryId]);
+  }, [section, activeGalleryType, editingGalleryId, editingGalleryHeadingId]);
 
   return (
     <div className="space-y-6">
@@ -551,86 +616,186 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
       {section === "hero" ? (
         <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Хиро-блок" description="Первый и самый заметный блок главной страницы.">
+        <SectionCard
+          title="Хиро-блок"
+          description="Первый и самый заметный блок главной страницы."
+          actions={
+            hero ? (
+              <button
+                type="button"
+                className="admin-button-primary"
+                onClick={() => {
+                  void saveSingleton("/api/content/home-hero", hero, "Хиро-блок обновлен.");
+                }}
+              >
+                Сохранить хиро-блок
+              </button>
+            ) : null
+          }
+        >
           {hero ? (
             <form
-              className="grid gap-5"
+              className="grid gap-6"
               onSubmit={(event) => {
                 event.preventDefault();
                 void saveSingleton("/api/content/home-hero", hero, "Хиро-блок обновлен.");
               }}
             >
-              <div className="admin-panel-muted p-4">
-                <p className="text-sm font-semibold text-slate-950">Заголовок хиро-блока</p>
-                <p className="mt-1 text-xs text-slate-500">Введите заголовок для версий UZ, RU и EN.</p>
-                <div className="mt-4 grid gap-4 md:grid-cols-3">
-                  <Field value={hero.titleUz} onChange={(value) => setHero((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Заголовок UZ" />
-                  <Field value={hero.titleRu} onChange={(value) => setHero((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Заголовок RU" />
-                  <Field value={hero.titleEn} onChange={(value) => setHero((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Заголовок EN" />
-                </div>
-              </div>
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] xl:items-start">
+                <div className="grid gap-6">
+                  <div className="admin-panel-muted overflow-hidden p-0">
+                    <div className="flex flex-col gap-4 border-b border-slate-200/80 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <p className="text-[15px] font-semibold text-slate-950">Desktop-изображение</p>
+                          <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            1720×1100
+                          </span>
+                        </div>
+                        <p className="mt-1.5 max-w-[58ch] text-xs leading-5 text-slate-500">
+                          Основной кадр для больших экранов. Лучше использовать широкую композицию с безопасными полями по краям.
+                        </p>
+                      </div>
 
-              <div className="admin-panel-muted p-4">
-                <p className="text-sm font-semibold text-slate-950">Краткое описание</p>
-                <p className="mt-1 text-xs text-slate-500">Короткий текст внутри хиро-блока. Пользовательский интерфейс при этом не меняется.</p>
-                <div className="mt-4 grid gap-4 md:grid-cols-3">
-                  <Area value={hero.descriptionUz} onChange={(value) => setHero((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
-                  <Area value={hero.descriptionRu} onChange={(value) => setHero((current) => (current ? { ...current, descriptionRu: value } : current))} placeholder="Описание RU" />
-                  <Area value={hero.descriptionEn} onChange={(value) => setHero((current) => (current ? { ...current, descriptionEn: value } : current))} placeholder="Описание EN" />
-                </div>
-              </div>
+                      <label className={`admin-button-secondary shrink-0 ${heroDesktopUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                        {heroDesktopUploadPending ? "Загрузка..." : "Выбрать файл"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          className="hidden"
+                          onChange={(event) => {
+                            void handleHeroImageUpload(event, "desktop");
+                          }}
+                          disabled={heroDesktopUploadPending}
+                        />
+                      </label>
+                    </div>
 
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-                <div className="admin-panel-muted p-4">
-                  <p className="text-sm font-semibold text-slate-950">Изображение хиро-блока</p>
-                  <p className="mt-1 text-xs text-slate-500">Загрузите новое изображение или проверьте текущий предпросмотр.</p>
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <label className={`admin-button-secondary ${heroUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
-                      {heroUploadPending ? "Загрузка..." : "Выбрать файл"}
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/avif"
-                        className="hidden"
-                        onChange={handleHeroImageUpload}
-                        disabled={heroUploadPending}
-                      />
-                    </label>
-                    <div className="min-w-[240px] flex-1">
-                      <Field value={hero.imageUrl} onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
+                    <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.05fr)_280px]">
+                      <div className="space-y-3">
+                        <Field
+                          value={hero.imageUrl}
+                          onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))}
+                          placeholder="URL desktop-изображения"
+                        />
+                      </div>
+
+                      <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
+                        {hero.imageUrl ? (
+                          <img src={hero.imageUrl} alt="Desktop hero preview" className="h-[210px] w-full object-cover" />
+                        ) : (
+                          <div className="flex h-[210px] items-center justify-center bg-slate-50 px-6 text-center text-sm leading-6 text-slate-400">
+                            Загрузите desktop-изображение или вставьте прямую ссылку.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  {hero.imageUrl ? (
-                    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={hero.imageUrl} alt="Предпросмотр хиро-блока" className="h-44 w-full object-cover" />
-                    </div>
-                  ) : null}
-                </div>
 
-                <div className="admin-panel-muted p-4">
-                  <p className="text-sm font-semibold text-slate-950">Товар для хиро-блока</p>
-                  <p className="mt-1 text-xs text-slate-500">Кнопка «Подробно» будет вести на страницу выбранного товара.</p>
-                  <div className="mt-4">
-                    <select
-                      className="admin-select"
-                      value={hero.heroProductId ?? ""}
-                      onChange={(event) => setHero((current) => (current ? { ...current, heroProductId: event.target.value || null } : current))}
-                    >
-                      <option value="">Выберите товар</option>
-                      {heroProductOptions.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {getProductOptionLabel(product)}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="admin-form-hint">Выбранный товар откроется по клику на кнопку hero-блока.</p>
+                  <div className="admin-panel-muted overflow-hidden p-0">
+                    <div className="flex flex-col gap-4 border-b border-slate-200/80 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <p className="text-[15px] font-semibold text-slate-950">Mobile-изображение</p>
+                          <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            900×1400
+                          </span>
+                        </div>
+                        <p className="mt-1.5 max-w-[58ch] text-xs leading-5 text-slate-500">
+                          Отдельный мобильный кадр. Здесь лучше держать ключевой объект ближе к центру и выше линии fold.
+                        </p>
+                      </div>
+
+                      <label className={`admin-button-secondary shrink-0 ${heroMobileUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                        {heroMobileUploadPending ? "Загрузка..." : "Выбрать файл"}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/avif"
+                          className="hidden"
+                          onChange={(event) => {
+                            void handleHeroImageUpload(event, "mobile");
+                          }}
+                          disabled={heroMobileUploadPending}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.05fr)_240px]">
+                      <div className="space-y-3">
+                        <Field
+                          value={hero.mobileImageUrl}
+                          onChange={(value) => setHero((current) => (current ? { ...current, mobileImageUrl: value } : current))}
+                          placeholder="URL mobile-изображения"
+                        />
+                      </div>
+
+                      <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
+                        {hero.mobileImageUrl ? (
+                          <img src={hero.mobileImageUrl} alt="Mobile hero preview" className="h-[280px] w-full object-cover object-top" />
+                        ) : (
+                          <div className="flex h-[280px] items-center justify-center bg-slate-50 px-6 text-center text-sm leading-6 text-slate-400">
+                            Загрузите mobile-изображение или вставьте прямую ссылку.
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <button type="submit" className="admin-button-primary">
-                Сохранить хиро-блок
-              </button>
+                <div className="grid gap-6 xl:sticky xl:top-24">
+                  <div className="admin-panel-muted overflow-hidden p-0">
+                    <div className="border-b border-slate-200/80 px-5 py-5">
+                      <p className="text-[15px] font-semibold text-slate-950">Товар для hero-блока</p>
+                      <p className="mt-1.5 text-xs leading-5 text-slate-500">
+                        Весь hero остаётся clickable и открывает страницу выбранного товара. Привязка обязательна.
+                      </p>
+                    </div>
+
+                    <div className="space-y-5 px-5 py-5">
+                      <div>
+                        <select
+                          className="admin-select"
+                          value={hero.heroProductId ?? ""}
+                          onChange={(event) => setHero((current) => (current ? { ...current, heroProductId: event.target.value || null } : current))}
+                        >
+                          <option value="">Выберите товар</option>
+                          {heroProductOptions.map((product) => (
+                            <option key={product.id} value={product.id}>
+                              {getProductOptionLabel(product)}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="admin-form-hint">Используются товары витрины. После сохранения клик по hero ведёт на выбранный SKU.</p>
+                      </div>
+
+                      <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4">
+                        {selectedHeroProduct ? (
+                          <>
+                            <p className="text-sm font-semibold text-slate-950">{getProductOptionLabel(selectedHeroProduct)}</p>
+                            <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{selectedHeroProduct.sku}</p>
+                            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Сценарий перехода</p>
+                            <p className="mt-1 text-sm leading-6 text-slate-600">
+                              Клик по hero откроет страницу товара <span className="font-semibold text-slate-900">{getProductOptionLabel(selectedHeroProduct)}</span>.
+                            </p>
+                          </>
+                        ) : (
+                          <div className="text-sm leading-6 text-slate-400">
+                            Сначала выберите товар, чтобы зафиксировать переход по клику на hero.
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-white/70 px-4 py-4 text-sm leading-6 text-slate-500">
+                        Проверьте оба изображения до сохранения: desktop и mobile должны быть самостоятельными кадрами, а не одной и той же версией в разном размере.
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="admin-button-primary w-full">
+                    Сохранить хиро-блок
+                  </button>
+                </div>
+              </div>
             </form>
           ) : null}
         </SectionCard>
@@ -841,6 +1006,146 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
           title={galleryMode === "video" ? "Видео" : "Изображения"}
           description={galleryMode === "video" ? "В этом разделе управляются видео для медиаблока на главной странице." : "В этом разделе управляются изображения для двухрядной галереи на главной странице."}
         >
+          <div className="space-y-6">
+          <form onSubmit={handleGalleryHeadingSubmit} className="admin-panel-muted space-y-4 px-4 py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Динамический заголовок секции</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Добавьте несколько текстов для {galleryMode === "video" ? "видеогалереи" : "фотогалереи"}. На витрине они будут меняться каждые 2 секунды.
+                </p>
+              </div>
+              <span className="admin-badge">{activeGalleryLabel}</span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <RichTextTextarea
+                  value={galleryHeadingForm.textUz ?? ""}
+                  onChange={(value) => setGalleryHeadingForm((current) => ({ ...current, textUz: value }))}
+                  className="admin-textarea min-h-[120px]"
+                  ariaLabel="Динамический текст UZ"
+                  placeholder="Текст UZ"
+                />
+                <p className="admin-form-hint">Динамический текст UZ</p>
+              </div>
+              <div>
+                <RichTextTextarea
+                  value={galleryHeadingForm.textRu ?? ""}
+                  onChange={(value) => setGalleryHeadingForm((current) => ({ ...current, textRu: value }))}
+                  className="admin-textarea min-h-[120px]"
+                  ariaLabel="Динамический текст RU"
+                  placeholder="Текст RU"
+                />
+                <p className="admin-form-hint">Динамический текст RU</p>
+              </div>
+              <div>
+                <RichTextTextarea
+                  value={galleryHeadingForm.textEn ?? ""}
+                  onChange={(value) => setGalleryHeadingForm((current) => ({ ...current, textEn: value }))}
+                  className="admin-textarea min-h-[120px]"
+                  ariaLabel="Динамический текст EN"
+                  placeholder="Текст EN"
+                />
+                <p className="admin-form-hint">Динамический текст EN</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[170px_auto]">
+              <Field
+                value={String(galleryHeadingForm.sortOrder)}
+                onChange={(value) => setGalleryHeadingForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))}
+                placeholder="Порядок сортировки"
+                type="number"
+              />
+              <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={galleryHeadingForm.active}
+                  onChange={(event) => setGalleryHeadingForm((current) => ({ ...current, active: event.target.checked }))}
+                />
+                Текст активен
+              </label>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button type="submit" className="admin-button-primary">
+                {editingGalleryHeadingId ? "Обновить текст" : "Добавить текст"}
+              </button>
+              {editingGalleryHeadingId ? (
+                <button
+                  type="button"
+                  className="admin-button-secondary"
+                  onClick={() => {
+                    setEditingGalleryHeadingId(null);
+                    setGalleryHeadingForm({ ...emptyGalleryHeadingForm, type: activeGalleryType });
+                  }}
+                >
+                  Сбросить
+                </button>
+              ) : null}
+            </div>
+          </form>
+
+          {filteredGalleryHeadings.length > 0 ? (
+            <div className="space-y-3">
+              {filteredGalleryHeadings.map((item) => {
+                const previewText = item.textRu || item.textUz || item.textEn || "Без текста";
+
+                return (
+                  <article key={item.id} className="admin-list-card p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
+                            {galleryMode === "video" ? "Видео заголовок" : "Заголовок галереи"} #{item.sortOrder}
+                          </p>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+                            {item.active ? "Активно" : "Черновик"}
+                          </span>
+                        </div>
+                        <p className="mt-2 whitespace-pre-line text-base font-medium leading-6 text-slate-950">
+                          {previewText}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="admin-button-secondary"
+                          onClick={() => {
+                            setEditingGalleryHeadingId(item.id);
+                            setGalleryHeadingForm({
+                              type: item.type,
+                              textUz: item.textUz,
+                              textRu: item.textRu,
+                              textEn: item.textEn,
+                              sortOrder: item.sortOrder,
+                              active: item.active
+                            });
+                          }}
+                        >
+                          Редактировать
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-button-danger"
+                          onClick={() =>
+                            void handleDelete("/api/content/gallery-headings/" + item.id, "Динамический текст удален.", () => {
+                              setEditingGalleryHeadingId(null);
+                              setGalleryHeadingForm({ ...emptyGalleryHeadingForm, type: activeGalleryType });
+                            })
+                          }
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
+
           <form onSubmit={handleGallerySubmit} className="grid gap-4 md:grid-cols-2">
             <div className="admin-panel-muted flex items-center justify-between px-4 py-3 md:col-span-2">
               <span className="text-sm font-semibold text-slate-900">Тип контента</span>
@@ -951,6 +1256,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                   : "Создать элемент галереи"}
             </button>
           </form>
+          </div>
         </SectionCard>
 
         <SectionCard title={galleryMode === "video" ? "Список видео" : "Список изображений"} description={galleryMode === "video" ? "Текущие видеоэлементы медиаблока." : "Текущие изображения для галереи на главной странице."}>

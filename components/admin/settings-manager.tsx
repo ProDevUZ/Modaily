@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-
-import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
+import { useEffect, useState, type FormEvent } from "react";
 import { type AdminSiteSettings, requestJson } from "@/components/admin/admin-types";
 
 function Field({
@@ -62,34 +60,6 @@ function Area({
   );
 }
 
-function RichArea({
-  label,
-  hint,
-  value,
-  placeholder,
-  onChange
-}: {
-  label: string;
-  hint?: string;
-  value: string;
-  placeholder?: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-slate-800">{label}</label>
-      <RichTextTextarea
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        ariaLabel={label}
-        className="admin-input admin-textarea mt-2 min-h-[112px]"
-      />
-      {hint ? <p className="admin-form-hint">{hint}</p> : null}
-    </div>
-  );
-}
-
 function Section({
   title,
   description,
@@ -115,7 +85,6 @@ export function SettingsManager() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploadingAboutImage, setUploadingAboutImage] = useState(false);
 
   useEffect(() => {
     async function loadSettings() {
@@ -134,36 +103,6 @@ export function SettingsManager() {
 
     void loadSettings();
   }, []);
-
-  async function handleAboutImageUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    setError(null);
-    setMessage(null);
-    setUploadingAboutImage(true);
-
-    try {
-      const uploadFormData = new FormData();
-      uploadFormData.append("file", file);
-
-      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
-        method: "POST",
-        body: uploadFormData
-      });
-
-      setSettings((current) => (current ? { ...current, aboutImageUrl: payload.url } : current));
-      setMessage("Изображение страницы «О нас» загружено.");
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение.");
-    } finally {
-      setUploadingAboutImage(false);
-      event.target.value = "";
-    }
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -197,7 +136,7 @@ export function SettingsManager() {
           <div>
             <h3 className="text-2xl font-semibold text-slate-950">Глобальные настройки</h3>
             <p className="mt-2 max-w-[720px] text-sm leading-6 text-slate-500">
-              Здесь управляются контакты витрины и весь контент страницы «О нас».
+              Здесь управляются контакты витрины и общие ссылки, которые используются в футере и на странице «О нас».
             </p>
           </div>
         </div>
@@ -289,101 +228,6 @@ export function SettingsManager() {
             rows={3}
             hint="Этот адрес используется и в футере, и в карточке магазина на странице «О нас»."
           />
-        </div>
-      </Section>
-
-      <Section title="Страница «О нас»" description="Весь текст и изображение страницы `main/about-us` редактируются здесь.">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-5">
-            <Field
-              label="Заголовок UZ"
-              value={settings?.aboutTitleUz || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutTitleUz: value } : current))}
-              placeholder="O MODAILY"
-            />
-            <Field
-              label="Заголовок RU"
-              value={settings?.aboutTitleRu || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutTitleRu: value } : current))}
-              placeholder="О MODAILY"
-            />
-            <Field
-              label="Заголовок EN"
-              value={settings?.aboutTitleEn || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutTitleEn: value } : current))}
-              placeholder="ABOUT MODAILY"
-            />
-            <Field
-              label="URL изображения"
-              value={settings?.aboutImageUrl || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutImageUrl: value } : current))}
-              placeholder="/images/Galary/about1.png"
-              hint="Главное изображение на странице «О нас»."
-            />
-            <div className="space-y-3">
-              <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[16px] border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M12 16V4" strokeLinecap="round" />
-                  <path d="m7 9 5-5 5 5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M5 20h14" strokeLinecap="round" />
-                </svg>
-                {uploadingAboutImage ? "Загрузка..." : "Загрузить изображение"}
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.webp"
-                  className="hidden"
-                  onChange={handleAboutImageUpload}
-                  disabled={uploadingAboutImage}
-                />
-              </label>
-
-              {settings?.aboutImageUrl ? (
-                <div className="overflow-hidden rounded-[16px] border border-slate-200 bg-slate-50">
-                  <img
-                    src={settings.aboutImageUrl}
-                    alt="About page preview"
-                    className="h-[180px] w-full object-cover"
-                  />
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <Area
-              label="Описание UZ"
-              value={settings?.aboutDescriptionUz || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutDescriptionUz: value } : current))}
-            />
-            <Area
-              label="Описание RU"
-              value={settings?.aboutDescriptionRu || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutDescriptionRu: value } : current))}
-            />
-            <Area
-              label="Описание EN"
-              value={settings?.aboutDescriptionEn || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutDescriptionEn: value } : current))}
-            />
-            <RichArea
-              label="Красный блок: текст UZ"
-              value={settings?.aboutPanelDescriptionUz || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionUz: value } : current))}
-              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
-            />
-            <RichArea
-              label="Красный блок: текст RU"
-              value={settings?.aboutPanelDescriptionRu || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionRu: value } : current))}
-              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
-            />
-            <RichArea
-              label="Красный блок: текст EN"
-              value={settings?.aboutPanelDescriptionEn || ""}
-              onChange={(value) => setSettings((current) => (current ? { ...current, aboutPanelDescriptionEn: value } : current))}
-              hint="Поддерживает **жирный**, *курсив*, списки (-, 1.) и переносы строк."
-            />
-          </div>
         </div>
       </Section>
 

@@ -22,4 +22,4 @@ RUN pnpm run prisma:generate
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "pnpm run prisma:generate && pnpm run db:push && pnpm run db:seed && node scripts/bootstrap-media.js && node scripts/assign-product-images.js && pnpm exec next dev --hostname 0.0.0.0 --port ${PORT:-3001}"]
+CMD ["sh", "scripts/start-dev-container.sh"]

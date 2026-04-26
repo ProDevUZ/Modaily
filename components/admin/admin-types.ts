@@ -41,6 +41,16 @@ export type AdminCategory = {
   };
 };
 
+export type AdminSkinTypeOption = {
+  id: string;
+  value: string;
+  nameUz: string;
+  nameRu: string;
+  nameEn: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminProduct = {
   id: string;
   sku: string;
@@ -156,24 +166,8 @@ export type AdminSiteSettings = {
 
 export type AdminHomeHero = {
   id: string;
-  badgeUz: string | null;
-  badgeRu: string | null;
-  badgeEn: string | null;
-  titleUz: string;
-  titleRu: string;
-  titleEn: string;
-  descriptionUz: string | null;
-  descriptionRu: string | null;
-  descriptionEn: string | null;
-  primaryCtaUz: string | null;
-  primaryCtaRu: string | null;
-  primaryCtaEn: string | null;
-  primaryCtaLink: string | null;
-  secondaryCtaUz: string | null;
-  secondaryCtaRu: string | null;
-  secondaryCtaEn: string | null;
-  secondaryCtaLink: string | null;
   imageUrl: string | null;
+  mobileImageUrl: string | null;
   heroProductId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -232,6 +226,18 @@ export type AdminGalleryItem = {
   descriptionEn: string | null;
   imageUrl: string;
   videoUrl: string | null;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminGalleryHeading = {
+  id: string;
+  type: "IMAGE" | "VIDEO";
+  textUz: string | null;
+  textRu: string | null;
+  textEn: string | null;
   sortOrder: number;
   active: boolean;
   createdAt: string;

@@ -251,60 +251,28 @@ export default async function HomePage({ params }: PageProps) {
       <section className="pt-0">
         <Link
           href={content.hero.primaryCtaLink}
-          aria-label={content.hero.primaryCta || copy.learnMore}
+          aria-label="Hero product"
           className="grid h-[696px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:hidden"
         >
           <FallbackImage
-            src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
+            src={content.hero.mobileImageUrl || content.hero.imageUrl || "/images/home/mainpage.jpg"}
             fallbackSrc="/images/home/mainpage.jpg"
-            alt={content.hero.title}
-            className="col-start-1 row-start-1 h-full w-full object-cover object-[62%_4%]"
+            alt="Hero product"
+            className="col-start-1 row-start-1 h-full w-full object-cover object-center"
           />
-          <div className="col-start-1 row-start-1 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.34)_66%,rgba(255,255,255,0.82)_79%,rgba(255,255,255,0.98)_89%,#ffffff_100%)]" />
-          <div className="col-start-1 row-start-1 flex h-[696px] items-end px-[38px] pb-[31px]">
-            <div className="w-full max-w-[338px]">
-              <p className="text-[17px] leading-none tracking-[-0.02em] text-black/52">{content.hero.badge || "Novinka"}</p>
-              <h1 className="hero-title mt-[11px] text-[35px] uppercase leading-[1.5] tracking-[-0.045em] text-[#1f1f1f]">
-                {content.hero.title}
-              </h1>
-              <p className="mt-[14px] max-w-[332px] text-[15px] leading-[1.55] text-black/76">
-                {content.hero.description}
-              </p>
-              <span className="mt-[28px] inline-flex h-[50px] w-[254px] items-center justify-center bg-[var(--brand)] text-[13px] uppercase tracking-[0.19em] text-white">
-                {content.hero.primaryCta || copy.learnMore}
-              </span>
-            </div>
-          </div>
         </Link>
 
         <Link
           href={content.hero.primaryCtaLink}
-          aria-label={content.hero.primaryCta || copy.learnMore}
+          aria-label="Hero product"
           className="hidden min-h-[460px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:grid md:min-h-[520px] xl:min-h-[555px]"
         >
           <FallbackImage
             src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
             fallbackSrc="/images/home/mainpage.jpg"
-            alt={content.hero.title}
+            alt="Hero product"
             className="col-start-1 row-start-1 h-full min-h-[460px] w-full object-cover object-center md:min-h-[520px] xl:min-h-[555px]"
           />
-          <div className="col-start-1 row-start-1 bg-[linear-gradient(90deg,rgba(241,240,236,0.22)_0%,rgba(241,240,236,0.14)_14%,rgba(241,240,236,0.06)_24%,rgba(241,240,236,0.00)_34%)]" />
-          <div className="col-start-1 row-start-1 mx-auto flex min-h-[460px] w-full max-w-[1760px] items-center px-6 sm:px-8 lg:px-12 xl:px-[86px]">
-            <div className="max-w-[680px] py-10 md:py-12">
-              <p className="text-[16px] tracking-[0.01em] text-black/44 md:text-[18px]">
-                {content.hero.badge || "Novinka"}
-              </p>
-              <h1 className="hero-title mt-3 max-w-[13.5ch] text-balance text-[52px] uppercase leading-[1.5] tracking-[-0.02em] text-[#565656]">
-                {content.hero.title}
-              </h1>
-              <p className="mt-7 max-w-[46ch] text-[17px] leading-[1.46] text-black/58 sm:text-[19px] lg:mt-8 lg:text-[22px]">
-                {content.hero.description}
-              </p>
-              <span className="mt-8 inline-flex h-[48px] w-[218px] items-center justify-center bg-[var(--brand)] text-[13px] font-medium uppercase tracking-[0.18em] text-white sm:h-[52px] sm:w-[250px] lg:mt-9 lg:h-[57px] lg:w-[271px]">
-                {content.hero.primaryCta || copy.learnMore}
-              </span>
-            </div>
-          </div>
         </Link>
       </section>
 
@@ -357,13 +325,13 @@ export default async function HomePage({ params }: PageProps) {
       </section>
 
       <section className="py-12">
-        <Gallery title={copy.gallery} items={galleryImages} />
+        <Gallery title={copy.gallery} headings={content.galleryImageHeadings} items={galleryImages} />
       </section>
 
       {videoItems.length > 0 ? (
         <section id="video-gallery" className="px-8 py-12 lg:px-12">
           <div className="mx-auto max-w-[1680px]">
-            <VideoGallery title={copy.videos} items={videoItems} />
+            <VideoGallery title={copy.videos} headings={content.galleryVideoHeadings} items={videoItems} />
           </div>
         </section>
       ) : null}
