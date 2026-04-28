@@ -102,4 +102,8 @@ export async function readProductVideo(filename: string) {
   return readFile(path.join(getProductVideoDirectory(), filename));
 }
 
+export function getProductVideoPath(filename: string) {
+  return path.join(getProductVideoDirectory(), filename);
+}
+
 export { MAX_PRODUCT_VIDEO_SIZE };
