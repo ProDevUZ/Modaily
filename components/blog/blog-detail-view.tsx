@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BlogMediaCarousel } from "@/components/blog/blog-media-carousel";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import type { BlogPostLinkedProduct, StorefrontBlogPost } from "@/lib/blog-post-types";
 import type { Locale } from "@/lib/i18n";
@@ -75,13 +76,8 @@ export function BlogDetailView({ locale, post, labels }: BlogDetailViewProps) {
             {post.cardTitle}
           </h1>
 
-          <div className="mt-4 overflow-hidden rounded-[1.25rem] lg:mt-6">
-            <FallbackImage
-              src={post.coverImage}
-              fallbackSrc="/images/home/mainpage.jpg"
-              alt={post.cardTitle}
-              className="aspect-[16/9] w-full object-cover object-center"
-            />
+          <div className="mt-4 lg:mt-6">
+            <BlogMediaCarousel media={post.media} alt={post.cardTitle} />
           </div>
         </div>
 

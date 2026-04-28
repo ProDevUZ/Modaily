@@ -148,52 +148,59 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+          className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          ×
+          <span className="translate-y-[5%]">×</span>
         </button>
 
         <div className="mb-4 flex items-center justify-between gap-4 pt-14 text-white/80">
-          <p className="truncate text-sm uppercase tracking-[0.22em]">{activeItem?.title || title}</p>
+          <p className="inline-flex max-w-[calc(100%-4.5rem)] rounded-full bg-black/42 px-4 py-2 text-sm uppercase tracking-[0.22em] text-black shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+            <span className="truncate">{activeItem?.title || title}</span>
+          </p>
           <p className="shrink-0 text-sm">
             {currentIndex + 1}/{items.length}
           </p>
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          {items.length > 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={showPreviousImage}
-                aria-label="Previous image"
-                className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={showNextImage}
-                aria-label="Next image"
-                className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-              >
-                →
-              </button>
-            </>
-          ) : null}
-
           <div
             className="flex w-full items-center justify-center overflow-hidden rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
             onTouchStart={(event) => handleTouchStart(event.touches[0]?.clientX ?? 0)}
             onTouchMove={(event) => handleTouchMove(event.touches[0]?.clientX ?? 0)}
             onTouchEnd={handleTouchEnd}
           >
-            <FallbackImage
-              src={activeItem?.imageUrl || ""}
-              fallbackSrc="https://placehold.co/1200x900/f4f4f2/bb102b?text=Gallery"
-              alt={activeItem?.title || `${title} image ${currentIndex + 1}`}
-              className="max-h-[78vh] w-auto max-w-full object-contain"
-            />
+            <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
+              {items.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={showPreviousImage}
+                  aria-label="Previous image"
+                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
+                >
+                  ←
+                </button>
+              ) : null}
+
+              <div className="relative inline-flex max-w-full items-center justify-center">
+                <FallbackImage
+                  src={activeItem?.imageUrl || ""}
+                  fallbackSrc="https://placehold.co/1200x900/f4f4f2/bb102b?text=Gallery"
+                  alt={activeItem?.title || `${title} image ${currentIndex + 1}`}
+                  className="max-h-[78vh] w-auto max-w-full object-contain"
+                />
+              </div>
+
+              {items.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={showNextImage}
+                  aria-label="Next image"
+                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
+                >
+                  →
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -251,7 +258,7 @@ function GalleryRow({
             <button
               key={`${item.id}-${index}`}
               type="button"
-              className={`shrink-0 overflow-hidden rounded-[24px] text-left transition hover:opacity-95 ${rowWidths[index % rowWidths.length]}`}
+              className={`interactive-glass-press shrink-0 overflow-hidden rounded-[24px] text-left transition hover:opacity-95 ${rowWidths[index % rowWidths.length]}`}
               onClick={() => {
                 if (galleryIndex >= 0) {
                   onOpen(galleryIndex);

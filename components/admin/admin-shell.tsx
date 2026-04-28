@@ -57,6 +57,12 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
             <rect x="14" y="15" width="6" height="4" rx="1" />
           </>
         ) : null}
+        {section === "skin-types" ? (
+          <>
+            <path d="M12 3.5C9 7 6.5 9.7 6.5 13a5.5 5.5 0 0 0 11 0c0-3.3-2.5-6-5.5-9.5Z" />
+            <path d="M9.5 13.5a2.5 2.5 0 0 0 5 0" />
+          </>
+        ) : null}
         {section === "users" ? (
           <>
             <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -146,7 +152,7 @@ export function AdminShell({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const showSearch = searchable ?? (current === "products" || current === "categories");
+  const showSearch = searchable ?? (current === "products" || current === "categories" || current === "skin-types");
   const searchValue = searchParams.get("q") || "";
   const compactHeader = headerVariant === "compact";
 

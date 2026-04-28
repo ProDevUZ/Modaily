@@ -106,7 +106,14 @@ export default async function ProductPage({ params }: PageProps) {
   return (
     <section className="bg-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <ProductDetailView locale={locale} copy={copy} product={product} recommendations={recommendations} hideCommerce={siteSettings.hideCommerce} />
+      <ProductDetailView
+        locale={locale}
+        copy={copy}
+        product={product}
+        recommendations={recommendations}
+        whereToBuyLink={siteSettings.storeMapLink}
+        hideCommerce={siteSettings.hideCommerce}
+      />
     </section>
   );
 }

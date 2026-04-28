@@ -18,6 +18,12 @@ export const adminSections = [
     summary: "Структура и группировка каталога"
   },
   {
+    key: "skin-types",
+    href: "/admin123/skin-types",
+    label: "Тип кожи",
+    summary: "Справочник типов кожи для товаров и фильтров"
+  },
+  {
     key: "users",
     href: "/admin123/users",
     label: "Пользователи",

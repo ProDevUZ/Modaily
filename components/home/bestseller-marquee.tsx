@@ -61,13 +61,14 @@ function ProductPackshot({ imageUrl, name }: { imageUrl: string; name: string })
 
 export function BestsellerMarquee({ locale, products, learnMoreLabel }: BestsellerMarqueeProps) {
   const router = useRouter();
+  const actualProductCount = products.length;
   const baseProducts = useMemo(() => repeatToMinimum(products, 4), [products]);
   const loopProducts = useMemo(
     () => [...baseProducts, ...baseProducts, ...baseProducts],
     [baseProducts]
   );
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const progressRailRef = useRef<HTMLDivElement | null>(null);
+  const topProgressRailRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
   const draggingRef = useRef(false);
   const adjustingRef = useRef(false);
@@ -77,9 +78,8 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
 
   function syncProgressIndicator() {
     const scroller = scrollerRef.current;
-    const progressRail = progressRailRef.current;
 
-    if (!scroller || !progressRail) {
+    if (!scroller) {
       return;
     }
 
@@ -89,10 +89,25 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
       return;
     }
 
-    const normalizedProgress =
-      (((scroller.scrollLeft % segmentWidth) + segmentWidth) % segmentWidth) / segmentWidth;
+    const logicalSegmentWidth = segmentWidth * (actualProductCount / Math.max(baseProducts.length, 1));
 
-    progressRail.style.transform = `translate3d(-${normalizedProgress * 50}%, 0, 0)`;
+    if (!logicalSegmentWidth) {
+      return;
+    }
+
+    const normalizedProgress =
+      (((scroller.scrollLeft % logicalSegmentWidth) + logicalSegmentWidth) % logicalSegmentWidth) / logicalSegmentWidth;
+    const thumbWidth = Math.min(100, 100 / Math.max(actualProductCount, 1));
+    const railOffset = normalizedProgress * 50;
+
+    const rail = topProgressRailRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    rail.style.setProperty("--bestseller-progress-width", `${thumbWidth}%`);
+    rail.style.transform = `translate3d(-${railOffset}%, 0, 0)`;
   }
 
   useEffect(() => {
@@ -131,7 +146,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [baseProducts.length]);
+  }, [actualProductCount, baseProducts.length]);
 
   function normalizeScrollPosition() {
     const scroller = scrollerRef.current;
@@ -250,6 +265,21 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
 
   return (
     <div className="mt-7">
+      <div className="mb-4 flex justify-center px-8 md:mb-5 md:px-0">
+        <div className="relative h-[3px] w-[90%] overflow-hidden rounded-full bg-black/10">
+          <div
+            ref={topProgressRailRef}
+            className="absolute inset-y-0 left-0 flex w-[200%] will-change-transform [--bestseller-progress-width:25%]"
+          >
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div key={index} className="relative h-full w-1/2 shrink-0">
+                <span className="absolute inset-y-0 left-0 w-[var(--bestseller-progress-width)] rounded-full bg-[var(--brand)]" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div
         ref={scrollerRef}
         className="bestseller-scroller -mx-8 overflow-x-auto overscroll-x-contain md:mx-0"
@@ -277,7 +307,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
               key={`${product.id}-${index}`}
               href={`/${locale}/catalog/${product.slug}`}
               data-bestseller-link="true"
-              className="relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[290px] xl:w-[320px]"
+              className="interactive-glass-press relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[290px] xl:w-[320px]"
               aria-label={product.name}
             >
               <div className="relative flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
@@ -292,20 +322,6 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
               </span>
             </Link>
           ))}
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-center px-8 md:mt-7 md:px-0">
-        <div className="relative h-[6px] w-full max-w-[210px] overflow-hidden rounded-full bg-black/12 lg:max-w-[280px]">
-          <div ref={progressRailRef} className="absolute inset-y-0 left-0 flex w-[200%] will-change-transform">
-            {Array.from({ length: 2 }).map((_, index) => (
-              <div key={index} className="flex h-full w-1/2 items-center gap-[14px] pr-[14px]">
-                <span className="h-full flex-[0_0_44%] rounded-full bg-[var(--brand)]/88" />
-                <span className="h-full flex-[0_0_18%] rounded-full bg-[var(--brand)]/34" />
-                <span className="h-full flex-1 rounded-full bg-[var(--brand)]/66" />
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

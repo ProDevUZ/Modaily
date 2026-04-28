@@ -219,6 +219,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [message, setMessage] = useState<string | null>(null);
   const [heroDesktopUploadPending, setHeroDesktopUploadPending] = useState(false);
   const [heroMobileUploadPending, setHeroMobileUploadPending] = useState(false);
+  const [aboutUploadPending, setAboutUploadPending] = useState(false);
   const [promoUploadPending, setPromoUploadPending] = useState(false);
   const [galleryUploadPending, setGalleryUploadPending] = useState(false);
   const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
@@ -346,6 +347,36 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       await loadData();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить промо-карточку.");
+    }
+  }
+
+  async function handleAboutImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setAboutUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
+        method: "POST",
+        body: formData
+      });
+
+      setAbout((current) => (current ? { ...current, imageUrl: payload.url } : current));
+      setMessage("Изображение блока «О бренде» загружено.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить изображение блока «О бренде».");
+    } finally {
+      setAboutUploadPending(false);
+      event.target.value = "";
     }
   }
 
@@ -615,7 +646,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       ) : null}
 
       {section === "hero" ? (
-        <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard
           title="Хиро-блок"
           description="Первый и самый заметный блок главной страницы."
@@ -635,17 +665,17 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         >
           {hero ? (
             <form
-              className="grid gap-6"
+              className="grid gap-8"
               onSubmit={(event) => {
                 event.preventDefault();
                 void saveSingleton("/api/content/home-hero", hero, "Хиро-блок обновлен.");
               }}
             >
-              <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] xl:items-start">
-                <div className="grid gap-6">
+              <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:items-start">
+                <div className="grid min-w-0 gap-6">
                   <div className="admin-panel-muted overflow-hidden p-0">
                     <div className="flex flex-col gap-4 border-b border-slate-200/80 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2.5">
                           <p className="text-[15px] font-semibold text-slate-950">Desktop-изображение</p>
                           <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -671,13 +701,14 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                       </label>
                     </div>
 
-                    <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.05fr)_280px]">
+                    <div className="grid gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
                       <div className="space-y-3">
                         <Field
                           value={hero.imageUrl}
                           onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))}
                           placeholder="URL desktop-изображения"
                         />
+                        <p className="admin-form-hint">Рекомендуемый размер: 1720×1100 px. После загрузки можно заменить URL вручную.</p>
                       </div>
 
                       <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
@@ -694,7 +725,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
 
                   <div className="admin-panel-muted overflow-hidden p-0">
                     <div className="flex flex-col gap-4 border-b border-slate-200/80 px-5 py-5 lg:flex-row lg:items-start lg:justify-between">
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2.5">
                           <p className="text-[15px] font-semibold text-slate-950">Mobile-изображение</p>
                           <span className="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -720,13 +751,14 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                       </label>
                     </div>
 
-                    <div className="grid gap-5 px-5 py-5 lg:grid-cols-[minmax(0,1.05fr)_240px]">
+                    <div className="grid gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
                       <div className="space-y-3">
                         <Field
                           value={hero.mobileImageUrl}
                           onChange={(value) => setHero((current) => (current ? { ...current, mobileImageUrl: value } : current))}
                           placeholder="URL mobile-изображения"
                         />
+                        <p className="admin-form-hint">Рекомендуемый размер: 900×1400 px. Лучше использовать самостоятельный кадр под mobile.</p>
                       </div>
 
                       <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
@@ -742,7 +774,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                   </div>
                 </div>
 
-                <div className="grid gap-6 xl:sticky xl:top-24">
+                <div className="min-w-0">
                   <div className="admin-panel-muted overflow-hidden p-0">
                     <div className="border-b border-slate-200/80 px-5 py-5">
                       <p className="text-[15px] font-semibold text-slate-950">Товар для hero-блока</p>
@@ -771,12 +803,12 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                       <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4">
                         {selectedHeroProduct ? (
                           <>
-                            <p className="text-sm font-semibold text-slate-950">{getProductOptionLabel(selectedHeroProduct)}</p>
-                            <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{selectedHeroProduct.sku}</p>
-                            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Сценарий перехода</p>
-                            <p className="mt-1 text-sm leading-6 text-slate-600">
-                              Клик по hero откроет страницу товара <span className="font-semibold text-slate-900">{getProductOptionLabel(selectedHeroProduct)}</span>.
-                            </p>
+                          <p className="text-sm font-semibold text-slate-950">{getProductOptionLabel(selectedHeroProduct)}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">{selectedHeroProduct.sku}</p>
+                          <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Сценарий перехода</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-600">
+                            Клик по hero откроет страницу товара <span className="font-semibold text-slate-900">{getProductOptionLabel(selectedHeroProduct)}</span>.
+                          </p>
                           </>
                         ) : (
                           <div className="text-sm leading-6 text-slate-400">
@@ -784,22 +816,13 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                           </div>
                         )}
                       </div>
-
-                      <div className="rounded-[1.35rem] border border-dashed border-slate-200 bg-white/70 px-4 py-4 text-sm leading-6 text-slate-500">
-                        Проверьте оба изображения до сохранения: desktop и mobile должны быть самостоятельными кадрами, а не одной и той же версией в разном размере.
-                      </div>
                     </div>
                   </div>
-
-                  <button type="submit" className="admin-button-primary w-full">
-                    Сохранить хиро-блок
-                  </button>
                 </div>
               </div>
             </form>
           ) : null}
         </SectionCard>
-        </div>
       ) : null}
 
       {section === "about" ? (
@@ -816,7 +839,38 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
               <Field value={about.titleUz} onChange={(value) => setAbout((current) => (current ? { ...current, titleUz: value } : current))} placeholder="Заголовок UZ" />
               <Field value={about.titleRu} onChange={(value) => setAbout((current) => (current ? { ...current, titleRu: value } : current))} placeholder="Заголовок RU" />
               <Field value={about.titleEn} onChange={(value) => setAbout((current) => (current ? { ...current, titleEn: value } : current))} placeholder="Заголовок EN" />
-              <Field value={about.imageUrl} onChange={(value) => setAbout((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
+              <div className="space-y-3 md:col-span-2">
+                <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">Загрузка изображения</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      JPG, PNG, WebP, AVIF. До 20 МБ. Рекомендуемый размер: 1200×760 px или любое горизонтальное изображение с похожей пропорцией для блока «О бренде».
+                    </p>
+                  </div>
+                  <span className="admin-button-secondary">{aboutUploadPending ? "Загрузка..." : "Выбрать файл"}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    className="hidden"
+                    onChange={handleAboutImageUpload}
+                    disabled={aboutUploadPending}
+                  />
+                </label>
+
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+                  <Field value={about.imageUrl} onChange={(value) => setAbout((current) => (current ? { ...current, imageUrl: value } : current))} placeholder="URL изображения" />
+
+                  <div className="admin-panel-muted overflow-hidden p-0">
+                    {about.imageUrl ? (
+                      <img src={about.imageUrl} alt="Предпросмотр блока «О бренде»" className="h-40 w-full object-cover" />
+                    ) : (
+                      <div className="flex h-40 items-center justify-center bg-slate-50 px-5 text-center text-sm leading-6 text-slate-400">
+                        Загрузите изображение или вставьте прямую ссылку для превью.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="md:col-span-2">
                 <Area value={about.descriptionUz} onChange={(value) => setAbout((current) => (current ? { ...current, descriptionUz: value } : current))} placeholder="Описание UZ" />
               </div>

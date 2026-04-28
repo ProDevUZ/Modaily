@@ -9,6 +9,7 @@ import { useCart } from "@/components/cart-provider";
 import { useCustomerProfile } from "@/components/customer-profile-provider";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { locales, type Dictionary, type Locale } from "@/lib/i18n";
+import { matchesSearchQuery } from "@/lib/search-text";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
 type SiteHeaderProps = {
@@ -154,17 +155,17 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
   const filteredProducts = normalizedQuery
     ? searchProducts.filter((product) => {
-        const searchFields = [
-          product.name,
-          product.shortDescription,
-          product.description,
-          product.category,
-          ...product.categories.map((category) => category.name)
-        ]
-          .filter(Boolean)
-          .map((value) => value.toLowerCase());
-
-        return searchFields.some((value) => value.includes(normalizedQuery));
+        return matchesSearchQuery(
+          [
+            product.searchIndex,
+            product.name,
+            product.shortDescription,
+            product.description,
+            product.category,
+            ...product.categories.map((category) => category.name)
+          ],
+          normalizedQuery
+        );
       })
     : [];
   const filteredCategories = normalizedQuery
@@ -330,8 +331,8 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
         </div>
 
         <div className="mx-auto flex h-[65px] max-w-[1760px] items-center px-5 sm:px-6 lg:hidden [font-family:var(--font-body)]">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center gap-[15px]">
+          <div className="relative flex w-full items-center justify-between">
+            <div className="flex min-w-[34px] items-center">
               <button
                 type="button"
                 className="flex h-[34px] w-[34px] items-center justify-center text-black"
@@ -352,16 +353,16 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   </svg>
                 )}
               </button>
-
-              <Link
-                href={`/${locale}`}
-                className="brand-wordmark inline-flex h-[21px] w-[150px] max-w-[calc(100vw-168px)] translate-y-[4px] items-center overflow-visible whitespace-nowrap text-[17px] uppercase leading-[18px] text-[var(--brand)]"
-              >
-                {siteSettings.brandName}
-              </Link>
             </div>
 
-            <div className="flex items-center gap-2">
+            <Link
+              href={`/${locale}`}
+              className="brand-wordmark absolute left-1/2 top-0 inline-flex h-full w-[150px] max-w-[calc(100vw-168px)] translate-x-[calc(-50%+22px)] translate-y-[9px] items-center justify-center overflow-visible whitespace-nowrap text-[17px] uppercase leading-[18px] text-[var(--brand)]"
+            >
+              {siteSettings.brandName}
+            </Link>
+
+            <div className="flex min-w-[70px] items-center justify-end gap-2">
               <button
                 type="button"
                 aria-label="Search"

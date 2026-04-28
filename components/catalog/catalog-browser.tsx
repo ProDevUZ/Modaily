@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product-card";
 import type { Locale } from "@/lib/i18n";
+import { matchesSearchQuery } from "@/lib/search-text";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
 type CatalogBrowserProps = {
@@ -174,10 +175,17 @@ export function CatalogBrowser({
     return products.filter((product) => {
       const matchesSearch =
         !normalizedQuery ||
-        [product.name, product.shortDescription, product.description, product.category, ...product.categories.map((category) => category.name)]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedQuery);
+        matchesSearchQuery(
+          [
+            product.searchIndex,
+            product.name,
+            product.shortDescription,
+            product.description,
+            product.category,
+            ...product.categories.map((category) => category.name)
+          ],
+          normalizedQuery
+        );
 
       const matchesCategory =
         selectedCategories.length === 0 ||

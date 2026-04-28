@@ -33,7 +33,7 @@ const copy = {
   uz: {
     about: "Biz haqimizda",
     contacts: "Bizning kontaktlarimiz",
-    store: "Do'konimiz",
+    store: "Do'konlarimiz",
     phone: "Telefon raqami",
     email: "Bizning pochta",
     whatsapp: "WhatsApp",
@@ -51,7 +51,7 @@ const copy = {
   ru: {
     about: "О нас",
     contacts: "Наши контакты",
-    store: "Наш магазин",
+    store: "Наши магазины",
     phone: "Номер телефона",
     email: "Наша почта",
     whatsapp: "WhatsApp",
@@ -69,7 +69,7 @@ const copy = {
   en: {
     about: "About",
     contacts: "Our contacts",
-    store: "Our store",
+    store: "Our stores",
     phone: "Phone number",
     email: "Our email",
     whatsapp: "WhatsApp",
@@ -141,9 +141,44 @@ function getTelegramHref(handle: string, link: string) {
   return normalizedHandle ? `https://t.me/${normalizedHandle}` : "";
 }
 
-function buildMapEmbedSrc(query: string) {
-  const normalized = query.trim() || "Modaily Tashkent";
-  return `https://maps.google.com/maps?q=${encodeURIComponent(normalized)}&z=14&output=embed`;
+function buildMapEmbedSrc(mapLink: string) {
+  const normalizedMapLink = normalizeExternalHref(mapLink);
+
+  if (!normalizedMapLink) {
+    return "";
+  }
+
+  if (normalizedMapLink) {
+    try {
+      const parsed = new URL(normalizedMapLink);
+      const queryFromParams =
+        parsed.searchParams.get("q") ||
+        parsed.searchParams.get("query") ||
+        parsed.searchParams.get("destination");
+
+      if (parsed.pathname.includes("/maps/embed")) {
+        return parsed.toString();
+      }
+
+      if (queryFromParams?.trim()) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(queryFromParams.trim())}&z=14&output=embed`;
+      }
+
+      const placeMatch = parsed.pathname.match(/\/place\/([^/]+)/i);
+
+      if (placeMatch?.[1]) {
+        const placeQuery = decodeURIComponent(placeMatch[1]).replace(/\+/g, " ").trim();
+
+        if (placeQuery) {
+          return `https://maps.google.com/maps?q=${encodeURIComponent(placeQuery)}&z=14&output=embed`;
+        }
+      }
+    } catch {
+      return normalizedMapLink;
+    }
+  }
+
+  return normalizedMapLink;
 }
 
 function SocialCardIcon({ src, alt }: { src: string; alt: string }) {
@@ -174,7 +209,7 @@ function ContactCard({
         {icon}
       </div>
       <p className="text-[11px] uppercase tracking-[0.16em] text-white/78">{title}</p>
-      <p className="mt-3 text-[14px] leading-6">{value}</p>
+      {value ? <p className="mt-3 text-[14px] leading-6">{value}</p> : null}
     </div>
   );
 
@@ -197,13 +232,13 @@ export function AboutPageView({
   siteSettings
 }: AboutPageViewProps) {
   const labels = copy[locale];
-  const storeLabel = siteSettings.footerAddress;
+  const storeHref = normalizeExternalHref(siteSettings.storeMapLink);
   const phoneHref = getPhoneHref(siteSettings.footerPhone);
   const whatsappHref = getWhatsAppHref(siteSettings.footerPhone);
   const emailHref = getEmailHref(siteSettings.footerEmail);
   const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
   const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
-  const mapQuery = siteSettings.footerAddress;
+  const mapEmbedSrc = buildMapEmbedSrc(siteSettings.storeMapLink);
   const secondaryPanelText = content.secondaryDescription || content.bottomDescription || content.description;
   return (
     <section className="bg-white">
@@ -262,7 +297,8 @@ export function AboutPageView({
               </svg>
             }
             title={labels.store}
-            value={storeLabel}
+            value=""
+            href={storeHref}
           />
           <ContactCard
             icon={
@@ -327,7 +363,7 @@ export function AboutPageView({
           <div className="overflow-hidden rounded-[4px] border border-black/10 bg-[#f7f5f1]">
             <iframe
               title={`${brandName} map`}
-              src={buildMapEmbedSrc(mapQuery)}
+              src={mapEmbedSrc}
               className="h-[320px] w-full border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"

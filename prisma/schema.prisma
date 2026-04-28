@@ -142,6 +142,7 @@ model ProductReview {
   id         String   @id @default(cuid())
   authorName String
   body       String
+  imageUrl   String?
   rating     Int      @default(5)
   active     Boolean  @default(true)
   productId  String

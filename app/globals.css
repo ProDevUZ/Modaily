@@ -468,6 +468,52 @@ select {
   text-transform: uppercase;
 }
 
+.interactive-glass-press {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+
+.interactive-glass-press::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08) 48%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.3), transparent 62%);
+  opacity: 0;
+  transform: scale(0.985);
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease;
+  pointer-events: none;
+}
+
+.interactive-glass-press:hover::after,
+.interactive-glass-press:focus-visible::after {
+  opacity: 0.18;
+}
+
+.interactive-glass-press:active {
+  transform: scale(0.988);
+  filter: saturate(1.02);
+}
+
+.interactive-glass-press:active::after {
+  opacity: 0.48;
+  transform: scale(1);
+}
+
+.interactive-glass-icon::after {
+  border-radius: 999px;
+}
+
 .hero-title {
   font-family: var(--font-hero-title), var(--font-display), Arial, sans-serif;
   font-weight: 900;

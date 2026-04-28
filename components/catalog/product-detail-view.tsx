@@ -7,7 +7,12 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
-import { normalizeDisplayText } from "@/lib/display-text";
+import {
+  formatInteractiveVideoTime,
+  useInteractiveVideoPlayback
+} from "@/components/ui/use-interactive-video-playback";
+import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
+import { normalizeDisplayText, splitDisplayTextForGlyphFallback } from "@/lib/display-text";
 import type { Locale } from "@/lib/i18n";
 import type { ProductPageCopy } from "@/lib/product-page-copy";
 import { renderRichText } from "@/lib/rich-text";
@@ -22,6 +27,7 @@ type ProductDetailViewProps = {
   copy: ProductPageCopy;
   product: StorefrontProductDetail;
   recommendations: StorefrontProduct[];
+  whereToBuyLink?: string;
   hideCommerce?: boolean;
 };
 
@@ -40,13 +46,66 @@ type ProductLightboxProps = {
 
 const VIEWED_PRODUCTS_LIMIT = 8;
 
-function openWhereToBuyOverlay() {
+function renderDisplayText(value: string) {
+  return splitDisplayTextForGlyphFallback(value).map((part, index) =>
+    part === "+" || part === "&" ? (
+      <span key={`${part}-${index}`} className="[font-family:var(--font-body),Arial,sans-serif] font-normal tracking-normal">
+        {part}
+      </span>
+    ) : (
+      <span key={`${part}-${index}`}>{part}</span>
+    )
+  );
+}
+
+function normalizeExternalHref(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
+}
+
+function openWhereToBuyLink(link?: string) {
   if (typeof window === "undefined") {
     return;
   }
 
-  window.dispatchEvent(new Event("modaily:open-where-to-buy"));
+  const href = normalizeExternalHref(link || "");
+
+  if (!href) {
+    return;
+  }
+
+  window.open(href, "_blank", "noopener,noreferrer");
 }
+
+const reviewImageCopy: Record<Locale, { add: string; uploading: string; remove: string; hint: string }> = {
+  uz: {
+    add: "Rasm qo'shish",
+    uploading: "Yuklanmoqda...",
+    remove: "Olib tashlash",
+    hint: "JPG, PNG, WebP yoki AVIF, 20 MB gacha."
+  },
+  ru: {
+    add: "Добавить изображение",
+    uploading: "Загрузка...",
+    remove: "Удалить",
+    hint: "JPG, PNG, WebP или AVIF, до 20 МБ."
+  },
+  en: {
+    add: "Add image",
+    uploading: "Uploading...",
+    remove: "Remove",
+    hint: "JPG, PNG, WebP or AVIF, up to 20 MB."
+  }
+};
 
 function viewedProductsStorageKey(locale: Locale) {
   return `modaily:viewed-products:${locale}`;
@@ -173,7 +232,8 @@ function ProductMediaFrame({
   className,
   videoClassName,
   controls = false,
-  autoPlay = false
+  autoPlay = false,
+  interactiveVideo = false
 }: {
   item: StorefrontProductDetail["media"][number] | undefined;
   alt: string;
@@ -181,8 +241,123 @@ function ProductMediaFrame({
   videoClassName?: string;
   controls?: boolean;
   autoPlay?: boolean;
+  interactiveVideo?: boolean;
 }) {
+  const [videoActivated, setVideoActivated] = useState(false);
+  const {
+    videoRef,
+    failed,
+    playing,
+    currentTime,
+    duration,
+    centerIcon,
+    startPlayback,
+    togglePause,
+    handleProgressChange,
+    videoEvents
+  } = useInteractiveVideoPlayback({
+    videoUrl: item?.type === "VIDEO" ? item.videoUrl : undefined,
+    isActive: videoActivated,
+    onActivate: () => setVideoActivated(true)
+  });
+
+  useEffect(() => {
+    setVideoActivated(false);
+  }, [interactiveVideo, item?.id]);
+
   if (item?.type === "VIDEO" && item.videoUrl) {
+    if (interactiveVideo) {
+      const mediaClassNames = `${videoClassName || className} mx-auto block`;
+
+      return (
+        <div
+          className="group relative flex h-full w-full items-center justify-center"
+          onClick={() => {
+            if (videoActivated) {
+              void togglePause();
+              return;
+            }
+
+            void startPlayback();
+          }}
+        >
+          {failed ? (
+            <FallbackImage
+              src={item.imageUrl || ""}
+              fallbackSrc="/images/home/mainpage.jpg"
+              alt={alt}
+              className={className}
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              src={item.videoUrl}
+              poster={item.imageUrl || undefined}
+              preload="metadata"
+              playsInline
+              loop
+              muted
+              className={`pointer-events-none ${mediaClassNames}`}
+              {...videoEvents}
+            />
+          )}
+
+          {!failed && videoActivated ? (
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          ) : null}
+
+          {!failed ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+
+                if (videoActivated) {
+                  void togglePause();
+                  return;
+                }
+
+                void startPlayback();
+              }}
+              aria-label={videoActivated ? (playing ? "Pause video" : "Play video") : alt}
+              className={`interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent transition ${
+                videoActivated ? "" : "bg-black/10 hover:bg-black/15"
+              }`}
+            >
+              {!videoActivated ? <VideoPlaybackIndicator kind="play" /> : null}
+              {videoActivated && centerIcon ? <VideoPlaybackIndicator kind={centerIcon} /> : null}
+            </button>
+          ) : null}
+
+          {!failed && videoActivated ? (
+            <>
+              <div
+                onClick={(event) => event.stopPropagation()}
+                className="absolute inset-x-3 bottom-3 z-10 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
+              >
+                <div className="min-w-0">
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    step="0.1"
+                    value={Math.min(currentTime, duration || 0)}
+                    onChange={(event) => handleProgressChange(Number(event.target.value))}
+                    className="h-1.5 w-full cursor-pointer accent-white"
+                    aria-label="Video progress"
+                  />
+                  <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
+                    <span>{formatInteractiveVideoTime(currentTime)}</span>
+                    <span>{formatInteractiveVideoTime(duration)}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      );
+    }
+
     return (
       <div className="relative flex h-full w-full items-center justify-center">
         <video
@@ -259,6 +434,7 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
   }, [media.length, onClose]);
 
   const activeItem = media[currentIndex] ?? media[0];
+  const showMediaTitle = activeItem?.type !== "VIDEO";
 
   function showPreviousImage() {
     setCurrentIndex((current) => (current === 0 ? media.length - 1 : current - 1));
@@ -320,52 +496,60 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
           aria-label="Close gallery"
           className="absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          ×
+          <span className="translate-y-[5%]">×</span>
         </button>
 
-        <div className="mb-4 flex items-center justify-between gap-4 pt-14 text-white/80">
-          <p className="truncate text-sm uppercase tracking-[0.22em]">{productName}</p>
+        <div className={`mb-4 flex items-center pt-14 text-white/80 ${showMediaTitle ? "justify-between gap-4" : "justify-end"}`}>
+          {showMediaTitle ? (
+            <p className="inline-flex max-w-[calc(100%-4.5rem)] rounded-full bg-white/18 px-4 py-2 text-sm uppercase tracking-[0.22em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+              <span className="truncate">{productName}</span>
+            </p>
+          ) : null}
           <p className="shrink-0 text-sm">
             {currentIndex + 1}/{media.length}
           </p>
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
-          {media.length > 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={showPreviousImage}
-                aria-label="Previous image"
-                className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={showNextImage}
-                aria-label="Next image"
-                className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-              >
-                →
-              </button>
-            </>
-          ) : null}
-
           <div
             className="flex w-full items-center justify-center overflow-hidden rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
             onTouchStart={(event) => handleTouchStart(event.touches[0]?.clientX ?? 0)}
             onTouchMove={(event) => handleTouchMove(event.touches[0]?.clientX ?? 0)}
             onTouchEnd={handleTouchEnd}
           >
-            <ProductMediaFrame
-              item={activeItem}
-              alt={`${productName} media ${currentIndex + 1}`}
-              className="max-h-[72vh] w-auto max-w-full object-contain"
-              videoClassName="max-h-[72vh] w-auto max-w-full rounded-[18px] bg-black object-contain"
-              controls
-              autoPlay
-            />
+            <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
+              {media.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={showPreviousImage}
+                  aria-label="Previous image"
+                  className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
+                >
+                  ←
+                </button>
+              ) : null}
+
+              <div className="relative inline-flex max-w-full items-center justify-center">
+                <ProductMediaFrame
+                  item={activeItem}
+                  alt={`${productName} media ${currentIndex + 1}`}
+                  className="max-h-[72vh] w-auto max-w-full object-contain"
+                  videoClassName="max-h-[72vh] w-auto max-w-full rounded-[18px] bg-black object-contain"
+                  interactiveVideo
+                />
+              </div>
+
+              {media.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={showNextImage}
+                  aria-label="Next image"
+                  className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
+                >
+                  →
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -457,12 +641,21 @@ const reviewSortLabels: Record<
   }
 };
 
-export function ProductDetailView({ locale, copy, product, recommendations, hideCommerce = false }: ProductDetailViewProps) {
+export function ProductDetailView({
+  locale,
+  copy,
+  product,
+  recommendations,
+  whereToBuyLink,
+  hideCommerce = false
+}: ProductDetailViewProps) {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState<StorefrontProductReview[]>(product.reviews);
   const [viewedProducts, setViewedProducts] = useState<StorefrontProduct[]>([]);
   const [authorName, setAuthorName] = useState("");
   const [body, setBody] = useState("");
+  const [reviewImageUrl, setReviewImageUrl] = useState("");
+  const [reviewImageUploading, setReviewImageUploading] = useState(false);
   const [rating, setRating] = useState(5);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [visibleReviews, setVisibleReviews] = useState(3);
@@ -547,6 +740,34 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
     setViewedProducts(nextHistory.filter((item) => item.id !== currentProduct.id));
   }, [locale, product]);
 
+  async function handleReviewImageUpload(file: File) {
+    setError(null);
+    setSuccess(null);
+    setReviewImageUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/uploads/promo-image", {
+        method: "POST",
+        body: formData
+      });
+
+      const payload = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+
+      if (!response.ok || !payload?.url) {
+        throw new Error(payload?.error || "Image upload failed.");
+      }
+
+      setReviewImageUrl(payload.url);
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Image upload failed.");
+    } finally {
+      setReviewImageUploading(false);
+    }
+  }
+
   async function submitReview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -562,6 +783,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
         body: JSON.stringify({
           authorName,
           body,
+          imageUrl: reviewImageUrl,
           rating
         })
       });
@@ -575,6 +797,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
       setReviews((current) => [payload as StorefrontProductReview, ...current]);
       setAuthorName("");
       setBody("");
+      setReviewImageUrl("");
       setRating(5);
       setReviewOpen(false);
       setVisibleReviews((current) => current + 1);
@@ -602,40 +825,30 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
       <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.85fr)] xl:gap-12">
         <div>
           <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] lg:hidden">
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(activeImageIndex)}
-              aria-label={`Open ${product.name} media gallery`}
-              className="block w-full cursor-zoom-in"
-            >
+            {activeMedia?.type === "VIDEO" ? (
               <ProductMediaFrame
                 item={activeMedia}
                 alt={product.name}
                 className="h-[394px] w-full object-contain p-5"
                 videoClassName="h-[394px] w-full bg-[#f5f5f2] object-contain p-5"
+                interactiveVideo
               />
-            </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(activeImageIndex)}
+                aria-label={`Open ${product.name} media gallery`}
+                className="interactive-glass-press block w-full cursor-zoom-in"
+              >
+                <ProductMediaFrame
+                  item={activeMedia}
+                  alt={product.name}
+                  className="h-[394px] w-full object-contain p-5"
+                  videoClassName="h-[394px] w-full bg-[#f5f5f2] object-contain p-5"
+                />
+              </button>
+            )}
 
-            {product.media.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  aria-label="Previous image"
-                  onClick={showPreviousImage}
-                  className="absolute left-6 top-1/2 flex h-[38px] w-[38px] -translate-y-1/2 items-center justify-center rounded-full bg-white/92 text-black/65 shadow-[0_8px_18px_rgba(0,0,0,0.08)]"
-                >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next image"
-                  onClick={showNextImage}
-                  className="absolute right-6 top-1/2 flex h-[38px] w-[38px] -translate-y-1/2 items-center justify-center rounded-full bg-white/92 text-black/65 shadow-[0_8px_18px_rgba(0,0,0,0.08)]"
-                >
-                  →
-                </button>
-              </>
-            ) : null}
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
@@ -644,7 +857,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 key={item.id}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
-                className={`overflow-hidden border ${index === activeImageIndex ? "border-black/55" : "border-transparent"}`}
+                className={`interactive-glass-press overflow-hidden border ${index === activeImageIndex ? "border-black/55" : "border-transparent"}`}
               >
                 <ProductMediaFrame
                   item={item}
@@ -662,7 +875,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                 type="button"
                 onClick={() => setLightboxIndex(index)}
                 aria-label={`Open ${product.name} media ${index + 1}`}
-                className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
+                className="interactive-glass-press relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
               >
                 {index === 0 ? <ProductBadgeStack badges={product.badges} className="left-4 top-4" /> : null}
                 <ProductMediaFrame
@@ -685,7 +898,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             </p>
           </div>
 
-          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">{product.name}</h1>
+          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">{renderDisplayText(product.name)}</h1>
 
           <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
             {renderRichText(product.shortDescription || product.description, {
@@ -705,12 +918,12 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
               <span>{copy.labels.size}</span>
               <span>&gt;</span>
             </div>
-            <p className="mt-3 text-[1.8rem] text-black">{product.size || "-"}</p>
+            <p className="mt-3 text-[1.8rem] text-black">{renderDisplayText(product.size || "-")}</p>
           </div>
 
           <button
             type="button"
-            onClick={openWhereToBuyOverlay}
+            onClick={() => openWhereToBuyLink(whereToBuyLink)}
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-[8px] bg-[#ba0c2f] px-6 text-sm font-medium text-white transition hover:opacity-90"
           >
             {copy.actions.whereToBuy}
@@ -748,7 +961,7 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
             <span>{copy.labels.sku}</span>
             <span className="text-black/75">{product.sku}</span>
             <span>{copy.labels.category}</span>
-            <span className="text-black/75">{product.category || "-"}</span>
+            <span className="text-black/75">{renderDisplayText(product.category || "-")}</span>
           </div>
 
           <div className="mt-8">
@@ -891,6 +1104,43 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                   className="w-full rounded-[12px] border border-black/12 bg-white px-4 py-3 text-sm outline-none focus:border-[#ba0c2f]"
                 />
 
+                <div className="rounded-[12px] border border-black/10 bg-white px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="inline-flex cursor-pointer items-center justify-center rounded-[10px] border border-black/12 px-4 py-2 text-sm text-black/75 transition hover:bg-black/5">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+
+                          if (file) {
+                            void handleReviewImageUpload(file);
+                          }
+
+                          event.currentTarget.value = "";
+                        }}
+                        disabled={reviewImageUploading}
+                      />
+                      {reviewImageUploading ? reviewImageCopy[locale].uploading : reviewImageCopy[locale].add}
+                    </label>
+                    <span className="text-xs text-black/40">{reviewImageCopy[locale].hint}</span>
+                  </div>
+
+                  {reviewImageUrl ? (
+                    <div className="mt-3 flex items-start gap-3">
+                      <img src={reviewImageUrl} alt="Review upload preview" className="h-20 w-20 rounded-[10px] object-cover" />
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center rounded-[10px] border border-black/10 px-3 py-2 text-sm text-black/55 transition hover:bg-black/5"
+                        onClick={() => setReviewImageUrl("")}
+                      >
+                        {reviewImageCopy[locale].remove}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+
                 {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
                 {success ? <p className="text-sm font-medium text-emerald-600">{success}</p> : null}
 
@@ -948,6 +1198,13 @@ export function ProductDetailView({ locale, copy, product, recommendations, hide
                     <Stars rating={review.rating} />
                   </div>
                   <p className="mt-4 max-w-[980px] text-[1rem] leading-8 text-black/65">{review.body}</p>
+                  {review.imageUrl ? (
+                    <img
+                      src={review.imageUrl}
+                      alt={`${review.authorName} review`}
+                      className="mt-4 h-auto w-full max-w-[280px] rounded-[14px] object-cover"
+                    />
+                  ) : null}
                 </article>
               ))}
             </div>

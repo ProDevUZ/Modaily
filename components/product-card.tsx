@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { FallbackImage } from "@/components/ui/fallback-image";
-import { normalizeDisplayText } from "@/lib/display-text";
+import { normalizeDisplayText, splitDisplayTextForGlyphFallback } from "@/lib/display-text";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
@@ -17,6 +17,18 @@ type ProductCardProps = {
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("ru-RU").format(price);
+}
+
+function renderDisplayText(value: string) {
+  return splitDisplayTextForGlyphFallback(value).map((part, index) =>
+    part === "+" || part === "&" ? (
+      <span key={`${part}-${index}`} className="[font-family:var(--font-body),Arial,sans-serif] font-normal tracking-normal">
+        {part}
+      </span>
+    ) : (
+      <span key={`${part}-${index}`}>{part}</span>
+    )
+  );
 }
 
 export function ProductCard({
@@ -38,7 +50,7 @@ export function ProductCard({
       className={`group relative ${isCatalog ? "flex h-full flex-col [container-type:inline-size]" : ""}`}
     >
       <div
-        className={`relative overflow-hidden bg-[#f5f5f2] ${
+        className={`pointer-events-none relative overflow-hidden bg-[#f5f5f2] ${
           isCatalog
             ? compactMobile
               ? "flex aspect-[120/154] items-center justify-center md:aspect-[186/214]"
@@ -61,7 +73,7 @@ export function ProductCard({
         />
       </div>
 
-      <div className={isCatalog ? "flex flex-1 flex-col pt-[8.5cqi]" : "pt-3.5"}>
+      <div className={isCatalog ? "pointer-events-none flex flex-1 flex-col pt-[8.5cqi]" : "pointer-events-none pt-3.5"}>
         <h3
           className={`product-card-title text-black transition group-hover:text-[#ba0c2f] ${
             isCatalog
@@ -69,18 +81,18 @@ export function ProductCard({
               : "text-[1.1rem] font-medium leading-5 md:text-[0.92rem] md:font-[300]"
           }`}
         >
-          {displayName}
+          {renderDisplayText(displayName)}
         </h3>
 
         {!isCatalog ? (
           <>
-            <p className="mt-1 text-[12px] text-black/45">{displaySize}</p>
-            <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-black/55">{displayShortDescription}</p>
+            <p className="mt-1 text-[12px] text-black/45">{renderDisplayText(displaySize)}</p>
+            <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-black/55">{renderDisplayText(displayShortDescription)}</p>
           </>
         ) : null}
 
         <div
-          className={`relative z-[2] ${
+          className={`pointer-events-auto relative z-[3] ${
             isCatalog ? "mt-auto space-y-[6.8cqi] pt-[6.8cqi]" : "mt-3.5 flex items-center justify-between gap-3"
           }`}
         >
@@ -125,7 +137,7 @@ export function ProductCard({
         </div>
       </div>
 
-      <Link href={productHref} aria-label={displayName} className="absolute inset-0 z-[1]">
+      <Link href={productHref} aria-label={displayName} className="interactive-glass-press !absolute inset-0 z-[2] block cursor-pointer">
         <span className="sr-only">{displayName}</span>
       </Link>
     </article>

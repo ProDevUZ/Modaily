@@ -64,6 +64,7 @@ type ProductReviewRecord = {
   id: string;
   authorName: string;
   body: string;
+  imageUrl: string | null;
   rating: number;
   createdAt: Date;
 };
@@ -115,6 +116,7 @@ export type StorefrontProductReview = {
   id: string;
   authorName: string;
   body: string;
+  imageUrl: string | null;
   rating: number;
   createdAt: string;
 };
@@ -338,6 +340,7 @@ function mapReviews(reviews: ProductReviewRecord[]): StorefrontProductReview[] {
     id: review.id,
     authorName: review.authorName,
     body: review.body,
+    imageUrl: review.imageUrl,
     rating: review.rating,
     createdAt: review.createdAt.toISOString()
   }));

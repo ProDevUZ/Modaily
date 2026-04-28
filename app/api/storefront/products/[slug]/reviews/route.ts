@@ -30,6 +30,7 @@ export async function GET(_: Request, { params }: RouteProps) {
           id: true,
           authorName: true,
           body: true,
+          imageUrl: true,
           rating: true,
           createdAt: true
         }
@@ -55,6 +56,7 @@ export async function POST(request: Request, { params }: RouteProps) {
 
   const authorName = asString(body?.authorName);
   const reviewBody = asString(body?.body);
+  const imageUrl = asString(body?.imageUrl) || null;
   const rating = Number(body?.rating);
 
   if (!authorName || authorName.length < 2) {
@@ -88,6 +90,7 @@ export async function POST(request: Request, { params }: RouteProps) {
       productId: product.id,
       authorName,
       body: reviewBody,
+      imageUrl,
       rating,
       active: true
     },
@@ -95,6 +98,7 @@ export async function POST(request: Request, { params }: RouteProps) {
       id: true,
       authorName: true,
       body: true,
+      imageUrl: true,
       rating: true,
       createdAt: true
     }
