@@ -228,8 +228,8 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                 </button>
               ) : null}
 
-              <div className="relative w-full max-w-[min(92vw,1120px)] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:max-w-[min(82vw,980px)]">
-                <div className="relative aspect-[16/9] w-full">
+              <div className="w-full max-w-[min(92vw,1120px)] md:max-w-[min(82vw,980px)]">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
                   <video
                     ref={videoRef}
                     src={activeItem?.videoUrl || undefined}
@@ -252,26 +252,26 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                   >
                     {centerIndicatorKind ? <VideoPlaybackIndicator kind={centerIndicatorKind} /> : null}
                   </button>
+                </div>
 
-                  <div
-                    onClick={(event) => event.stopPropagation()}
-                    className="absolute inset-x-3 bottom-3 z-10 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
-                  >
-                    <div className="min-w-0">
-                      <input
-                        type="range"
-                        min={0}
-                        max={duration || 0}
-                        step="0.1"
-                        value={Math.min(currentTime, duration || 0)}
-                        onChange={(event) => handleProgressChange(Number(event.target.value))}
-                        className="h-1.5 w-full cursor-pointer accent-white"
-                        aria-label="Video progress"
-                      />
-                      <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
-                        <span>{formatInteractiveVideoTime(currentTime)}</span>
-                        <span>{formatInteractiveVideoTime(duration)}</span>
-                      </div>
+                <div
+                  onClick={(event) => event.stopPropagation()}
+                  className="mt-3 rounded-[12px] bg-black/8 px-3 py-2 text-black/80 sm:mt-4 sm:rounded-[18px] sm:border sm:border-white/18 sm:bg-black/42 sm:px-4 sm:py-2.5 sm:text-white sm:shadow-[0_14px_28px_rgba(0,0,0,0.18)] sm:backdrop-blur-sm"
+                >
+                  <div className="min-w-0">
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 0}
+                      step="0.1"
+                      value={Math.min(currentTime, duration || 0)}
+                      onChange={(event) => handleProgressChange(Number(event.target.value))}
+                      className="h-1.5 w-full cursor-pointer accent-white"
+                      aria-label="Video progress"
+                    />
+                    <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] md:text-xs">
+                      <span>{formatInteractiveVideoTime(currentTime)}</span>
+                      <span>{formatInteractiveVideoTime(duration)}</span>
                     </div>
                   </div>
                 </div>
