@@ -365,26 +365,39 @@ export function AboutPageView({
             />
           </div>
 
-          <div className="overflow-hidden rounded-[4px] border border-black/10 bg-[#f7f5f1]">
-  {mapEmbedSrc ? (
-    <iframe
-      title={`${brandName} map`}
-      src={mapEmbedSrc}
-      className="h-[320px] w-full border-0"
-      loading="lazy"
-    />
-  ) : (
-    <div className="flex h-[320px] items-center justify-center text-center">
-      <a
-        href={siteSettings.storeMapLink}
-        target="_blank"
-        className="text-blue-600 underline"
-      >
-        Xaritani ochish
-      </a>
-    </div>
-  )}
-</div>
+	          <div className="overflow-hidden rounded-[4px] border border-black/10 bg-[#f7f5f1]">
+	            {mapEmbedSrc ? (
+	              <div className="relative h-[320px] w-full">
+	                <iframe
+	                  title={`${brandName} map`}
+	                  src={mapEmbedSrc}
+	                  className="h-[320px] w-full border-0"
+	                  loading="lazy"
+	                />
+	                {storeHref ? (
+	                  <a
+	                    href={storeHref}
+	                    target="_blank"
+	                    rel="noreferrer"
+	                    aria-label={`${brandName} map link`}
+	                    className="absolute inset-0 z-10 block"
+	                  >
+	                    <span className="sr-only">Open map</span>
+	                  </a>
+	                ) : null}
+	              </div>
+	            ) : (
+	              <div className="flex h-[320px] items-center justify-center text-center">
+	                <a
+	                  href={siteSettings.storeMapLink}
+	                  target="_blank"
+	                  className="text-blue-600 underline"
+	                >
+	                  Xaritani ochish
+	                </a>
+	              </div>
+	            )}
+	          </div>
         </div>
       </div>
     </section>
