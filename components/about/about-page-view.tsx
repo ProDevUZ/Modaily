@@ -143,42 +143,47 @@ function getTelegramHref(handle: string, link: string) {
 
 function buildMapEmbedSrc(mapLink: string) {
   const normalizedMapLink = normalizeExternalHref(mapLink);
+  if (!normalizedMapLink) return "";
 
-  if (!normalizedMapLink) {
+  try {
+    const parsed = new URL(normalizedMapLink);
+
+    // ✅ YANDEX EMBED
+    if (parsed.hostname.includes("yandex") && parsed.pathname.includes("map-widget")) {
+      return normalizedMapLink;
+    }
+
+    // 🔥 YANDEX ODDIY LINK → EMBEDGA AYLANTIRAMIZ
+    if (parsed.hostname.includes("yandex")) {
+      const ll = parsed.searchParams.get("ll"); // lon,lat
+      const z = parsed.searchParams.get("z") || "14";
+
+      if (ll) {
+        return `https://yandex.ru/map-widget/v1/?ll=${ll}&z=${z}`;
+      }
+
+      return "";
+    }
+
+    // GOOGLE
+    if (parsed.pathname.includes("/maps/embed")) {
+      return parsed.toString();
+    }
+
+    const queryFromParams =
+      parsed.searchParams.get("q") ||
+      parsed.searchParams.get("query") ||
+      parsed.searchParams.get("destination");
+
+    if (queryFromParams?.trim()) {
+      return `https://maps.google.com/maps?q=${encodeURIComponent(queryFromParams)}&z=14&output=embed`;
+    }
+
+  } catch {
     return "";
   }
 
-  if (normalizedMapLink) {
-    try {
-      const parsed = new URL(normalizedMapLink);
-      const queryFromParams =
-        parsed.searchParams.get("q") ||
-        parsed.searchParams.get("query") ||
-        parsed.searchParams.get("destination");
-
-      if (parsed.pathname.includes("/maps/embed")) {
-        return parsed.toString();
-      }
-
-      if (queryFromParams?.trim()) {
-        return `https://maps.google.com/maps?q=${encodeURIComponent(queryFromParams.trim())}&z=14&output=embed`;
-      }
-
-      const placeMatch = parsed.pathname.match(/\/place\/([^/]+)/i);
-
-      if (placeMatch?.[1]) {
-        const placeQuery = decodeURIComponent(placeMatch[1]).replace(/\+/g, " ").trim();
-
-        if (placeQuery) {
-          return `https://maps.google.com/maps?q=${encodeURIComponent(placeQuery)}&z=14&output=embed`;
-        }
-      }
-    } catch {
-      return normalizedMapLink;
-    }
-  }
-
-  return normalizedMapLink;
+  return "";
 }
 
 function SocialCardIcon({ src, alt }: { src: string; alt: string }) {
@@ -361,14 +366,25 @@ export function AboutPageView({
           </div>
 
           <div className="overflow-hidden rounded-[4px] border border-black/10 bg-[#f7f5f1]">
-            <iframe
-              title={`${brandName} map`}
-              src={mapEmbedSrc}
-              className="h-[320px] w-full border-0"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
+  {mapEmbedSrc ? (
+    <iframe
+      title={`${brandName} map`}
+      src={mapEmbedSrc}
+      className="h-[320px] w-full border-0"
+      loading="lazy"
+    />
+  ) : (
+    <div className="flex h-[320px] items-center justify-center text-center">
+      <a
+        href={siteSettings.storeMapLink}
+        target="_blank"
+        className="text-blue-600 underline"
+      >
+        Xaritani ochish
+      </a>
+    </div>
+  )}
+</div>
         </div>
       </div>
     </section>
