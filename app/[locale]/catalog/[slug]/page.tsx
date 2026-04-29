@@ -71,7 +71,7 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
 
-  const recommendations = await getRecommendedProducts(locale, product.id, product.categoryId);
+  const recommendations = await getRecommendedProducts(locale, product.id);
   const dictionary = getDictionary(locale);
   const copy = getProductPageCopy(locale);
   const siteSettings = await getLocalizedSiteSettings(locale);

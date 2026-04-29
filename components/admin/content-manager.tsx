@@ -563,16 +563,6 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const selectedPromoProduct = promoForm.promoProductId ? products.find((product) => product.id === promoForm.promoProductId) ?? null : null;
   const sectionMeta = workspaceMeta[section];
   const sectionDefinition = adminContentSections.find((entry) => entry.key === section);
-  const managedCount =
-    section === "promo"
-      ? promoCards.length
-      : section === "gallery"
-        ? filteredGalleryItems.length + filteredGalleryHeadings.length
-        : section === "testimonials"
-          ? testimonials.length
-          : section === "bestseller"
-            ? bestsellers.length
-          : 1;
   useEffect(() => {
     if (section === "gallery") {
       if (!editingGalleryId) {

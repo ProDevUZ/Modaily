@@ -120,14 +120,6 @@ function getLocalGalleryItems() {
   }));
 }
 
-function getFallbackVideoItems() {
-  return Array.from({ length: 3 }, (_, index) => ({
-    id: `video-fallback-${index + 1}`,
-    title: `Video ${index + 1}`,
-    imageUrl: ""
-  }));
-}
-
 function getFallbackTestimonials(locale: keyof typeof labels) {
   return [
     {
@@ -206,7 +198,6 @@ export default async function HomePage({ params }: PageProps) {
     return null;
   }
 
-  const dictionary = getDictionary(locale);
   const content = await getHomePageContent(locale);
   const catalogProducts = await getStorefrontProducts(locale);
   const copy = labels[locale];

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -583,11 +582,6 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("ru-RU").format(price);
 }
 
-function reviewDate(dateString: string) {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", year: "numeric" }).format(date);
-}
-
 function packagingDetails(locale: Locale) {
   if (locale === "ru") {
     return ['Ширина: 15 " Высота: 45 "', "Вес: 500 грам", "Упаковка(и): 1"];
@@ -811,14 +805,6 @@ export function ProductDetailView({
   }
 
   const activeMedia = product.media[activeImageIndex] ?? product.media[0];
-
-  function showPreviousImage() {
-    setActiveImageIndex((current) => (current === 0 ? product.media.length - 1 : current - 1));
-  }
-
-  function showNextImage() {
-    setActiveImageIndex((current) => (current === product.media.length - 1 ? 0 : current + 1));
-  }
 
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-10 md:px-8 lg:px-10">

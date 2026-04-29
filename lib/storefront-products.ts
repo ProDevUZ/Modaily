@@ -516,7 +516,7 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
   } satisfies StorefrontProductDetail;
 }
 
-export async function getRecommendedProducts(locale: Locale, currentProductId: string, categoryId: string) {
+export async function getRecommendedProducts(locale: Locale, currentProductId: string) {
   noStore();
   const categoriesById = await getCategoriesById();
   const recommendationLinks = await prisma.productRecommendation.findMany({

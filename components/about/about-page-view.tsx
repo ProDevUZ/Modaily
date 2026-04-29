@@ -148,14 +148,12 @@ function buildMapEmbedSrc(mapLink: string) {
   try {
     const parsed = new URL(normalizedMapLink);
 
-    // ✅ YANDEX EMBED
     if (parsed.hostname.includes("yandex") && parsed.pathname.includes("map-widget")) {
       return normalizedMapLink;
     }
 
-    // 🔥 YANDEX ODDIY LINK → EMBEDGA AYLANTIRAMIZ
     if (parsed.hostname.includes("yandex")) {
-      const ll = parsed.searchParams.get("ll"); // lon,lat
+      const ll = parsed.searchParams.get("ll");
       const z = parsed.searchParams.get("z") || "14";
 
       if (ll) {
@@ -165,7 +163,6 @@ function buildMapEmbedSrc(mapLink: string) {
       return "";
     }
 
-    // GOOGLE
     if (parsed.pathname.includes("/maps/embed")) {
       return parsed.toString();
     }

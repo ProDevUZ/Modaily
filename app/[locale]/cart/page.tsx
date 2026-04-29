@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { CartPageView } from "@/components/cart-page-view";
-import { getDictionary, isLocale, locales, type Locale } from "@/lib/i18n";
+import { getDictionary, isLocale, locales } from "@/lib/i18n";
 
 type PageProps = {
   params: Promise<{ locale: string }>;

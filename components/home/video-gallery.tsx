@@ -513,7 +513,7 @@ export function VideoGallery({ title, headings, items }: VideoGalleryProps) {
     normalizeDesktopScrollPosition();
   }
 
-  function handleDesktopPointerUp(event: React.PointerEvent<HTMLDivElement>) {
+  function handleDesktopPointerUp() {
     if (!desktopDraggingRef.current) {
       return;
     }
