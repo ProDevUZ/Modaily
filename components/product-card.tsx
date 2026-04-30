@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
+import { DisplayText } from "@/components/ui/display-text";
 import { FallbackImage } from "@/components/ui/fallback-image";
-import { normalizeDisplayText, splitDisplayTextForGlyphFallback } from "@/lib/display-text";
+import { normalizeDisplayText } from "@/lib/display-text";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import type { StorefrontProduct } from "@/lib/storefront-products";
 
@@ -19,9 +20,9 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("ru-RU").format(price);
 }
 
-function renderDisplayText(value: string) {
-  return splitDisplayTextForGlyphFallback(value).map((part, index) =>
-    part === "+" || part === "&" ? (
+function renderProductTitle(value: string) {
+  return value.split(/([!@#$%^&*()+])/u).map((part, index) =>
+    /^[!@#$%^&*()+]$/u.test(part) ? (
       <span key={`${part}-${index}`} className="[font-family:var(--font-body),Arial,sans-serif] font-normal tracking-normal">
         {part}
       </span>
@@ -81,13 +82,17 @@ export function ProductCard({
               : "text-[1.1rem] font-medium leading-5 md:text-[0.92rem] md:font-[300]"
           }`}
         >
-          {renderDisplayText(displayName)}
+          {renderProductTitle(displayName)}
         </h3>
 
         {!isCatalog ? (
           <>
-            <p className="mt-1 text-[12px] text-black/45">{renderDisplayText(displaySize)}</p>
-            <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-black/55">{renderDisplayText(displayShortDescription)}</p>
+            <p className="mt-1 text-[12px] text-black/45">
+              <DisplayText value={displaySize} normalize={false} />
+            </p>
+            <p className="mt-2.5 line-clamp-2 text-[12px] leading-5 text-black/55">
+              <DisplayText value={displayShortDescription} normalize={false} />
+            </p>
           </>
         ) : null}
 

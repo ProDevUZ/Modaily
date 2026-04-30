@@ -5,13 +5,14 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "re
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
+import { DisplayText } from "@/components/ui/display-text";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
 } from "@/components/ui/use-interactive-video-playback";
 import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
-import { normalizeDisplayText, splitDisplayTextForGlyphFallback } from "@/lib/display-text";
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { Locale } from "@/lib/i18n";
 import type { ProductPageCopy } from "@/lib/product-page-copy";
 import { renderRichText } from "@/lib/rich-text";
@@ -44,18 +45,6 @@ type ProductLightboxProps = {
 };
 
 const VIEWED_PRODUCTS_LIMIT = 8;
-
-function renderDisplayText(value: string) {
-  return splitDisplayTextForGlyphFallback(value).map((part, index) =>
-    part === "+" || part === "&" ? (
-      <span key={`${part}-${index}`} className="[font-family:var(--font-body),Arial,sans-serif] font-normal tracking-normal">
-        {part}
-      </span>
-    ) : (
-      <span key={`${part}-${index}`}>{part}</span>
-    )
-  );
-}
 
 function normalizeExternalHref(value: string) {
   const trimmed = value.trim();
@@ -125,6 +114,8 @@ function createViewedProductSnapshot(product: StorefrontProductDetail): Storefro
     categorySlugs: product.categorySlugs,
     skinTypes: product.skinTypes,
     size: normalizeDisplayText(product.size),
+    packageWidth: normalizeDisplayText(product.packageWidth),
+    packageHeight: normalizeDisplayText(product.packageHeight),
     price: product.price,
     discountAmount: product.discountAmount,
     hidePrice: product.hidePrice,
@@ -152,6 +143,8 @@ function normalizeViewedProduct(product: StorefrontProduct): StorefrontProduct {
       name: normalizeDisplayText(category.name)
     })),
     size: normalizeDisplayText(product.size),
+    packageWidth: normalizeDisplayText(product.packageWidth),
+    packageHeight: normalizeDisplayText(product.packageHeight),
     name: normalizeDisplayText(product.name),
     shortName: normalizeDisplayText(product.shortName),
     shortDescription: normalizeDisplayText(product.shortDescription),
@@ -582,7 +575,22 @@ function formatPrice(price: number) {
   return new Intl.NumberFormat("ru-RU").format(price);
 }
 
-function packagingDetails(locale: Locale) {
+function packagingDetails(locale: Locale, product: StorefrontProductDetail) {
+  const width = normalizeDisplayText(product.packageWidth);
+  const height = normalizeDisplayText(product.packageHeight);
+
+  if (width || height) {
+    if (locale === "ru") {
+      return [`Ширина: ${width || "-"} Высота: ${height || "-"}`, "Вес: 500 грам", "Упаковка(и): 1"];
+    }
+
+    if (locale === "en") {
+      return [`Width: ${width || "-"} Height: ${height || "-"}`, "Weight: 500 g", "Package(s): 1"];
+    }
+
+    return [`Eni: ${width || "-"} Bo'yi: ${height || "-"}`, "Vazni: 500 gramm", "Qadoq(lar): 1"];
+  }
+
   if (locale === "ru") {
     return ['Ширина: 15 " Высота: 45 "', "Вес: 500 грам", "Упаковка(и): 1"];
   }
@@ -647,6 +655,7 @@ export function ProductDetailView({
   const [reviews, setReviews] = useState<StorefrontProductReview[]>(product.reviews);
   const [viewedProducts, setViewedProducts] = useState<StorefrontProduct[]>([]);
   const [authorName, setAuthorName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [body, setBody] = useState("");
   const [reviewImageUrl, setReviewImageUrl] = useState("");
   const [reviewImageUploading, setReviewImageUploading] = useState(false);
@@ -776,6 +785,7 @@ export function ProductDetailView({
         },
         body: JSON.stringify({
           authorName,
+          phoneNumber,
           body,
           imageUrl: reviewImageUrl,
           rating
@@ -790,6 +800,7 @@ export function ProductDetailView({
 
       setReviews((current) => [payload as StorefrontProductReview, ...current]);
       setAuthorName("");
+      setPhoneNumber("");
       setBody("");
       setReviewImageUrl("");
       setRating(5);
@@ -884,7 +895,9 @@ export function ProductDetailView({
             </p>
           </div>
 
-          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">{renderDisplayText(product.name)}</h1>
+          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">
+            <DisplayText value={product.name} normalize={false} />
+          </h1>
 
           <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
             {renderRichText(product.shortDescription || product.description, {
@@ -904,7 +917,9 @@ export function ProductDetailView({
               <span>{copy.labels.size}</span>
               <span>&gt;</span>
             </div>
-            <p className="mt-3 text-[1.8rem] text-black">{renderDisplayText(product.size || "-")}</p>
+            <p className="mt-3 text-[1.8rem] text-black">
+              <DisplayText value={product.size || "-"} normalize={false} />
+            </p>
           </div>
 
           <button
@@ -947,7 +962,9 @@ export function ProductDetailView({
             <span>{copy.labels.sku}</span>
             <span className="text-black/75">{product.sku}</span>
             <span>{copy.labels.category}</span>
-            <span className="text-black/75">{renderDisplayText(product.category || "-")}</span>
+            <span className="text-black/75">
+              <DisplayText value={product.category || "-"} normalize={false} />
+            </span>
           </div>
 
           <div className="mt-8">
@@ -975,7 +992,7 @@ export function ProductDetailView({
                 <div>
                   <p className="font-medium text-black/55">{copy.labels.packaging}</p>
                   <div className="mt-3 space-y-1 text-black/75">
-                    {packagingDetails(locale).map((line) => (
+                    {packagingDetails(locale, product).map((line) => (
                       <p key={line}>{line}</p>
                     ))}
                   </div>
@@ -1081,6 +1098,18 @@ export function ProductDetailView({
                     })}
                   </div>
                 </div>
+
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  pattern="[0-9+]*"
+                  value={phoneNumber}
+                  onChange={(event) =>
+                    setPhoneNumber(event.target.value.replace(/[^\d+]/g, "").replace(/(?!^)\+/g, ""))
+                  }
+                  placeholder={copy.labels.yourPhone}
+                  className="h-12 w-full rounded-[12px] border border-black/12 bg-white px-4 text-sm outline-none focus:border-[#ba0c2f]"
+                />
 
                 <textarea
                   value={body}

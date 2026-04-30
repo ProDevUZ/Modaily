@@ -77,6 +77,13 @@ function AdminNavIcon({ section, active }: { section: AdminSectionKey; active: b
             <path d="m7.5 10 4.1 3a.7.7 0 0 0 .8 0l4.1-3" />
           </>
         ) : null}
+        {section === "reviews" ? (
+          <>
+            <path d="M5 5.5h14A1.5 1.5 0 0 1 20.5 7v8.5A1.5 1.5 0 0 1 19 17H9l-5 3v-3.5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5Z" />
+            <path d="M8 9h8" />
+            <path d="M8 12.5h5" />
+          </>
+        ) : null}
         {section === "content" ? (
           <>
             <rect x="4" y="4" width="16" height="16" rx="2.5" />

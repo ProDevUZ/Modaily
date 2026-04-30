@@ -218,7 +218,14 @@ async function syncBaseCatalog() {
         homeSortOrder: numericId <= 4 ? numericId : 0,
         colorFrom: product.colors[0],
         colorTo: product.colors[1],
-        categoryId
+        categoryId,
+        categoryLinks: {
+          deleteMany: {},
+          create: {
+            categoryId,
+            sortOrder: 0
+          }
+        }
       },
       create: {
         sku: `MDL-${String(numericId).padStart(3, "0")}`,
@@ -250,18 +257,24 @@ async function syncBaseCatalog() {
         imageUrl: null,
         colorFrom: product.colors[0],
         colorTo: product.colors[1],
-        categoryId
+        categoryId,
+        categoryLinks: {
+          create: {
+            categoryId,
+            sortOrder: 0
+          }
+        }
       }
     });
   }
 }
 
 async function syncNewProducts() {
-  const categoryIds = new Map<CategorySlug, string>();
+  const categoryIdBySlug = new Map<CategorySlug, string>();
 
   for (const slug of Object.keys(categoryMeta) as CategorySlug[]) {
     const category = await ensureCategory(slug);
-    categoryIds.set(slug, category.id);
+    categoryIdBySlug.set(slug, category.id);
   }
 
   for (const [index, blueprint] of blueprints.entries()) {
@@ -270,6 +283,7 @@ async function syncNewProducts() {
     const description = makeDescription(shortText, blueprint.ingredientLead, blueprint.benefit);
     const ingredients = makeIngredients(blueprint.ingredientLead);
     const slug = slugify(title.en);
+    const categoryId = categoryIdBySlug.get(blueprint.categorySlug)!;
 
     await prisma.product.upsert({
       where: { slug },
@@ -302,7 +316,14 @@ async function syncNewProducts() {
         homeSortOrder: 0,
         colorFrom: blueprint.colors[0],
         colorTo: blueprint.colors[1],
-        categoryId: categoryIds.get(blueprint.categorySlug)!
+        categoryId,
+        categoryLinks: {
+          deleteMany: {},
+          create: {
+            categoryId,
+            sortOrder: 0
+          }
+        }
       },
       create: {
         sku: `MDL-${String(index + 201).padStart(3, "0")}`,
@@ -335,7 +356,13 @@ async function syncNewProducts() {
         imageUrl: null,
         colorFrom: blueprint.colors[0],
         colorTo: blueprint.colors[1],
-        categoryId: categoryIds.get(blueprint.categorySlug)!
+        categoryId,
+        categoryLinks: {
+          create: {
+            categoryId,
+            sortOrder: 0
+          }
+        }
       }
     });
   }

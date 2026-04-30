@@ -64,8 +64,10 @@ export type ProductPayload = {
   storeContactsRu: string | null;
   storeContactsEn: string | null;
   skinTypes: string | null;
-  categoryIds: string;
+  categoryLinkIds: string[];
   size: string | null;
+  packageWidth: string | null;
+  packageHeight: string | null;
   price: number;
   discountAmount: number;
   hidePrice: boolean;
@@ -149,7 +151,13 @@ export type ShopLocationPayload = {
 
 export type HomeHeroPayload = {
   imageUrl: string | null;
+  imageUrlUz: string | null;
+  imageUrlRu: string | null;
+  imageUrlEn: string | null;
   mobileImageUrl: string | null;
+  mobileImageUrlUz: string | null;
+  mobileImageUrlRu: string | null;
+  mobileImageUrlEn: string | null;
   heroProductId: string | null;
 };
 
@@ -455,9 +463,9 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
   const price = Number(payload.price);
   const discountAmount = Number(payload.discountAmount ?? 0);
   const stock = Number(payload.stock);
-  const requestedCategoryIds = asCategoryIds(payload.categoryIds);
+  const requestedCategoryIds = asCategoryIds(payload.categoryLinkIds);
   const categoryId = requestedCategoryIds[0] || asString(payload.categoryId);
-  const categoryIdsList = categoryId
+  const categoryLinkIds = categoryId
     ? [categoryId, ...requestedCategoryIds.filter((entry) => entry !== categoryId)]
     : requestedCategoryIds;
   const recommendedProductIds = Array.isArray(payload.recommendedProductIds)
@@ -571,8 +579,10 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       storeContactsRu: asOptionalString(payload.storeContactsRu),
       storeContactsEn: asOptionalString(payload.storeContactsEn),
       skinTypes,
-      categoryIds: categoryIdsList.join(","),
+      categoryLinkIds,
       size: asOptionalString(payload.size),
+      packageWidth: asOptionalString(payload.packageWidth),
+      packageHeight: asOptionalString(payload.packageHeight),
       price: Math.round(price),
       discountAmount: Math.round(discountAmount),
       hidePrice: asBoolean(payload.hidePrice),
@@ -647,10 +657,16 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
 export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHeroPayload> {
   const payload = body as Record<string, unknown>;
   const imageUrl = asOptionalString(payload.imageUrl);
+  const imageUrlUz = asOptionalString(payload.imageUrlUz);
+  const imageUrlRu = asOptionalString(payload.imageUrlRu);
+  const imageUrlEn = asOptionalString(payload.imageUrlEn);
   const mobileImageUrl = asOptionalString(payload.mobileImageUrl);
+  const mobileImageUrlUz = asOptionalString(payload.mobileImageUrlUz);
+  const mobileImageUrlRu = asOptionalString(payload.mobileImageUrlRu);
+  const mobileImageUrlEn = asOptionalString(payload.mobileImageUrlEn);
   const heroProductId = asOptionalString(payload.heroProductId);
 
-  if (!imageUrl || !mobileImageUrl) {
+  if (!(imageUrlUz || imageUrlRu || imageUrlEn || imageUrl) || !(mobileImageUrlUz || mobileImageUrlRu || mobileImageUrlEn || mobileImageUrl)) {
     return { success: false, error: "Desktop and mobile hero images are required." };
   }
 
@@ -662,7 +678,13 @@ export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHer
     success: true,
     data: {
       imageUrl,
+      imageUrlUz,
+      imageUrlRu,
+      imageUrlEn,
       mobileImageUrl,
+      mobileImageUrlUz,
+      mobileImageUrlRu,
+      mobileImageUrlEn,
       heroProductId
     }
   };

@@ -82,6 +82,29 @@ type BlogPostRow = {
   } | null;
 };
 
+type BlogPostCardRow = Pick<
+  BlogPostRow,
+  | "id"
+  | "cardTitle"
+  | "cardTitleUz"
+  | "cardTitleRu"
+  | "cardTitleEn"
+  | "excerpt"
+  | "excerptUz"
+  | "excerptRu"
+  | "excerptEn"
+  | "coverImage"
+  | "publishDate"
+  | "category"
+  | "categoryUz"
+  | "categoryRu"
+  | "categoryEn"
+  | "slug"
+  | "featured"
+  | "linkedProductId"
+  | "linkedProduct"
+>;
+
 export const blogPostLinkedProductSelect = {
   id: true,
   sku: true,
@@ -276,18 +299,42 @@ export function serializeBlogPost(post: BlogPostRow, locale: Locale = "ru"): Blo
   };
 }
 
-function mapBlogPostCard(post: BlogPostRecord): StorefrontBlogPostCard {
+function mapBlogPostCard(row: BlogPostCardRow, locale: Locale): StorefrontBlogPostCard {
   return {
-    id: post.id,
-    cardTitle: post.cardTitle,
-    excerpt: post.excerpt,
-    coverImage: post.coverImage,
-    publishDate: post.publishDate,
-    category: post.category,
-    slug: post.slug,
-    featured: post.featured,
-    linkedProductId: post.linkedProductId,
-    linkedProduct: post.linkedProduct
+    id: row.id,
+    cardTitle: resolveLocalizedValue(
+      locale,
+      {
+        uz: row.cardTitleUz,
+        ru: row.cardTitleRu,
+        en: row.cardTitleEn
+      },
+      row.cardTitle
+    ),
+    excerpt: resolveLocalizedValue(
+      locale,
+      {
+        uz: row.excerptUz,
+        ru: row.excerptRu,
+        en: row.excerptEn
+      },
+      row.excerpt
+    ),
+    coverImage: row.coverImage,
+    publishDate: row.publishDate.toISOString(),
+    category: resolveLocalizedValue(
+      locale,
+      {
+        uz: row.categoryUz,
+        ru: row.categoryRu,
+        en: row.categoryEn
+      },
+      row.category
+    ),
+    slug: row.slug,
+    featured: row.featured,
+    linkedProductId: row.linkedProductId,
+    linkedProduct: serializeLinkedProduct(row.linkedProduct)
   };
 }
 
@@ -312,20 +359,32 @@ export async function getStorefrontBlogPosts(locale: Locale, options?: {
     },
     orderBy: [{ publishDate: "desc" }, { createdAt: "desc" }],
     take: options?.limit,
-    include: {
+    select: {
+      id: true,
+      cardTitle: true,
+      cardTitleUz: true,
+      cardTitleRu: true,
+      cardTitleEn: true,
+      excerpt: true,
+      excerptUz: true,
+      excerptRu: true,
+      excerptEn: true,
+      coverImage: true,
+      publishDate: true,
+      category: true,
+      categoryUz: true,
+      categoryRu: true,
+      categoryEn: true,
+      slug: true,
+      featured: true,
+      linkedProductId: true,
       linkedProduct: {
         select: blogPostLinkedProductSelect
-      },
-      media: {
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
-      },
-      dynamicSections: {
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
       }
     }
   });
 
-  return rows.map((row) => mapBlogPostCard(serializeBlogPost(row, locale)));
+  return rows.map((row) => mapBlogPostCard(row, locale));
 }
 
 export async function getStorefrontFeaturedBlogPosts(locale: Locale, limit = 3) {

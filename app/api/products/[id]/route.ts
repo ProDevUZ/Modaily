@@ -7,6 +7,7 @@ import {
   isUnsupportedProductHomeFieldError,
   normalizeProductHomeFields
 } from "@/lib/product-home-fields";
+import { buildProductCategoryLinkCreateData } from "@/lib/product-category-links";
 import { getProductWriteErrorPayload } from "@/lib/product-write-errors";
 
 type RouteProps = {
@@ -20,6 +21,15 @@ export async function GET(_: Request, { params }: RouteProps) {
     include: {
       category: true,
       galleryImages: {
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
+      categoryLinks: {
+        select: {
+          categoryId: true,
+          sortOrder: true
+        },
         orderBy: {
           sortOrder: "asc"
         }
@@ -58,7 +68,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   }
 
   try {
-    const { galleryImages, recommendedProductIds, ...productData } = parsed.data;
+    const { galleryImages, recommendedProductIds, categoryLinkIds, ...productData } = parsed.data;
 
     const product = await prisma.product.update({
       where: { id },
@@ -67,6 +77,10 @@ export async function PATCH(request: Request, { params }: RouteProps) {
         galleryImages: {
           deleteMany: {},
           create: galleryImages
+        },
+        categoryLinks: {
+          deleteMany: {},
+          create: buildProductCategoryLinkCreateData(categoryLinkIds, productData.categoryId)
         },
         recommendationLinks: {
           deleteMany: {},
@@ -81,6 +95,15 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       include: {
         category: true,
         galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        categoryLinks: {
+          select: {
+            categoryId: true,
+            sortOrder: true
+          },
           orderBy: {
             sortOrder: "asc"
           }

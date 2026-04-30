@@ -57,26 +57,20 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 
 export async function DELETE(_: Request, { params }: RouteProps) {
   const { id } = await params;
-  const products = await prisma.product.findMany({
+  const productsCount = await prisma.product.count({
     where: {
-      OR: [{ categoryId: id }, { categoryIds: { contains: id } }]
-    },
-    select: {
-      categoryId: true,
-      categoryIds: true
+      OR: [
+        { categoryId: id },
+        {
+          categoryLinks: {
+            some: {
+              categoryId: id
+            }
+          }
+        }
+      ]
     }
   });
-  const productsCount = products.filter((product) => {
-    if (product.categoryId === id) {
-      return true;
-    }
-
-    return (product.categoryIds || "")
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean)
-      .includes(id);
-  }).length;
 
   if (productsCount > 0) {
     return NextResponse.json(

@@ -104,7 +104,16 @@ export async function getHomePageContent(locale: Locale) {
   const [heroRow, aboutRow, promoRows, galleryRows, galleryHeadingRows, testimonialRows, bestsellers] = await Promise.all([
     prisma.homeHero.findFirst({
       orderBy: { createdAt: "asc" },
-      include: {
+      select: {
+        primaryCtaLink: true,
+        imageUrl: true,
+        imageUrlUz: true,
+        imageUrlRu: true,
+        imageUrlEn: true,
+        mobileImageUrl: true,
+        mobileImageUrlUz: true,
+        mobileImageUrlRu: true,
+        mobileImageUrlEn: true,
         heroProduct: {
           select: {
             slug: true,
@@ -113,10 +122,38 @@ export async function getHomePageContent(locale: Locale) {
         }
       }
     }),
-    prisma.homeAboutSection.findFirst({ orderBy: { createdAt: "asc" } }),
+    prisma.homeAboutSection.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: {
+        titleUz: true,
+        titleRu: true,
+        titleEn: true,
+        descriptionUz: true,
+        descriptionRu: true,
+        descriptionEn: true,
+        secondaryTitleUz: true,
+        secondaryTitleRu: true,
+        secondaryTitleEn: true,
+        secondaryDescriptionUz: true,
+        secondaryDescriptionRu: true,
+        secondaryDescriptionEn: true,
+        bottomDescriptionUz: true,
+        bottomDescriptionRu: true,
+        bottomDescriptionEn: true,
+        imageUrl: true
+      }
+    }),
     prisma.homePromoCard.findMany({
       where: { active: true },
-      include: {
+      select: {
+        id: true,
+        titleUz: true,
+        titleRu: true,
+        titleEn: true,
+        descriptionUz: true,
+        descriptionRu: true,
+        descriptionEn: true,
+        imageUrl: true,
         promoProduct: {
           select: {
             slug: true,
@@ -126,11 +163,65 @@ export async function getHomePageContent(locale: Locale) {
       },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
     }),
-    prisma.galleryItem.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
-    prisma.gallerySectionHeading.findMany({ where: { active: true }, orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }] }),
-    prisma.testimonial.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] }),
+    prisma.galleryItem.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        type: true,
+        titleUz: true,
+        titleRu: true,
+        titleEn: true,
+        imageUrl: true,
+        videoUrl: true
+      },
+      orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
+    }),
+    prisma.gallerySectionHeading.findMany({
+      where: { active: true },
+      select: {
+        type: true,
+        textUz: true,
+        textRu: true,
+        textEn: true
+      },
+      orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
+    }),
+    prisma.testimonial.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        authorName: true,
+        authorRoleUz: true,
+        authorRoleRu: true,
+        authorRoleEn: true,
+        productNameUz: true,
+        productNameRu: true,
+        productNameEn: true,
+        bodyUz: true,
+        bodyRu: true,
+        bodyEn: true,
+        avatarUrl: true,
+        rating: true
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    }),
     prisma.product.findMany({
       where: { active: true, isBestseller: true },
+      select: {
+        id: true,
+        slug: true,
+        nameUz: true,
+        nameRu: true,
+        nameEn: true,
+        shortDescriptionUz: true,
+        shortDescriptionRu: true,
+        shortDescriptionEn: true,
+        price: true,
+        discountAmount: true,
+        isHit: true,
+        isNew: true,
+        imageUrl: true
+      },
       orderBy: [{ homeSortOrder: "asc" }, { createdAt: "asc" }],
       take: 4
     })
@@ -142,12 +233,20 @@ export async function getHomePageContent(locale: Locale) {
     heroRow?.heroProduct?.active && heroRow.heroProduct.slug
       ? `/${locale}/catalog/${heroRow.heroProduct.slug}`
       : localizeInternalLink(hero.primaryCtaLink, locale, `/${locale}/catalog`);
+  const heroImageUrl =
+    locale === "uz" ? hero.imageUrlUz || hero.imageUrl : locale === "ru" ? hero.imageUrlRu || hero.imageUrl : hero.imageUrlEn || hero.imageUrl;
+  const heroMobileImageUrl =
+    locale === "uz"
+      ? hero.mobileImageUrlUz || hero.mobileImageUrl || heroImageUrl
+      : locale === "ru"
+        ? hero.mobileImageUrlRu || hero.mobileImageUrl || heroImageUrl
+        : hero.mobileImageUrlEn || hero.mobileImageUrl || heroImageUrl;
 
   return {
     hero: {
       primaryCtaLink: heroPrimaryCtaLink,
-      imageUrl: hero.imageUrl || "",
-      mobileImageUrl: hero.mobileImageUrl || hero.imageUrl || ""
+      imageUrl: heroImageUrl || "",
+      mobileImageUrl: heroMobileImageUrl || ""
     },
     bestsellers: bestsellers.map((product) => ({
       id: product.id,

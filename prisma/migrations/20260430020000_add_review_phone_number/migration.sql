@@ -1,0 +1,1 @@
+ALTER TABLE "ProductReview" ADD COLUMN "phoneNumber" TEXT NOT NULL DEFAULT '';

@@ -63,6 +63,8 @@ type ProductFormState = {
   storeContactsEn: string;
   skinTypes: string[];
   size: string;
+  packageWidth: string;
+  packageHeight: string;
   price: string;
   discountAmount: string;
   stock: string;
@@ -74,7 +76,7 @@ type ProductFormState = {
   imageUrl: string;
   colorFrom: string;
   colorTo: string;
-  categoryIds: string[];
+  categoryLinkIds: string[];
   recommendedProductIds: string[];
   galleryImages: GalleryFormItem[];
 };
@@ -130,6 +132,8 @@ const emptyForm: ProductFormState = {
   storeContactsEn: "",
   skinTypes: ["universal"],
   size: "",
+  packageWidth: "",
+  packageHeight: "",
   price: "0",
   discountAmount: "0",
   stock: "0",
@@ -141,7 +145,7 @@ const emptyForm: ProductFormState = {
   imageUrl: "",
   colorFrom: "",
   colorTo: "",
-  categoryIds: [],
+  categoryLinkIds: [],
   recommendedProductIds: [],
   galleryImages: []
 };
@@ -294,7 +298,7 @@ function UploadPlaceholderIcon({ className }: { className?: string }) {
 function buildInitialForm(categoryId: string, skinTypeValue: string) {
   return {
     ...emptyForm,
-    categoryIds: categoryId ? [categoryId] : [],
+    categoryLinkIds: categoryId ? [categoryId] : [],
     skinTypes: skinTypeValue ? [skinTypeValue] : []
   };
 }
@@ -309,16 +313,15 @@ function normalizeEditableSkinTypes(skinTypes?: string | null) {
   return normalized.length > 0 ? normalized : ["universal"];
 }
 
-function normalizeEditableCategoryIds(product: AdminProduct) {
-  const normalized = Array.isArray(product.categoryIds)
-    ? product.categoryIds.map((entry) => entry.trim()).filter(Boolean)
+function normalizeEditableCategoryLinkIds(product: AdminProduct) {
+  const linkedCategoryIds = Array.isArray(product.categoryLinks)
+    ? [...product.categoryLinks]
+        .sort((first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0))
+        .map((entry) => entry.categoryId.trim())
+        .filter(Boolean)
     : [];
 
-  if (normalized.length > 0) {
-    return normalized;
-  }
-
-  return product.categoryId ? [product.categoryId] : [];
+  return linkedCategoryIds.length > 0 ? linkedCategoryIds : product.categoryId ? [product.categoryId] : [];
 }
 
 function buildFormFromProduct(product: AdminProduct): ProductFormState {
@@ -352,6 +355,8 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     storeContactsEn: product.storeContactsEn || "",
     skinTypes: normalizeEditableSkinTypes(product.skinTypes),
     size: product.size || "",
+    packageWidth: product.packageWidth || "",
+    packageHeight: product.packageHeight || "",
     price: String(product.price),
     discountAmount: String(product.discountAmount ?? 0),
     stock: String(product.stock),
@@ -363,7 +368,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     imageUrl: product.imageUrl || "",
     colorFrom: product.colorFrom || "",
     colorTo: product.colorTo || "",
-    categoryIds: normalizeEditableCategoryIds(product),
+    categoryLinkIds: normalizeEditableCategoryLinkIds(product),
     recommendedProductIds: product.recommendedProductIds || [],
     galleryImages: (product.galleryImages || []).map((image, index) => ({
       type: image.type || "IMAGE",
@@ -386,12 +391,12 @@ function getCategoryDisplayName(category?: AdminCategory | null) {
   return category.nameRu || category.nameEn || category.nameUz;
 }
 
-function formatCategoryNames(categoryIds: string[] | undefined, categoriesById: Map<string, string>) {
-  if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+function formatCategoryNames(categoryLinkIds: string[] | undefined, categoriesById: Map<string, string>) {
+  if (!Array.isArray(categoryLinkIds) || categoryLinkIds.length === 0) {
     return null;
   }
 
-  const labels = categoryIds
+  const labels = categoryLinkIds
     .map((categoryId) => categoriesById.get(categoryId))
     .filter((label): label is string => Boolean(label));
 
@@ -587,7 +592,7 @@ export function ProductListManager() {
           product.category?.nameUz,
           product.category?.nameRu,
           product.category?.nameEn,
-          ...(product.categoryIds || []).map((categoryId) => categoryNameMap.get(categoryId)),
+          ...(product.categoryLinkIds || []).map((categoryId) => categoryNameMap.get(categoryId)),
           formatSkinTypes(product.skinTypes, skinTypeLabelMap)
         ]
           .filter(Boolean)
@@ -596,7 +601,7 @@ export function ProductListManager() {
           .includes(searchQuery);
 
       const matchesCategory =
-        !categoryFilter || (product.categoryIds || []).includes(categoryFilter);
+        !categoryFilter || (product.categoryLinkIds || []).includes(categoryFilter);
       const matchesStatus =
         !productStatusFilter ||
         (productStatusFilter === "active" ? product.active : !product.active);
@@ -784,7 +789,7 @@ export function ProductListManager() {
             <div className="divide-y divide-[#edf2f7]">
               {filteredProducts.map((product) => {
                 const skinTypeLabel = formatSkinTypes(product.skinTypes, skinTypeLabelMap);
-                const categoryLabel = formatCategoryNames(product.categoryIds, categoryNameMap) || getCategoryDisplayName(product.category);
+                const categoryLabel = formatCategoryNames(product.categoryLinkIds, categoryNameMap) || getCategoryDisplayName(product.category);
 
                 return (
                   <Link
@@ -1166,9 +1171,9 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       );
       setForm((current) => ({
         ...current,
-        categoryIds: current.categoryIds.includes(category.id)
-          ? current.categoryIds
-          : [...current.categoryIds, category.id]
+        categoryLinkIds: current.categoryLinkIds.includes(category.id)
+          ? current.categoryLinkIds
+          : [...current.categoryLinkIds, category.id]
       }));
       setNewCategoryName("");
     } catch (createError) {
@@ -1193,7 +1198,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       setCategories((current) => current.filter((entry) => entry.id !== category.id));
       setForm((current) => ({
         ...current,
-        categoryIds: current.categoryIds.filter((entry) => entry !== category.id)
+        categoryLinkIds: current.categoryLinkIds.filter((entry) => entry !== category.id)
       }));
     } catch (deleteError) {
       setCategoryOptionError(
@@ -1858,6 +1863,36 @@ export function ProductEditor({ productId }: ProductEditorProps) {
           <div className="space-y-6">
             <EditorCard title="Атрибуты">
               <div className="space-y-5">
+                <FieldGroup label="Размер / объем" hint="Размер упаковки или объем товара, например 150 ml.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Размер"
+                    placeholder="e.g. 150 ml"
+                    value={form.size}
+                    onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Ширина" hint="Ширина упаковки товара.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Ширина"
+                    placeholder="15&quot;"
+                    value={form.packageWidth}
+                    onChange={(event) => setForm((current) => ({ ...current, packageWidth: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Высота" hint="Высота упаковки товара.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Высота"
+                    placeholder="45&quot;"
+                    value={form.packageHeight}
+                    onChange={(event) => setForm((current) => ({ ...current, packageHeight: event.target.value }))}
+                  />
+                </FieldGroup>
+
                 <FieldGroup label="Тип кожи" hint="Выберите один или несколько типов кожи. Новые варианты можно добавлять прямо отсюда, а удалить их можно при наведении курсора.">
                   <DynamicOptionChecklist
                     items={skinTypeOptions.map((option) => ({
@@ -1905,16 +1940,6 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                   </div>
                 </FieldGroup>
 
-                <FieldGroup label="Размер / объем" hint="Размер упаковки или объем товара, например 150 ml.">
-                  <input
-                    className="admin-input h-12"
-                    aria-label="Размер"
-                    placeholder="e.g. 150 ml"
-                    value={form.size}
-                    onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))}
-                  />
-                </FieldGroup>
-
                 <FieldGroup label="Категория" hint="Выберите одну или несколько категорий. Новые категории тоже можно добавить прямо в форме, а удалить при наведении.">
                   <DynamicOptionChecklist
                     items={categories.map((category) => {
@@ -1923,14 +1948,14 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                       return {
                         value: category.id,
                         label,
-                        checked: form.categoryIds.includes(category.id),
+                        checked: form.categoryLinkIds.includes(category.id),
                         disabled: deletingCategoryId === category.id,
                         onToggle: () =>
                           setForm((current) => ({
                             ...current,
-                            categoryIds: current.categoryIds.includes(category.id)
-                              ? current.categoryIds.filter((entry) => entry !== category.id)
-                              : [...current.categoryIds, category.id]
+                            categoryLinkIds: current.categoryLinkIds.includes(category.id)
+                              ? current.categoryLinkIds.filter((entry) => entry !== category.id)
+                              : [...current.categoryLinkIds, category.id]
                           })),
                         onDelete: () => void handleDeleteCategoryOption(category)
                       };

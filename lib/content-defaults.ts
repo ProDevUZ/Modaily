@@ -71,7 +71,13 @@ export const defaultHomeHero = {
   secondaryCtaEn: "Catalog",
   secondaryCtaLink: "/ru/catalog",
   imageUrl: "/images/home/mainpage.jpg",
+  imageUrlUz: "/images/home/mainpage.jpg",
+  imageUrlRu: "/images/home/mainpage.jpg",
+  imageUrlEn: "/images/home/mainpage.jpg",
   mobileImageUrl: "/images/home/mainpage.jpg",
+  mobileImageUrlUz: "/images/home/mainpage.jpg",
+  mobileImageUrlRu: "/images/home/mainpage.jpg",
+  mobileImageUrlEn: "/images/home/mainpage.jpg",
   heroProductId: null
 };
 

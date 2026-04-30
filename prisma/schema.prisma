@@ -15,6 +15,8 @@ model User {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
 }
 
 model ContactMessage {
@@ -40,6 +42,9 @@ model Category {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   products      Product[]
+  productLinks  CategoryToProduct[]
+
+  @@index([createdAt])
 }
 
 model SkinTypeOption {
@@ -84,8 +89,9 @@ model Product {
   storeContactsRu    String?
   storeContactsEn    String?
   skinTypes          String?
-  categoryIds        String?
   size               String?
+  packageWidth       String?
+  packageHeight      String?
   price              Int
   discountAmount     Int      @default(0)
   hidePrice          Boolean  @default(false)
@@ -102,6 +108,7 @@ model Product {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryLinks      CategoryToProduct[]
   galleryImages      ProductGalleryImage[]
   heroEntries        HomeHero[] @relation("HomeHeroProduct")
   promoEntries       HomePromoCard[] @relation("HomePromoCardProduct")
@@ -109,6 +116,25 @@ model Product {
   recommendationLinks ProductRecommendation[] @relation("ProductRecommendationSource")
   recommendedByLinks ProductRecommendation[] @relation("ProductRecommendationTarget")
   reviews            ProductReview[]
+
+  @@index([active, homeSortOrder, createdAt])
+  @@index([active, isBestseller, homeSortOrder, createdAt])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model CategoryToProduct {
+  productId  String
+  categoryId String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([productId, sortOrder])
+  @@index([categoryId, sortOrder])
 }
 
 model ProductRecommendation {
@@ -136,11 +162,14 @@ model ProductGalleryImage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
 }
 
 model ProductReview {
   id         String   @id @default(cuid())
   authorName String
+  phoneNumber String   @default("")
   body       String
   imageUrl   String?
   rating     Int      @default(5)
@@ -149,6 +178,8 @@ model ProductReview {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, active, createdAt(sort: Desc)])
 }
 
 enum GalleryItemType {
@@ -250,11 +281,19 @@ model HomeHero {
   secondaryCtaEn   String?
   secondaryCtaLink String?
   imageUrl         String?
+  imageUrlUz       String?
+  imageUrlRu       String?
+  imageUrlEn       String?
   mobileImageUrl   String?
+  mobileImageUrlUz String?
+  mobileImageUrlRu String?
+  mobileImageUrlEn String?
   heroProductId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   heroProduct      Product? @relation("HomeHeroProduct", fields: [heroProductId], references: [id], onDelete: SetNull)
+
+  @@index([heroProductId])
 }
 
 model HomePromoCard {
@@ -276,6 +315,9 @@ model HomePromoCard {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   promoProduct   Product? @relation("HomePromoCardProduct", fields: [promoProductId], references: [id], onDelete: SetNull)
+
+  @@index([active, sortOrder, createdAt])
+  @@index([promoProductId])
 }
 
 model HomeAboutSection {
@@ -315,6 +357,8 @@ model GalleryItem {
   active         Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([active, type, sortOrder, createdAt])
 }
 
 model GallerySectionHeading {
@@ -327,6 +371,8 @@ model GallerySectionHeading {
   active    Boolean         @default(true)
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+
+  @@index([active, type, sortOrder, createdAt])
 }
 
 model Testimonial {
@@ -347,6 +393,8 @@ model Testimonial {
   active           Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([active, sortOrder, createdAt])
 }
 
 model BlogPost {

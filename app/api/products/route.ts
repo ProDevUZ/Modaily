@@ -7,6 +7,7 @@ import {
   isUnsupportedProductHomeFieldError,
   normalizeProductHomeFields
 } from "@/lib/product-home-fields";
+import { buildProductCategoryLinkCreateData } from "@/lib/product-category-links";
 import { getProductWriteErrorPayload } from "@/lib/product-write-errors";
 
 export async function GET() {
@@ -14,6 +15,15 @@ export async function GET() {
     include: {
       category: true,
       galleryImages: {
+        orderBy: {
+          sortOrder: "asc"
+        }
+      },
+      categoryLinks: {
+        select: {
+          categoryId: true,
+          sortOrder: true
+        },
         orderBy: {
           sortOrder: "asc"
         }
@@ -50,13 +60,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { galleryImages, recommendedProductIds, ...productData } = parsed.data;
+    const { galleryImages, recommendedProductIds, categoryLinkIds, ...productData } = parsed.data;
 
     const product = await prisma.product.create({
       data: {
         ...productData,
         galleryImages: {
           create: galleryImages
+        },
+        categoryLinks: {
+          create: buildProductCategoryLinkCreateData(categoryLinkIds, productData.categoryId)
         },
         recommendationLinks: {
           create: recommendedProductIds.map((recommendedProductId, index) => ({
@@ -68,6 +81,15 @@ export async function POST(request: Request) {
       include: {
         category: true,
         galleryImages: {
+          orderBy: {
+            sortOrder: "asc"
+          }
+        },
+        categoryLinks: {
+          select: {
+            categoryId: true,
+            sortOrder: true
+          },
           orderBy: {
             sortOrder: "asc"
           }

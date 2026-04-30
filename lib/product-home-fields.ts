@@ -2,7 +2,7 @@ import type { ProductPayload } from "@/lib/admin-validators";
 
 type ProductLike = {
   categoryId?: string | null;
-  categoryIds?: string | null;
+  categoryLinks?: { categoryId: string; sortOrder?: number | null }[] | null;
   isBestseller?: boolean | null;
   homeSortOrder?: number | null;
   hidePrice?: boolean | null;
@@ -29,6 +29,9 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
     storeContactsUz,
     storeContactsRu,
     storeContactsEn,
+    packageWidth,
+    packageHeight,
+    categoryLinkIds,
     recommendedProductIds,
     ...baseData
   } = payload;
@@ -37,10 +40,10 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
 }
 
 export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
-  const categoryIds = typeof product.categoryIds === "string"
-    ? product.categoryIds
-        .split(",")
-        .map((entry) => entry.trim())
+  const categoryLinkIds = Array.isArray(product.categoryLinks)
+    ? [...product.categoryLinks]
+        .sort((first, second) => (first.sortOrder ?? 0) - (second.sortOrder ?? 0))
+        .map((entry) => entry.categoryId)
         .filter(Boolean)
     : [];
   const recommendedProductIds = Array.isArray(product.recommendationLinks)
@@ -51,7 +54,7 @@ export function normalizeProductHomeFields<T extends ProductLike>(product: T) {
 
   return {
     ...product,
-    categoryIds: categoryIds.length > 0 ? categoryIds : product.categoryId ? [product.categoryId] : [],
+    categoryLinkIds: categoryLinkIds.length > 0 ? categoryLinkIds : product.categoryId ? [product.categoryId] : [],
     isBestseller: Boolean(product.isBestseller),
     homeSortOrder: typeof product.homeSortOrder === "number" ? product.homeSortOrder : 0,
     hidePrice: Boolean(product.hidePrice),
@@ -77,6 +80,8 @@ export function isUnsupportedProductHomeFieldError(error: unknown) {
     error.message.includes("storeImageUrl") ||
     error.message.includes("storeLocation") ||
     error.message.includes("storeContacts") ||
+    error.message.includes("packageWidth") ||
+    error.message.includes("packageHeight") ||
     error.message.includes("recommendationLinks")
   );
 }

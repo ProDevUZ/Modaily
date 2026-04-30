@@ -25,6 +25,7 @@ export type ProductPageCopy = {
     reviewsHeading: string;
     leaveReview: string;
     yourName: string;
+    yourPhone: string;
     yourComment: string;
     rating: string;
     recommended: string;
@@ -71,6 +72,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       reviewsHeading: "fikr",
       leaveReview: "Comment qoldirish",
       yourName: "Ismingiz",
+      yourPhone: "Telefon raqamingiz",
       yourComment: "Fikringiz",
       rating: "Reyting",
       recommended: "Sizga yoqishi mumkin",
@@ -115,6 +117,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       reviewsHeading: "Отзывов",
       leaveReview: "Оставить комментарий",
       yourName: "Ваше имя",
+      yourPhone: "Ваш телефон",
       yourComment: "Ваш комментарий",
       rating: "Рейтинг",
       recommended: "ВОЗМОЖНО ВАМ ПОНРАВИТСЯ",
@@ -159,6 +162,7 @@ const copy: Record<Locale, ProductPageCopy> = {
       reviewsHeading: "Reviews",
       leaveReview: "Leave a comment",
       yourName: "Your name",
+      yourPhone: "Your phone",
       yourComment: "Your comment",
       rating: "Rating",
       recommended: "YOU MAY ALSO LIKE",

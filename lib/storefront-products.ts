@@ -45,8 +45,11 @@ type ProductWithCategory = {
   sku: string;
   slug: string;
   skinTypes: string | null;
-  categoryIds: string | null;
+  categoryId: string;
+  categoryLinks?: { categoryId: string; sortOrder: number }[] | null;
   size: string | null;
+  packageWidth: string | null;
+  packageHeight: string | null;
   price: number;
   discountAmount: number;
   hidePrice: boolean;
@@ -56,13 +59,14 @@ type ProductWithCategory = {
   colorFrom: string | null;
   colorTo: string | null;
   imageUrl: string | null;
-  storeImageUrl: string | null;
-  category: ProductCategory;
+  storeImageUrl?: string | null;
+  category?: ProductCategory;
 } & LocalizedProductFields;
 
 type ProductReviewRecord = {
   id: string;
   authorName: string;
+  phoneNumber: string;
   body: string;
   imageUrl: string | null;
   rating: number;
@@ -77,6 +81,93 @@ type ProductGalleryRecord = {
   sortOrder: number;
 };
 
+const storefrontProductSelect = {
+  id: true,
+  sku: true,
+  slug: true,
+  nameUz: true,
+  nameRu: true,
+  nameEn: true,
+  shortDescriptionUz: true,
+  shortDescriptionRu: true,
+  shortDescriptionEn: true,
+  descriptionUz: true,
+  descriptionRu: true,
+  descriptionEn: true,
+  skinTypes: true,
+  categoryId: true,
+  categoryLinks: {
+    select: {
+      categoryId: true,
+      sortOrder: true
+    },
+    orderBy: {
+      sortOrder: "asc"
+    }
+  },
+  size: true,
+  packageWidth: true,
+  packageHeight: true,
+  price: true,
+  discountAmount: true,
+  hidePrice: true,
+  stock: true,
+  isHit: true,
+  isNew: true,
+  colorFrom: true,
+  colorTo: true,
+  imageUrl: true
+} as const;
+
+const storefrontProductDetailSelect = {
+  ...storefrontProductSelect,
+  featureUz: true,
+  featureRu: true,
+  featureEn: true,
+  ingredientsUz: true,
+  ingredientsRu: true,
+  ingredientsEn: true,
+  usageUz: true,
+  usageRu: true,
+  usageEn: true,
+  storeImageUrl: true,
+  storeLocationUz: true,
+  storeLocationRu: true,
+  storeLocationEn: true,
+  storeContactsUz: true,
+  storeContactsRu: true,
+  storeContactsEn: true,
+  galleryImages: {
+    select: {
+      id: true,
+      type: true,
+      imageUrl: true,
+      videoUrl: true,
+      sortOrder: true
+    },
+    orderBy: {
+      sortOrder: "asc"
+    }
+  },
+  reviews: {
+    where: {
+      active: true
+    },
+    select: {
+      id: true,
+      authorName: true,
+      phoneNumber: true,
+      body: true,
+      imageUrl: true,
+      rating: true,
+      createdAt: true
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  }
+} as const;
+
 export type StorefrontProduct = {
   id: string;
   sku: string;
@@ -88,6 +179,8 @@ export type StorefrontProduct = {
   categorySlugs: string[];
   skinTypes: string[];
   size: string;
+  packageWidth: string;
+  packageHeight: string;
   price: number;
   discountAmount: number;
   hidePrice: boolean;
@@ -115,6 +208,7 @@ export type StorefrontProductGalleryItem = {
 export type StorefrontProductReview = {
   id: string;
   authorName: string;
+  phoneNumber: string;
   body: string;
   imageUrl: string | null;
   rating: number;
@@ -227,12 +321,16 @@ function localizedCategoryName(category: ProductCategory, locale: Locale) {
 }
 
 function resolveCategoryIds(product: ProductWithCategory) {
-  const normalized = (product.categoryIds || "")
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
+  const normalized = Array.isArray(product.categoryLinks)
+    ? [...product.categoryLinks]
+        .sort((first, second) => first.sortOrder - second.sortOrder)
+        .map((entry) => entry.categoryId.trim())
+        .filter(Boolean)
+    : [];
 
-  if (product.category?.id && !normalized.includes(product.category.id)) {
+  if (product.categoryId && !normalized.includes(product.categoryId)) {
+    normalized.unshift(product.categoryId);
+  } else if (product.category?.id && !normalized.includes(product.category.id)) {
     normalized.unshift(product.category.id);
   }
 
@@ -296,13 +394,15 @@ function mapStorefrontProduct(
     id: product.id,
     sku: product.sku,
     slug: product.slug,
-    category: primaryCategory?.name || localizedCategoryName(product.category, locale),
-    categoryId: primaryCategory?.id || product.category?.id || "",
+    category: primaryCategory?.name || localizedCategoryName(product.category ?? null, locale),
+    categoryId: primaryCategory?.id || product.categoryId || product.category?.id || "",
     categorySlug: primaryCategory?.slug || product.category?.slug || "",
     categories: localizedCategories,
     categorySlugs: localizedCategories.map((category) => category.slug),
     skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
     size: product.size || "",
+    packageWidth: product.packageWidth || "",
+    packageHeight: product.packageHeight || "",
     price: product.price,
     discountAmount: product.discountAmount,
     hidePrice: product.hidePrice,
@@ -321,8 +421,24 @@ function mapStorefrontProduct(
   };
 }
 
-async function getCategoriesById() {
+function collectCategoryIds(products: ProductWithCategory | ProductWithCategory[]) {
+  const rows = Array.isArray(products) ? products : [products];
+  const ids = rows.flatMap((product) => resolveCategoryIds(product));
+
+  return ids.filter((id, index, collection) => collection.indexOf(id) === index);
+}
+
+async function getCategoriesByIds(categoryIdList: string[]) {
+  if (categoryIdList.length === 0) {
+    return new Map<string, NonNullable<ProductCategory>>();
+  }
+
   const categories = await prisma.category.findMany({
+    where: {
+      id: {
+        in: categoryIdList
+      }
+    },
     select: {
       id: true,
       slug: true,
@@ -339,6 +455,7 @@ function mapReviews(reviews: ProductReviewRecord[]): StorefrontProductReview[] {
   return reviews.map((review) => ({
     id: review.id,
     authorName: review.authorName,
+    phoneNumber: review.phoneNumber,
     body: review.body,
     imageUrl: review.imageUrl,
     rating: review.rating,
@@ -413,92 +530,50 @@ function buildStoreInfo(product: ProductWithCategory, locale: Locale): Storefron
 
 export async function getStorefrontProducts(locale: Locale) {
   noStore();
-  const categoriesById = await getCategoriesById();
   const products = await prisma.product.findMany({
     where: { active: true },
-    include: {
-      category: {
-        select: {
-          id: true,
-          slug: true,
-          nameUz: true,
-          nameRu: true,
-          nameEn: true
-        }
-      }
-    },
+    select: storefrontProductSelect,
     orderBy: [{ homeSortOrder: "asc" }, { createdAt: "asc" }]
   });
+  const categoriesById = await getCategoriesByIds(collectCategoryIds(products));
 
   return products.map((product) => mapStorefrontProduct(product, locale, categoriesById));
 }
 
 export async function getStorefrontProduct(locale: Locale, slug: string) {
   noStore();
-  const categoriesById = await getCategoriesById();
   const product = await prisma.product.findFirst({
     where: {
       slug,
       active: true
     },
-    include: {
-      category: {
-        select: {
-          id: true,
-          slug: true,
-          nameUz: true,
-          nameRu: true,
-          nameEn: true
-        }
-      }
-    }
+    select: storefrontProductSelect
   });
 
   if (!product) {
     return null;
   }
+
+  const categoriesById = await getCategoriesByIds(collectCategoryIds(product));
 
   return mapStorefrontProduct(product, locale, categoriesById);
 }
 
 export async function getStorefrontProductDetail(locale: Locale, slug: string) {
   noStore();
-  const categoriesById = await getCategoriesById();
   const product = await prisma.product.findFirst({
     where: {
       slug,
       active: true
     },
-    include: {
-      category: {
-        select: {
-          id: true,
-          slug: true,
-          nameUz: true,
-          nameRu: true,
-          nameEn: true
-        }
-      },
-      galleryImages: {
-        orderBy: {
-          sortOrder: "asc"
-        }
-      },
-      reviews: {
-        where: {
-          active: true
-        },
-        orderBy: {
-          createdAt: "desc"
-        }
-      }
-    }
+    select: storefrontProductDetailSelect
   });
 
   if (!product) {
     return null;
   }
 
+  const categoriesById = await getCategoriesByIds(collectCategoryIds(product));
   const baseProduct = mapStorefrontProduct(product, locale, categoriesById);
   const media = buildGallery(product.imageUrl, product.galleryImages);
   const reviews = mapReviews(product.reviews);
@@ -518,7 +593,6 @@ export async function getStorefrontProductDetail(locale: Locale, slug: string) {
 
 export async function getRecommendedProducts(locale: Locale, currentProductId: string) {
   noStore();
-  const categoriesById = await getCategoriesById();
   const recommendationLinks = await prisma.productRecommendation.findMany({
     where: {
       sourceProductId: currentProductId,
@@ -528,23 +602,15 @@ export async function getRecommendedProducts(locale: Locale, currentProductId: s
     },
     include: {
       recommendedProduct: {
-        include: {
-          category: {
-            select: {
-              id: true,
-              slug: true,
-              nameUz: true,
-              nameRu: true,
-              nameEn: true
-            }
-          }
-        }
+        select: storefrontProductSelect
       }
     },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
   });
+  const recommendedProducts = recommendationLinks.map((entry) => entry.recommendedProduct);
+  const categoriesById = await getCategoriesByIds(collectCategoryIds(recommendedProducts));
 
-  return recommendationLinks.map((entry) => mapStorefrontProduct(entry.recommendedProduct, locale, categoriesById));
+  return recommendedProducts.map((product) => mapStorefrontProduct(product, locale, categoriesById));
 }
 
 export async function getStorefrontProductSlugs() {

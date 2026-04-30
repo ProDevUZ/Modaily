@@ -31,20 +31,19 @@ function buildChartPath() {
 }
 
 export default async function AdminOverviewPage() {
-  const [userCount, productCount, categoryCount, testimonialCount, galleryCount, promoCount] = await Promise.all([
+  const [userCount, productCount, categoryCount, testimonialCount, galleryCount, promoCount, catalogValue] = await Promise.all([
     prisma.user.count(),
     prisma.product.count(),
     prisma.category.count(),
     prisma.testimonial.count(),
     prisma.galleryItem.count(),
-    prisma.homePromoCard.count()
+    prisma.homePromoCard.count(),
+    prisma.product.aggregate({
+      _sum: {
+        price: true
+      }
+    })
   ]);
-
-  const catalogValue = await prisma.product.aggregate({
-    _sum: {
-      price: true
-    }
-  });
 
   const stats = [
     {

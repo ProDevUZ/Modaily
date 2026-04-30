@@ -10,6 +10,10 @@ function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function isValidPhoneNumber(value: string) {
+  return /^\+?\d+$/.test(value);
+}
+
 export async function GET(_: Request, { params }: RouteProps) {
   const { slug } = await params;
 
@@ -29,6 +33,7 @@ export async function GET(_: Request, { params }: RouteProps) {
         select: {
           id: true,
           authorName: true,
+          phoneNumber: true,
           body: true,
           imageUrl: true,
           rating: true,
@@ -55,12 +60,17 @@ export async function POST(request: Request, { params }: RouteProps) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
   const authorName = asString(body?.authorName);
+  const phoneNumber = asString(body?.phoneNumber);
   const reviewBody = asString(body?.body);
   const imageUrl = asString(body?.imageUrl) || null;
   const rating = Number(body?.rating);
 
   if (!authorName || authorName.length < 2) {
     return NextResponse.json({ error: "Valid author name is required." }, { status: 400 });
+  }
+
+  if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+    return NextResponse.json({ error: "Valid phone number is required." }, { status: 400 });
   }
 
   if (!reviewBody || reviewBody.length < 8) {
@@ -89,6 +99,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     data: {
       productId: product.id,
       authorName,
+      phoneNumber,
       body: reviewBody,
       imageUrl,
       rating,
@@ -97,6 +108,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     select: {
       id: true,
       authorName: true,
+      phoneNumber: true,
       body: true,
       imageUrl: true,
       rating: true,

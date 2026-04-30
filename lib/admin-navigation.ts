@@ -36,6 +36,12 @@ export const adminSections = [
     summary: "Заявки и обращения с формы контактов"
   },
   {
+    key: "reviews",
+    href: "/admin123/reviews",
+    label: "Отзывы",
+    summary: "Отзывы покупателей по товарам"
+  },
+  {
     key: "content",
     href: "/admin123/content",
     label: "Контент",

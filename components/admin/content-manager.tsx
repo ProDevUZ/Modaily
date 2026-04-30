@@ -22,6 +22,8 @@ type PromoForm = Omit<AdminHomePromoCard, "id" | "createdAt" | "updatedAt">;
 type GalleryHeadingForm = Omit<AdminGalleryHeading, "id" | "createdAt" | "updatedAt">;
 type GalleryForm = Omit<AdminGalleryItem, "id" | "createdAt" | "updatedAt">;
 type TestimonialForm = Omit<AdminTestimonial, "id" | "createdAt" | "updatedAt">;
+type HeroImageLocale = "uz" | "ru" | "en";
+type HeroImageTarget = "desktop" | "mobile";
 
 function getProductOptionLabel(product: AdminProduct) {
   return product.nameRu || product.nameEn || product.nameUz;
@@ -83,6 +85,20 @@ const emptyTestimonialForm: TestimonialForm = {
   sortOrder: 0,
   active: true
 };
+
+const heroImageLocales: { locale: HeroImageLocale; label: string }[] = [
+  { locale: "uz", label: "UZ" },
+  { locale: "ru", label: "RU" },
+  { locale: "en", label: "EN" }
+];
+
+function getHeroImageField(target: HeroImageTarget, locale: HeroImageLocale) {
+  if (target === "desktop") {
+    return locale === "uz" ? "imageUrlUz" : locale === "ru" ? "imageUrlRu" : "imageUrlEn";
+  }
+
+  return locale === "uz" ? "mobileImageUrlUz" : locale === "ru" ? "mobileImageUrlRu" : "mobileImageUrlEn";
+}
 
 const workspaceMeta: Record<
   AdminContentSectionKey,
@@ -275,7 +291,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     }
   }
 
-  async function handleHeroImageUpload(event: ChangeEvent<HTMLInputElement>, target: "desktop" | "mobile") {
+  async function handleHeroImageUpload(event: ChangeEvent<HTMLInputElement>, target: HeroImageTarget, locale: HeroImageLocale) {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -299,14 +315,17 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
         body: formData
       });
 
+      const field = getHeroImageField(target, locale);
+
       setHero((current) =>
         current
-          ? target === "desktop"
-            ? { ...current, imageUrl: payload.url }
-            : { ...current, mobileImageUrl: payload.url }
+          ? {
+              ...current,
+              [field]: payload.url
+            }
           : current
       );
-      setMessage(target === "desktop" ? "Desktop-изображение hero загружено." : "Mobile-изображение hero загружено.");
+      setMessage(`${target === "desktop" ? "Desktop" : "Mobile"}-изображение hero (${locale.toUpperCase()}) загружено.`);
     } catch (uploadError) {
       setError(
         uploadError instanceof Error
@@ -560,6 +579,8 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const filteredGalleryHeadings = galleryHeadings.filter((item) => item.type === activeGalleryType);
   const filteredGalleryItems = galleryItems.filter((item) => item.type === activeGalleryType);
   const selectedHeroProduct = hero?.heroProductId ? products.find((product) => product.id === hero.heroProductId) ?? null : null;
+  const heroDesktopPreview = hero?.imageUrlRu || hero?.imageUrlUz || hero?.imageUrlEn || hero?.imageUrl || "";
+  const heroMobilePreview = hero?.mobileImageUrlRu || hero?.mobileImageUrlUz || hero?.mobileImageUrlEn || hero?.mobileImageUrl || "";
   const selectedPromoProduct = promoForm.promoProductId ? products.find((product) => product.id === promoForm.promoProductId) ?? null : null;
   const sectionMeta = workspaceMeta[section];
   const sectionDefinition = adminContentSections.find((entry) => entry.key === section);
@@ -677,33 +698,44 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         </p>
                       </div>
 
-                      <label className={`admin-button-secondary shrink-0 ${heroDesktopUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
-                        {heroDesktopUploadPending ? "Загрузка..." : "Выбрать файл"}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,image/avif"
-                          className="hidden"
-                          onChange={(event) => {
-                            void handleHeroImageUpload(event, "desktop");
-                          }}
-                          disabled={heroDesktopUploadPending}
-                        />
-                      </label>
                     </div>
 
                     <div className="grid gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
-                      <div className="space-y-3">
-                        <Field
-                          value={hero.imageUrl}
-                          onChange={(value) => setHero((current) => (current ? { ...current, imageUrl: value } : current))}
-                          placeholder="URL desktop-изображения"
-                        />
+                      <div className="space-y-4">
+                        {heroImageLocales.map((item) => {
+                          const field = getHeroImageField("desktop", item.locale);
+
+                          return (
+                            <div key={item.locale} className="space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
+                                <label className={`admin-button-secondary shrink-0 ${heroDesktopUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                                  {heroDesktopUploadPending ? "Загрузка..." : "Выбрать файл"}
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/avif"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                      void handleHeroImageUpload(event, "desktop", item.locale);
+                                    }}
+                                    disabled={heroDesktopUploadPending}
+                                  />
+                                </label>
+                              </div>
+                              <Field
+                                value={hero[field]}
+                                onChange={(value) => setHero((current) => (current ? { ...current, [field]: value } : current))}
+                                placeholder={`URL desktop-изображения ${item.label}`}
+                              />
+                            </div>
+                          );
+                        })}
                         <p className="admin-form-hint">Рекомендуемый размер: 1720×1100 px. После загрузки можно заменить URL вручную.</p>
                       </div>
 
                       <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
-                        {hero.imageUrl ? (
-                          <img src={hero.imageUrl} alt="Desktop hero preview" className="h-[210px] w-full object-cover" />
+                        {heroDesktopPreview ? (
+                          <img src={heroDesktopPreview} alt="Desktop hero preview" className="h-[210px] w-full object-cover" />
                         ) : (
                           <div className="flex h-[210px] items-center justify-center bg-slate-50 px-6 text-center text-sm leading-6 text-slate-400">
                             Загрузите desktop-изображение или вставьте прямую ссылку.
@@ -727,33 +759,44 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                         </p>
                       </div>
 
-                      <label className={`admin-button-secondary shrink-0 ${heroMobileUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
-                        {heroMobileUploadPending ? "Загрузка..." : "Выбрать файл"}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,image/avif"
-                          className="hidden"
-                          onChange={(event) => {
-                            void handleHeroImageUpload(event, "mobile");
-                          }}
-                          disabled={heroMobileUploadPending}
-                        />
-                      </label>
                     </div>
 
                     <div className="grid gap-5 px-5 py-5 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
-                      <div className="space-y-3">
-                        <Field
-                          value={hero.mobileImageUrl}
-                          onChange={(value) => setHero((current) => (current ? { ...current, mobileImageUrl: value } : current))}
-                          placeholder="URL mobile-изображения"
-                        />
+                      <div className="space-y-4">
+                        {heroImageLocales.map((item) => {
+                          const field = getHeroImageField("mobile", item.locale);
+
+                          return (
+                            <div key={item.locale} className="space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
+                                <label className={`admin-button-secondary shrink-0 ${heroMobileUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                                  {heroMobileUploadPending ? "Загрузка..." : "Выбрать файл"}
+                                  <input
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/avif"
+                                    className="hidden"
+                                    onChange={(event) => {
+                                      void handleHeroImageUpload(event, "mobile", item.locale);
+                                    }}
+                                    disabled={heroMobileUploadPending}
+                                  />
+                                </label>
+                              </div>
+                              <Field
+                                value={hero[field]}
+                                onChange={(value) => setHero((current) => (current ? { ...current, [field]: value } : current))}
+                                placeholder={`URL mobile-изображения ${item.label}`}
+                              />
+                            </div>
+                          );
+                        })}
                         <p className="admin-form-hint">Рекомендуемый размер: 900×1400 px. Лучше использовать самостоятельный кадр под mobile.</p>
                       </div>
 
                       <div className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white">
-                        {hero.mobileImageUrl ? (
-                          <img src={hero.mobileImageUrl} alt="Mobile hero preview" className="h-[280px] w-full object-cover object-top" />
+                        {heroMobilePreview ? (
+                          <img src={heroMobilePreview} alt="Mobile hero preview" className="h-[280px] w-full object-cover object-top" />
                         ) : (
                           <div className="flex h-[280px] items-center justify-center bg-slate-50 px-6 text-center text-sm leading-6 text-slate-400">
                             Загрузите mobile-изображение или вставьте прямую ссылку.

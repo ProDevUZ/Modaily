@@ -75,7 +75,13 @@ async function seedCatalog() {
         imageUrl: null,
         colorFrom: product.colors[0],
         colorTo: product.colors[1],
-        categoryId
+        categoryId,
+        categoryLinks: {
+          create: {
+            categoryId,
+            sortOrder: 0
+          }
+        }
       }
     });
   }

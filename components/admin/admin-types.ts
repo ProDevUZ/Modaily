@@ -21,6 +21,14 @@ export type AdminContactMessage = {
   updatedAt: string;
 };
 
+export type AdminReview = {
+  id: string;
+  text: string;
+  phoneNumber: string;
+  createdAt: string;
+  productName: string;
+};
+
 export type AdminShopWorkingHour = ShopWorkingHourRecord;
 
 export type AdminShopLocation = ShopLocationRecord;
@@ -81,8 +89,10 @@ export type AdminProduct = {
   storeContactsRu: string | null;
   storeContactsEn: string | null;
   skinTypes: string | null;
-  categoryIds: string[];
+  categoryLinkIds: string[];
   size: string | null;
+  packageWidth: string | null;
+  packageHeight: string | null;
   price: number;
   discountAmount: number;
   hidePrice: boolean;
@@ -100,10 +110,16 @@ export type AdminProduct = {
   createdAt: string;
   updatedAt: string;
   category?: AdminCategory;
+  categoryLinks?: AdminProductCategoryLink[];
   galleryImages?: AdminProductGalleryItem[];
   _count?: {
     reviews: number;
   };
+};
+
+export type AdminProductCategoryLink = {
+  categoryId: string;
+  sortOrder: number | null;
 };
 
 export type AdminProductGalleryItem = {
@@ -167,7 +183,13 @@ export type AdminSiteSettings = {
 export type AdminHomeHero = {
   id: string;
   imageUrl: string | null;
+  imageUrlUz: string | null;
+  imageUrlRu: string | null;
+  imageUrlEn: string | null;
   mobileImageUrl: string | null;
+  mobileImageUrlUz: string | null;
+  mobileImageUrlRu: string | null;
+  mobileImageUrlEn: string | null;
   heroProductId: string | null;
   createdAt: string;
   updatedAt: string;
