@@ -53,7 +53,7 @@ function BlogVideoSlide({
           ) : (
             <video
               src={item.videoUrl || undefined}
-              poster={item.imageUrl || undefined}
+              poster={item.videoPosterUrl || item.imageUrl || undefined}
               preload="metadata"
               playsInline
               muted
@@ -233,7 +233,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                   <video
                     ref={videoRef}
                     src={activeItem?.videoUrl || undefined}
-                    poster={activeItem?.imageUrl || undefined}
+                    poster={activeItem?.videoPosterUrl || activeItem?.imageUrl || undefined}
                     preload="metadata"
                     playsInline
                     loop

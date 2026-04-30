@@ -31,16 +31,16 @@ model ContactMessage {
 }
 
 model Category {
-  id            String    @id @default(cuid())
-  slug          String    @unique
+  id            String              @id @default(cuid())
+  slug          String              @unique
   nameUz        String
   nameRu        String
   nameEn        String
   descriptionUz String?
   descriptionRu String?
   descriptionEn String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   products      Product[]
   productLinks  CategoryToProduct[]
 
@@ -60,62 +60,62 @@ model SkinTypeOption {
 }
 
 model Product {
-  id                 String   @id @default(cuid())
-  sku                String   @unique
-  slug               String   @unique
-  nameUz             String
-  nameRu             String
-  nameEn             String
-  shortDescriptionUz String?
-  shortDescriptionRu String?
-  shortDescriptionEn String?
-  descriptionUz      String?
-  descriptionRu      String?
-  descriptionEn      String?
-  featureUz          String?
-  featureRu          String?
-  featureEn          String?
-  ingredientsUz      String?
-  ingredientsRu      String?
-  ingredientsEn      String?
-  usageUz            String?
-  usageRu            String?
-  usageEn            String?
-  storeImageUrl      String?
-  storeLocationUz    String?
-  storeLocationRu    String?
-  storeLocationEn    String?
-  storeContactsUz    String?
-  storeContactsRu    String?
-  storeContactsEn    String?
-  skinTypes          String?
-  size               String?
-  packageWidth       String?
-  packageHeight      String?
-  price              Int
-  discountAmount     Int      @default(0)
-  hidePrice          Boolean  @default(false)
-  stock              Int      @default(0)
-  active             Boolean  @default(true)
-  isBestseller       Boolean  @default(false)
-  isHit              Boolean  @default(false)
-  isNew              Boolean  @default(false)
-  homeSortOrder      Int      @default(0)
-  imageUrl           String?
-  colorFrom          String?
-  colorTo            String?
-  categoryId         String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  category           Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  categoryLinks      CategoryToProduct[]
-  galleryImages      ProductGalleryImage[]
-  heroEntries        HomeHero[] @relation("HomeHeroProduct")
-  promoEntries       HomePromoCard[] @relation("HomePromoCardProduct")
-  linkedBlogPosts    BlogPost[] @relation("BlogPostLinkedProduct")
+  id                  String                  @id @default(cuid())
+  sku                 String                  @unique
+  slug                String                  @unique
+  nameUz              String
+  nameRu              String
+  nameEn              String
+  shortDescriptionUz  String?
+  shortDescriptionRu  String?
+  shortDescriptionEn  String?
+  descriptionUz       String?
+  descriptionRu       String?
+  descriptionEn       String?
+  featureUz           String?
+  featureRu           String?
+  featureEn           String?
+  ingredientsUz       String?
+  ingredientsRu       String?
+  ingredientsEn       String?
+  usageUz             String?
+  usageRu             String?
+  usageEn             String?
+  storeImageUrl       String?
+  storeLocationUz     String?
+  storeLocationRu     String?
+  storeLocationEn     String?
+  storeContactsUz     String?
+  storeContactsRu     String?
+  storeContactsEn     String?
+  skinTypes           String?
+  size                String?
+  packageWidth        String?
+  packageHeight       String?
+  price               Int
+  discountAmount      Int                     @default(0)
+  hidePrice           Boolean                 @default(false)
+  stock               Int                     @default(0)
+  active              Boolean                 @default(true)
+  isBestseller        Boolean                 @default(false)
+  isHit               Boolean                 @default(false)
+  isNew               Boolean                 @default(false)
+  homeSortOrder       Int                     @default(0)
+  imageUrl            String?
+  colorFrom           String?
+  colorTo             String?
+  categoryId          String
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  category            Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryLinks       CategoryToProduct[]
+  galleryImages       ProductGalleryImage[]
+  heroEntries         HomeHero[]              @relation("HomeHeroProduct")
+  promoEntries        HomePromoCard[]         @relation("HomePromoCardProduct")
+  linkedBlogPosts     BlogPost[]              @relation("BlogPostLinkedProduct")
   recommendationLinks ProductRecommendation[] @relation("ProductRecommendationSource")
-  recommendedByLinks ProductRecommendation[] @relation("ProductRecommendationTarget")
-  reviews            ProductReview[]
+  recommendedByLinks  ProductRecommendation[] @relation("ProductRecommendationTarget")
+  reviews             ProductReview[]
 
   @@index([active, homeSortOrder, createdAt])
   @@index([active, isBestseller, homeSortOrder, createdAt])
@@ -153,31 +153,32 @@ model ProductRecommendation {
 }
 
 model ProductGalleryImage {
-  id        String   @id @default(cuid())
-  type      GalleryItemType @default(IMAGE)
-  imageUrl  String?
-  videoUrl  String?
-  sortOrder Int      @default(0)
-  productId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  type           GalleryItemType @default(IMAGE)
+  imageUrl       String?
+  videoUrl       String?
+  videoPosterUrl String?
+  sortOrder      Int             @default(0)
+  productId      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, sortOrder])
 }
 
 model ProductReview {
-  id         String   @id @default(cuid())
-  authorName String
+  id          String   @id @default(cuid())
+  authorName  String
   phoneNumber String   @default("")
-  body       String
-  imageUrl   String?
-  rating     Int      @default(5)
-  active     Boolean  @default(true)
-  productId  String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  body        String
+  imageUrl    String?
+  rating      Int      @default(5)
+  active      Boolean  @default(true)
+  productId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, active, createdAt(sort: Desc)])
 }
@@ -188,51 +189,51 @@ enum GalleryItemType {
 }
 
 model SiteSettings {
-  id                     String   @id @default(cuid())
-  brandName              String   @default("Modaily")
-  hideCommerce           Boolean  @default(false)
-  announcementTextUz     String?
-  announcementTextRu     String?
-  announcementTextEn     String?
-  announcementLinkLabelUz String?
-  announcementLinkLabelRu String?
-  announcementLinkLabelEn String?
-  announcementLink       String?
-  footerPhone            String?
-  footerEmail            String?
-  footerTelegram         String?
-  footerTelegramLink     String?
-  footerInstagram        String?
-  footerInstagramLink    String?
-  storeAddress           String?
-  storeMapLink           String?
-  footerAddressUz        String?
-  footerAddressRu        String?
-  footerAddressEn        String?
-  aboutTitleUz          String?
-  aboutTitleRu          String?
-  aboutTitleEn          String?
-  aboutDescriptionUz    String?
-  aboutDescriptionRu    String?
-  aboutDescriptionEn    String?
-  aboutBrandTitleUz     String?
-  aboutBrandTitleRu     String?
-  aboutBrandTitleEn     String?
-  aboutPanelDescriptionUz String?
-  aboutPanelDescriptionRu String?
-  aboutPanelDescriptionEn String?
+  id                               String   @id @default(cuid())
+  brandName                        String   @default("Modaily")
+  hideCommerce                     Boolean  @default(false)
+  announcementTextUz               String?
+  announcementTextRu               String?
+  announcementTextEn               String?
+  announcementLinkLabelUz          String?
+  announcementLinkLabelRu          String?
+  announcementLinkLabelEn          String?
+  announcementLink                 String?
+  footerPhone                      String?
+  footerEmail                      String?
+  footerTelegram                   String?
+  footerTelegramLink               String?
+  footerInstagram                  String?
+  footerInstagramLink              String?
+  storeAddress                     String?
+  storeMapLink                     String?
+  footerAddressUz                  String?
+  footerAddressRu                  String?
+  footerAddressEn                  String?
+  aboutTitleUz                     String?
+  aboutTitleRu                     String?
+  aboutTitleEn                     String?
+  aboutDescriptionUz               String?
+  aboutDescriptionRu               String?
+  aboutDescriptionEn               String?
+  aboutBrandTitleUz                String?
+  aboutBrandTitleRu                String?
+  aboutBrandTitleEn                String?
+  aboutPanelDescriptionUz          String?
+  aboutPanelDescriptionRu          String?
+  aboutPanelDescriptionEn          String?
   aboutPanelSecondaryDescriptionUz String?
   aboutPanelSecondaryDescriptionRu String?
   aboutPanelSecondaryDescriptionEn String?
-  aboutImageUrl         String?
-  newsletterTitleUz      String?
-  newsletterTitleRu      String?
-  newsletterTitleEn      String?
-  newsletterPlaceholderUz String?
-  newsletterPlaceholderRu String?
-  newsletterPlaceholderEn String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  aboutImageUrl                    String?
+  newsletterTitleUz                String?
+  newsletterTitleRu                String?
+  newsletterTitleEn                String?
+  newsletterPlaceholderUz          String?
+  newsletterPlaceholderRu          String?
+  newsletterPlaceholderEn          String?
+  createdAt                        DateTime @default(now())
+  updatedAt                        DateTime @updatedAt
 }
 
 model ShopLocation {
@@ -321,42 +322,42 @@ model HomePromoCard {
 }
 
 model HomeAboutSection {
-  id                  String   @id @default(cuid())
-  titleUz             String
-  titleRu             String
-  titleEn             String
-  descriptionUz       String?
-  descriptionRu       String?
-  descriptionEn       String?
-  secondaryTitleUz    String?
-  secondaryTitleRu    String?
-  secondaryTitleEn    String?
+  id                     String   @id @default(cuid())
+  titleUz                String
+  titleRu                String
+  titleEn                String
+  descriptionUz          String?
+  descriptionRu          String?
+  descriptionEn          String?
+  secondaryTitleUz       String?
+  secondaryTitleRu       String?
+  secondaryTitleEn       String?
   secondaryDescriptionUz String?
   secondaryDescriptionRu String?
   secondaryDescriptionEn String?
-  bottomDescriptionUz String?
-  bottomDescriptionRu String?
-  bottomDescriptionEn String?
-  imageUrl            String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  bottomDescriptionUz    String?
+  bottomDescriptionRu    String?
+  bottomDescriptionEn    String?
+  imageUrl               String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model GalleryItem {
-  id             String          @id @default(cuid())
-  type           GalleryItemType
-  titleUz        String?
-  titleRu        String?
-  titleEn        String?
-  descriptionUz  String?
-  descriptionRu  String?
-  descriptionEn  String?
-  imageUrl       String
-  videoUrl       String?
-  sortOrder      Int             @default(0)
-  active         Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  type          GalleryItemType
+  titleUz       String?
+  titleRu       String?
+  titleEn       String?
+  descriptionUz String?
+  descriptionRu String?
+  descriptionEn String?
+  imageUrl      String
+  videoUrl      String?
+  sortOrder     Int             @default(0)
+  active        Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   @@index([active, type, sortOrder, createdAt])
 }
@@ -376,61 +377,61 @@ model GallerySectionHeading {
 }
 
 model Testimonial {
-  id               String   @id @default(cuid())
-  authorName       String
-  authorRoleUz     String?
-  authorRoleRu     String?
-  authorRoleEn     String?
-  productNameUz    String?
-  productNameRu    String?
-  productNameEn    String?
-  bodyUz           String
-  bodyRu           String
-  bodyEn           String
-  avatarUrl        String?
-  rating           Int      @default(5)
-  sortOrder        Int      @default(0)
-  active           Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id            String   @id @default(cuid())
+  authorName    String
+  authorRoleUz  String?
+  authorRoleRu  String?
+  authorRoleEn  String?
+  productNameUz String?
+  productNameRu String?
+  productNameEn String?
+  bodyUz        String
+  bodyRu        String
+  bodyEn        String
+  avatarUrl     String?
+  rating        Int      @default(5)
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([active, sortOrder, createdAt])
 }
 
 model BlogPost {
-  id               String            @id @default(cuid())
-  cardTitle        String
-  cardTitleUz      String?
-  cardTitleRu      String?
-  cardTitleEn      String?
-  excerpt          String
-  excerptUz        String?
-  excerptRu        String?
-  excerptEn        String?
-  coverImage       String
-  publishDate      DateTime
-  category         String
-  categoryUz       String?
-  categoryRu       String?
-  categoryEn       String?
-  slug             String            @unique
-  featured         Boolean           @default(false)
-  linkedProductId  String?
-  mainTitle        String
-  mainTitleUz      String?
-  mainTitleRu      String?
-  mainTitleEn      String?
-  introDescription String
+  id                 String            @id @default(cuid())
+  cardTitle          String
+  cardTitleUz        String?
+  cardTitleRu        String?
+  cardTitleEn        String?
+  excerpt            String
+  excerptUz          String?
+  excerptRu          String?
+  excerptEn          String?
+  coverImage         String
+  publishDate        DateTime
+  category           String
+  categoryUz         String?
+  categoryRu         String?
+  categoryEn         String?
+  slug               String            @unique
+  featured           Boolean           @default(false)
+  linkedProductId    String?
+  mainTitle          String
+  mainTitleUz        String?
+  mainTitleRu        String?
+  mainTitleEn        String?
+  introDescription   String
   introDescriptionUz String?
   introDescriptionRu String?
   introDescriptionEn String?
-  seoTitle         String
-  metaDescription  String
-  dynamicSections  BlogPostSection[]
-  media            BlogPostMedia[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  linkedProduct    Product?          @relation("BlogPostLinkedProduct", fields: [linkedProductId], references: [id], onDelete: SetNull)
+  seoTitle           String
+  metaDescription    String
+  dynamicSections    BlogPostSection[]
+  media              BlogPostMedia[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  linkedProduct      Product?          @relation("BlogPostLinkedProduct", fields: [linkedProductId], references: [id], onDelete: SetNull)
 
   @@index([publishDate(sort: Desc)])
   @@index([category, publishDate(sort: Desc)])
@@ -439,34 +440,35 @@ model BlogPost {
 }
 
 model BlogPostMedia {
-  id        String          @id @default(cuid())
-  type      GalleryItemType @default(IMAGE)
-  imageUrl  String?
-  videoUrl  String?
-  sortOrder Int             @default(0)
-  postId    String
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  post      BlogPost        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  type           GalleryItemType @default(IMAGE)
+  imageUrl       String?
+  videoUrl       String?
+  videoPosterUrl String?
+  sortOrder      Int             @default(0)
+  postId         String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  post           BlogPost        @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, sortOrder])
 }
 
 model BlogPostSection {
-  id          String   @id @default(cuid())
-  title       String
-  titleUz     String?
-  titleRu     String?
-  titleEn     String?
-  description String
+  id            String   @id @default(cuid())
+  title         String
+  titleUz       String?
+  titleRu       String?
+  titleEn       String?
+  description   String
   descriptionUz String?
   descriptionRu String?
   descriptionEn String?
-  sortOrder   Int      @default(0)
-  postId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  sortOrder     Int      @default(0)
+  postId        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  post          BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, sortOrder])
 }

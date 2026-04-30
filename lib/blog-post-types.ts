@@ -18,6 +18,7 @@ export type BlogPostMediaItem = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string | null;
   videoUrl: string | null;
+  videoPosterUrl: string | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;

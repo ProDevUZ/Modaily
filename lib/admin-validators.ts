@@ -86,6 +86,7 @@ export type ProductPayload = {
     type: "IMAGE" | "VIDEO";
     imageUrl: string | null;
     videoUrl: string | null;
+    videoPosterUrl: string | null;
     sortOrder: number;
   }[];
 };
@@ -251,6 +252,7 @@ export type BlogPostMediaPayload = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string | null;
   videoUrl: string | null;
+  videoPosterUrl: string | null;
   sortOrder: number;
 };
 
@@ -516,6 +518,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
           const type = asString(row.type) === "VIDEO" ? "VIDEO" : "IMAGE";
           const imageUrl = asOptionalString(row.imageUrl);
           const videoUrl = asOptionalString(row.videoUrl);
+          const videoPosterUrl = asOptionalString(row.videoPosterUrl);
 
           if (type === "IMAGE" && !imageUrl) {
             return null;
@@ -529,6 +532,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
             type,
             imageUrl,
             videoUrl,
+            videoPosterUrl: type === "VIDEO" ? videoPosterUrl : null,
             sortOrder: asInteger(row.sortOrder, index)
           };
         })
@@ -539,6 +543,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
             type: "IMAGE" | "VIDEO";
             imageUrl: string | null;
             videoUrl: string | null;
+            videoPosterUrl: string | null;
             sortOrder: number;
           } => entry !== null
         )
@@ -999,6 +1004,7 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
 
     const imageUrl = asOptionalString(row.imageUrl);
     const videoUrl = asOptionalString(row.videoUrl);
+    const videoPosterUrl = asOptionalString(row.videoPosterUrl);
 
     if (type === "IMAGE" && !imageUrl) {
       return { success: false, error: "Each image item must include image URL." };
@@ -1012,6 +1018,7 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
       type,
       imageUrl: type === "IMAGE" ? imageUrl : null,
       videoUrl: type === "VIDEO" ? videoUrl : null,
+      videoPosterUrl: type === "VIDEO" ? videoPosterUrl : null,
       sortOrder: asInteger(row.sortOrder, index)
     });
   }

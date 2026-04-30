@@ -16,6 +16,7 @@ type BlogPostMediaRow = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string | null;
   videoUrl: string | null;
+  videoPosterUrl: string | null;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;
@@ -145,6 +146,7 @@ function serializeMediaItem(item: BlogPostMediaRow): BlogPostMediaItem {
     type: item.type,
     imageUrl: item.imageUrl,
     videoUrl: item.videoUrl,
+    videoPosterUrl: item.videoPosterUrl,
     sortOrder: item.sortOrder,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString()
@@ -215,6 +217,7 @@ export function serializeBlogPost(post: BlogPostRow, locale: Locale = "ru"): Blo
               type: "IMAGE" as const,
               imageUrl: post.coverImage,
               videoUrl: null,
+              videoPosterUrl: null,
               sortOrder: 0,
               createdAt: post.createdAt.toISOString(),
               updatedAt: post.updatedAt.toISOString()

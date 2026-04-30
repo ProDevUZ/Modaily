@@ -25,6 +25,7 @@ type GalleryFormItem = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string;
   videoUrl: string;
+  videoPosterUrl: string;
   sortOrder: number;
 };
 
@@ -374,6 +375,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
       type: image.type || "IMAGE",
       imageUrl: image.imageUrl || "",
       videoUrl: image.videoUrl || "",
+      videoPosterUrl: image.videoPosterUrl || "",
       sortOrder: typeof image.sortOrder === "number" ? image.sortOrder : index
     }))
   };
@@ -459,7 +461,7 @@ function ProductGalleryItemPreview({
   item,
   className
 }: {
-  item: Pick<GalleryFormItem, "type" | "imageUrl" | "videoUrl">;
+  item: Pick<GalleryFormItem, "type" | "imageUrl" | "videoUrl" | "videoPosterUrl">;
   className?: string;
 }) {
   if (item.type === "VIDEO" && item.videoUrl) {
@@ -467,6 +469,7 @@ function ProductGalleryItemPreview({
       <div className={`relative overflow-hidden bg-[#0f172a] ${className || ""}`}>
         <video
           src={item.videoUrl}
+          poster={item.videoPosterUrl || undefined}
           className="h-full w-full object-cover"
           muted
           playsInline
@@ -931,6 +934,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGalleryImages, setUploadingGalleryImages] = useState(false);
   const [uploadingGalleryVideos, setUploadingGalleryVideos] = useState(false);
+  const [uploadingGalleryPosterIndex, setUploadingGalleryPosterIndex] = useState<number | null>(null);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
   const [creatingSkinType, setCreatingSkinType] = useState(false);
@@ -1060,6 +1064,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
             type: "IMAGE",
             imageUrl: image.url,
             videoUrl: "",
+            videoPosterUrl: "",
             sortOrder: nextImages.length + index
           });
         });
@@ -1112,6 +1117,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
             type: "VIDEO",
             imageUrl: "",
             videoUrl: video.url,
+            videoPosterUrl: "",
             sortOrder: nextImages.length + index
           });
         });
@@ -1133,6 +1139,40 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       });
     } finally {
       setUploadingGalleryVideos(false);
+      event.target.value = "";
+    }
+  }
+
+  async function handleGalleryVideoPosterUpload(index: number, event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingGalleryPosterIndex(index);
+
+    try {
+      const payload = await uploadProductImage(file);
+
+      setForm((current) => ({
+        ...current,
+        galleryImages: current.galleryImages.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, videoPosterUrl: payload.url } : item
+        )
+      }));
+      setMessage("Обложка видео загружена.");
+    } catch (uploadError) {
+      setError({
+        message:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Не удалось загрузить обложку видео."
+      });
+    } finally {
+      setUploadingGalleryPosterIndex(null);
       event.target.value = "";
     }
   }
@@ -1297,6 +1337,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
             type: image.type,
             imageUrl: image.type === "IMAGE" ? image.imageUrl : null,
             videoUrl: image.type === "VIDEO" ? image.videoUrl : null,
+            videoPosterUrl: image.type === "VIDEO" ? image.videoPosterUrl : null,
             sortOrder: index
           }))
         })
@@ -1682,6 +1723,40 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                             Удалить
                           </button>
                         </div>
+                        {image.type === "VIDEO" ? (
+                          <div className="space-y-2 border-t border-[#e5eaf2] p-3 pt-3">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                              Обложка видео
+                            </p>
+                            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                              <input
+                                className="admin-input h-10 text-xs"
+                                value={image.videoPosterUrl}
+                                placeholder="URL обложки"
+                                onChange={(event) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    galleryImages: current.galleryImages.map((entry, imageIndex) =>
+                                      imageIndex === index
+                                        ? { ...entry, videoPosterUrl: event.target.value }
+                                        : entry
+                                    )
+                                  }))
+                                }
+                              />
+                              <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#d5dce8] bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-[#fbfcfe]">
+                                {uploadingGalleryPosterIndex === index ? "..." : "Загрузить"}
+                                <input
+                                  type="file"
+                                  accept=".jpg,.jpeg,.png,.webp"
+                                  className="hidden"
+                                  onChange={(event) => handleGalleryVideoPosterUpload(index, event)}
+                                  disabled={uploadingGalleryPosterIndex === index}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     ))}
 

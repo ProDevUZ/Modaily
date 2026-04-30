@@ -284,7 +284,7 @@ function ProductMediaFrame({
             <video
               ref={videoRef}
               src={item.videoUrl}
-              poster={item.imageUrl || undefined}
+              poster={item.videoPosterUrl || item.imageUrl || undefined}
               preload="metadata"
               playsInline
               loop
@@ -354,6 +354,7 @@ function ProductMediaFrame({
       <div className="relative flex h-full w-full items-center justify-center">
         <video
           src={item.videoUrl}
+          poster={item.videoPosterUrl || item.imageUrl || undefined}
           className={`${videoClassName || className} mx-auto block`}
           controls={controls}
           autoPlay={autoPlay}

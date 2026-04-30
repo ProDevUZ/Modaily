@@ -41,6 +41,7 @@ type BlogMediaFormItem = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string;
   videoUrl: string;
+  videoPosterUrl: string;
   sortOrder: number;
 };
 
@@ -114,6 +115,7 @@ function createLocalMedia(item: {
   type: "IMAGE" | "VIDEO";
   imageUrl?: string | null;
   videoUrl?: string | null;
+  videoPosterUrl?: string | null;
   sortOrder?: number;
 }): BlogMediaFormItem {
   return {
@@ -121,6 +123,7 @@ function createLocalMedia(item: {
     type: item.type,
     imageUrl: item.imageUrl || "",
     videoUrl: item.videoUrl || "",
+    videoPosterUrl: item.videoPosterUrl || "",
     sortOrder: item.sortOrder ?? 0
   };
 }
@@ -149,6 +152,7 @@ function buildFormFromPost(post: AdminBlogPost): BlogFormState {
                 type: "IMAGE" as const,
                 imageUrl: post.coverImage,
                 videoUrl: null,
+                videoPosterUrl: null,
                 sortOrder: 0
               }
             ]
@@ -159,6 +163,7 @@ function buildFormFromPost(post: AdminBlogPost): BlogFormState {
           type: item.type,
           imageUrl: item.imageUrl,
           videoUrl: item.videoUrl,
+          videoPosterUrl: item.videoPosterUrl,
           sortOrder: item.sortOrder
         })
       )
@@ -502,6 +507,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
   const [loading, setLoading] = useState(true);
   const [uploadingMediaImages, setUploadingMediaImages] = useState(false);
   const [uploadingMediaVideos, setUploadingMediaVideos] = useState(false);
+  const [uploadingMediaPosterId, setUploadingMediaPosterId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<BlogSubmitError | null>(null);
   const [linkedProductQuery, setLinkedProductQuery] = useState("");
@@ -711,6 +717,40 @@ export function BlogEditor({ postId }: BlogEditorProps) {
     }
   }
 
+  async function handleMediaVideoPosterUpload(id: string, event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingMediaPosterId(id);
+
+    try {
+      const payload = await uploadBlogImage(file);
+
+      setForm((current) => ({
+        ...current,
+        media: current.media.map((item) =>
+          item.id === id ? { ...item, videoPosterUrl: payload.url } : item
+        )
+      }));
+      setMessage("Обложка видео загружена.");
+    } catch (uploadError) {
+      setError({
+        message:
+          uploadError instanceof Error
+            ? uploadError.message
+            : "Не удалось загрузить обложку видео."
+      });
+    } finally {
+      setUploadingMediaPosterId(null);
+      event.target.value = "";
+    }
+  }
+
   function moveMedia(index: number, direction: -1 | 1) {
     setForm((current) => {
       const targetIndex = index + direction;
@@ -818,6 +858,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             type: item.type,
             imageUrl: item.type === "IMAGE" ? item.imageUrl : null,
             videoUrl: item.type === "VIDEO" ? item.videoUrl : null,
+            videoPosterUrl: item.type === "VIDEO" ? item.videoPosterUrl : null,
             sortOrder: index
           })),
           dynamicSections: normalizeSections(form.dynamicSections).map((section, index) => ({
@@ -1064,6 +1105,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                             ) : item.videoUrl ? (
                               <video
                                 src={item.videoUrl}
+                                poster={item.videoPosterUrl || undefined}
                                 className="h-full w-full object-cover"
                                 muted
                                 playsInline
@@ -1106,6 +1148,40 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 Удалить
                               </button>
                             </div>
+                            {item.type === "VIDEO" ? (
+                              <div className="grid gap-2 rounded-[1rem] border border-[#e4e9f1] bg-[#fbfcff] p-3">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                  Обложка видео
+                                </p>
+                                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                                  <input
+                                    className="admin-input h-10 text-xs"
+                                    value={item.videoPosterUrl}
+                                    placeholder="URL обложки"
+                                    onChange={(event) =>
+                                      setForm((current) => ({
+                                        ...current,
+                                        media: current.media.map((entry) =>
+                                          entry.id === item.id
+                                            ? { ...entry, videoPosterUrl: event.target.value }
+                                            : entry
+                                        )
+                                      }))
+                                    }
+                                  />
+                                  <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-full border border-[#d5dce8] bg-white px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-[#fbfcfe]">
+                                    {uploadingMediaPosterId === item.id ? "..." : "Загрузить"}
+                                    <input
+                                      type="file"
+                                      accept=".jpg,.jpeg,.png,.webp"
+                                      className="hidden"
+                                      onChange={(event) => handleMediaVideoPosterUpload(item.id, event)}
+                                      disabled={uploadingMediaPosterId === item.id}
+                                    />
+                                  </label>
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                       );

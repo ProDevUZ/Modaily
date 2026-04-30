@@ -78,6 +78,7 @@ type ProductGalleryRecord = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string | null;
   videoUrl: string | null;
+  videoPosterUrl: string | null;
   sortOrder: number;
 };
 
@@ -143,6 +144,7 @@ const storefrontProductDetailSelect = {
       type: true,
       imageUrl: true,
       videoUrl: true,
+      videoPosterUrl: true,
       sortOrder: true
     },
     orderBy: {
@@ -203,6 +205,7 @@ export type StorefrontProductGalleryItem = {
   type: "IMAGE" | "VIDEO";
   imageUrl: string;
   videoUrl: string;
+  videoPosterUrl: string;
 };
 
 export type StorefrontProductReview = {
@@ -468,7 +471,7 @@ function buildGallery(primaryImage: string | null, galleryImages: ProductGallery
   const images: StorefrontProductGalleryItem[] = [];
 
   if (primaryImage) {
-    images.push({ id: "primary-image", type: "IMAGE", imageUrl: primaryImage, videoUrl: "" });
+    images.push({ id: "primary-image", type: "IMAGE", imageUrl: primaryImage, videoUrl: "", videoPosterUrl: "" });
     seen.add(`IMAGE:${primaryImage}`);
   }
 
@@ -490,7 +493,8 @@ function buildGallery(primaryImage: string | null, galleryImages: ProductGallery
       id: image.id,
       type: mediaType,
       imageUrl: image.imageUrl || "",
-      videoUrl: image.videoUrl || ""
+      videoUrl: image.videoUrl || "",
+      videoPosterUrl: image.videoPosterUrl || ""
     });
     seen.add(seenKey);
   }
@@ -500,7 +504,8 @@ function buildGallery(primaryImage: string | null, galleryImages: ProductGallery
       id: "fallback-image",
       type: "IMAGE",
       imageUrl: "",
-      videoUrl: ""
+      videoUrl: "",
+      videoPosterUrl: ""
     });
   }
 
