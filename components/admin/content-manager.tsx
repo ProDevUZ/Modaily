@@ -239,6 +239,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [promoUploadPending, setPromoUploadPending] = useState(false);
   const [galleryUploadPending, setGalleryUploadPending] = useState(false);
   const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
+  const [testimonialAvatarUploadPending, setTestimonialAvatarUploadPending] = useState(false);
 
   async function loadData() {
     setLoading(true);
@@ -531,6 +532,39 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить видео галереи.");
     } finally {
       setGalleryVideoUploadPending(false);
+      event.target.value = "";
+    }
+  }
+
+  async function handleTestimonialAvatarUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setTestimonialAvatarUploadPending(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const payload = await requestJson<{ url: string }>("/api/uploads/promo-image", {
+        method: "POST",
+        body: formData
+      });
+
+      setTestimonialForm((current) => ({
+        ...current,
+        avatarUrl: payload.url
+      }));
+      setMessage("Фото автора загружено.");
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить фото автора.");
+    } finally {
+      setTestimonialAvatarUploadPending(false);
       event.target.value = "";
     }
   }
@@ -1243,7 +1277,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                 <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-950">Загрузка изображения</p>
-                    <p className="mt-1 text-xs text-slate-500">Только изображения. До 20 МБ. Исходное качество сохраняется.</p>
+                    <p className="mt-1 text-xs text-slate-500">Только изображения. До 20 МБ. Рекомендуемый размер: 1200×900 px.</p>
                   </div>
                   <span className="admin-button-secondary">{galleryUploadPending ? "Загрузка..." : "Выбрать файл"}</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={handleGalleryImageUpload} disabled={galleryUploadPending} />
@@ -1264,7 +1298,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                 <div className="admin-panel-muted flex items-center justify-between gap-4 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-950">Обложка видео</p>
-                    <p className="mt-1 text-xs text-slate-500">Рекомендуется вертикальное изображение 9:16. Эта обложка будет видна до запуска видео, поэтому без нее карточка может выглядеть пустой.</p>
+                    <p className="mt-1 text-xs text-slate-500">Рекомендуется вертикальное изображение 1080×1920 px (9:16). Эта обложка будет видна до запуска видео, поэтому без нее карточка может выглядеть пустой.</p>
                   </div>
                   <label className={`admin-button-secondary ${galleryUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
                     {galleryUploadPending ? "Загрузка..." : "Выбрать обложку"}
@@ -1297,7 +1331,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                 <div className="admin-panel-muted flex items-center justify-between gap-4 px-4 py-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-950">Загрузка видео</p>
-                    <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. До 250 МБ. Видео будет использовано в медиаблоке на главной странице.</p>
+                    <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. До 250 МБ. Рекомендуемый кадр: 1080×1920 px (9:16).</p>
                   </div>
                   <label className={`admin-button-secondary ${galleryVideoUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
                     {galleryVideoUploadPending ? "Загрузка..." : "Выбрать видео"}
@@ -1426,6 +1460,29 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
           <form onSubmit={handleTestimonialSubmit} className="grid gap-4 md:grid-cols-2">
             <Field value={testimonialForm.authorName} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorName: value }))} placeholder="Имя автора" />
             <Field value={testimonialForm.avatarUrl} onChange={(value) => setTestimonialForm((current) => ({ ...current, avatarUrl: value }))} placeholder="Ссылка на аватар" />
+            <label className="admin-panel-muted flex cursor-pointer items-center justify-between gap-4 px-4 py-3 md:col-span-2">
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#fff3f6] text-lg font-semibold text-[var(--brand)]">
+                  {testimonialForm.avatarUrl ? (
+                    <img src={testimonialForm.avatarUrl} alt="Фото автора" className="h-full w-full object-cover" />
+                  ) : (
+                    testimonialForm.authorName.slice(0, 1) || "A"
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-950">Фото автора</p>
+                  <p className="mt-1 text-xs text-slate-500">JPG, PNG, WebP, AVIF. До 20 МБ. Рекомендуемый размер: 800×800 px.</p>
+                </div>
+              </div>
+              <span className="admin-button-secondary">{testimonialAvatarUploadPending ? "Загрузка..." : "Выбрать файл"}</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif"
+                className="hidden"
+                onChange={handleTestimonialAvatarUpload}
+                disabled={testimonialAvatarUploadPending}
+              />
+            </label>
             <Field value={testimonialForm.authorRoleUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleUz: value }))} placeholder="Роль UZ" />
             <Field value={testimonialForm.authorRoleRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleRu: value }))} placeholder="Роль RU" />
             <Field value={testimonialForm.authorRoleEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleEn: value }))} placeholder="Роль EN" />

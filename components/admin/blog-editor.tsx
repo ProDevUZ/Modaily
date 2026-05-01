@@ -1060,7 +1060,10 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
                       <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
-                      {uploadingMediaImages ? "Загрузка..." : "Добавить image"}
+                      <span className="grid gap-1">
+                        <span>{uploadingMediaImages ? "Загрузка..." : "Добавить image"}</span>
+                        <span className="text-[11px] font-medium text-slate-400">1600×900 px</span>
+                      </span>
                       <input
                         type="file"
                         accept=".jpg,.jpeg,.png,.webp"
@@ -1072,7 +1075,10 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                     </label>
                     <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
                       <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
-                      {uploadingMediaVideos ? "Загрузка..." : "Добавить video"}
+                      <span className="grid gap-1">
+                        <span>{uploadingMediaVideos ? "Загрузка..." : "Добавить video"}</span>
+                        <span className="text-[11px] font-medium text-slate-400">1600×900 px</span>
+                      </span>
                       <input
                         type="file"
                         accept=".mp4,.webm,.mov"
@@ -1153,6 +1159,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                                   Обложка видео
                                 </p>
+                                <p className="text-[11px] leading-4 text-slate-400">Рекомендуемый размер: 1600×900 px</p>
                                 <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                                   <input
                                     className="admin-input h-10 text-xs"

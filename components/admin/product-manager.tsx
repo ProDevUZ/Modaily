@@ -1680,6 +1680,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                       {uploadingCover ? "Загрузка..." : "Загрузите файл или перетащите"}
                     </p>
                     <p className="mt-2 text-sm text-slate-400">PNG, JPG, WEBP до 5 МБ</p>
+                    <p className="mt-1 text-[11px] text-slate-400">Рекомендуемый размер: 1200×1540 px</p>
                     <input
                       type="file"
                       accept=".jpg,.jpeg,.png,.webp"
@@ -1728,6 +1729,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                               Обложка видео
                             </p>
+                            <p className="text-[11px] leading-4 text-slate-400">Рекомендуемый размер: 1200×1540 px</p>
                             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                               <input
                                 className="admin-input h-10 text-xs"
@@ -1779,6 +1781,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                             {uploadingGalleryImages ? "Загрузка..." : "Добавить изображение"}
                           </p>
                           <p className="mt-2 text-xs text-slate-400">PNG, JPG, WEBP до 5 МБ</p>
+                          <p className="mt-1 text-[11px] text-slate-400">1200×1540 px</p>
                           <input
                             type="file"
                             accept=".jpg,.jpeg,.png,.webp"
@@ -1799,6 +1802,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                             {uploadingGalleryVideos ? "Загрузка..." : "Добавить видео"}
                           </p>
                           <p className="mt-2 text-xs text-slate-400">MP4, WEBM, MOV до 50 МБ</p>
+                          <p className="mt-1 text-[11px] text-slate-400">1200×1540 px</p>
                           <input
                             type="file"
                             accept=".mp4,.webm,.mov"
