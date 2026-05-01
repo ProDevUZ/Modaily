@@ -34,13 +34,15 @@ function BlogVideoSlide({
   onOpen: () => void;
 }) {
   const showVideo = item.type === "VIDEO" && item.videoUrl;
+  const imageClassName = "aspect-[16/9] w-full rounded-[1.25rem] object-cover object-center";
+  const videoPreviewClassName = "h-full w-full object-cover object-center";
 
   return (
     <div className="w-full shrink-0 snap-center">
       {showVideo ? (
         <button
           type="button"
-          className="group relative block w-full overflow-hidden rounded-[1.25rem] bg-black text-left"
+          className="group relative block aspect-[16/9] w-full overflow-hidden rounded-[1.25rem] bg-black text-left"
           onClick={onOpen}
         >
           {item.imageUrl?.trim() ? (
@@ -48,7 +50,7 @@ function BlogVideoSlide({
               src={item.imageUrl}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={`${alt} ${index + 1}`}
-              className="h-auto w-full object-contain object-center"
+              className={videoPreviewClassName}
             />
           ) : (
             <video
@@ -57,7 +59,7 @@ function BlogVideoSlide({
               preload="metadata"
               playsInline
               muted
-              className="pointer-events-none h-auto w-full object-contain object-center"
+              className={`pointer-events-none ${videoPreviewClassName}`}
               aria-label={`${alt} ${index + 1}`}
             />
           )}
@@ -73,7 +75,7 @@ function BlogVideoSlide({
           src={item.imageUrl || undefined}
           fallbackSrc="/images/home/mainpage.jpg"
           alt={`${alt} ${index + 1}`}
-          className="aspect-[16/9] w-full rounded-[1.25rem] object-cover object-center"
+          className={imageClassName}
         />
       )}
     </div>
@@ -184,6 +186,12 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
   }
 
   const centerIndicatorKind = !playing && !centerIcon ? "play" : centerIcon;
+  const lightboxFrameClassName = playing
+    ? "relative flex max-h-[72vh] w-full items-center justify-center overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
+    : "relative aspect-[16/9] w-full overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]";
+  const lightboxVideoClassName = playing
+    ? "pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center"
+    : "pointer-events-none h-full w-full object-cover object-center";
 
   return (
     <div
@@ -229,7 +237,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
               ) : null}
 
               <div className="w-full max-w-[min(92vw,1120px)] md:max-w-[min(82vw,980px)]">
-                <div className="relative flex max-h-[72vh] w-full items-center justify-center overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+                <div className={lightboxFrameClassName}>
                   <video
                     ref={videoRef}
                     src={activeItem?.videoUrl || undefined}
@@ -238,7 +246,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                     playsInline
                     loop
                     muted
-                    className="pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center"
+                    className={lightboxVideoClassName}
                     {...videoEvents}
                   />
 

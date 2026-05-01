@@ -19,12 +19,12 @@ export function ProductCard({
 }: HomeProductCardProps) {
   return (
     <article className="flex h-full flex-col items-start gap-5">
-      <div className="grid w-full overflow-hidden rounded-tl-[5px] rounded-tr-[20px] rounded-br-[5px] rounded-bl-[20px] bg-[#f3f3f1]">
+      <div className="grid aspect-[584/356] w-full overflow-hidden rounded-tl-[5px] rounded-tr-[20px] rounded-br-[5px] rounded-bl-[20px] bg-[#f3f3f1]">
         <FallbackImage
           src={imageUrl || ""}
           fallbackSrc="https://placehold.co/584x356/f3f3f1/f3f3f1"
           alt={title}
-          className="col-start-1 row-start-1 h-[280px] w-full object-cover md:h-[320px] xl:h-[356px]"
+          className="col-start-1 row-start-1 h-full w-full object-cover"
         />
       </div>
 

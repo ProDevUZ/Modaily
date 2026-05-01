@@ -232,7 +232,7 @@ export default async function HomePage({ params }: PageProps) {
         }));
   const gallerySource = content.galleryImages.some((item) => item.imageUrl?.trim()) ? content.galleryImages : getLocalGalleryItems();
   const galleryImages = gallerySource.length > 0 ? gallerySource : getFallbackGalleryItems();
-  const promoCards = repeatToCount(content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale), 2);
+  const promoCards = content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale);
   const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
   const validVideoItems = content.galleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
   const videoItems = repeatToMinimum(validVideoItems, 3);
@@ -302,7 +302,7 @@ export default async function HomePage({ params }: PageProps) {
 
       <section className="px-8 py-6 lg:px-12">
         <div className="mx-auto grid max-w-[1680px] gap-8 lg:grid-cols-2">
-          {promoCards.slice(0, 2).map((card, index) => (
+          {promoCards.map((card, index) => (
             <ProductCard
               key={`${card.id}-${index}`}
               title={card.title}
