@@ -29,6 +29,7 @@ export function buildLegacyProductWriteData(payload: ProductPayload) {
     storeContactsUz,
     storeContactsRu,
     storeContactsEn,
+    weight,
     packageWidth,
     packageHeight,
     categoryLinkIds,
@@ -80,6 +81,7 @@ export function isUnsupportedProductHomeFieldError(error: unknown) {
     error.message.includes("storeImageUrl") ||
     error.message.includes("storeLocation") ||
     error.message.includes("storeContacts") ||
+    error.message.includes("weight") ||
     error.message.includes("packageWidth") ||
     error.message.includes("packageHeight") ||
     error.message.includes("recommendationLinks")

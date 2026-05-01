@@ -40,7 +40,7 @@ function BlogVideoSlide({
       {showVideo ? (
         <button
           type="button"
-          className="group relative block aspect-[16/9] w-full overflow-hidden rounded-[1.25rem] bg-black text-left"
+          className="group relative block w-full overflow-hidden rounded-[1.25rem] bg-black text-left"
           onClick={onOpen}
         >
           {item.imageUrl?.trim() ? (
@@ -48,7 +48,7 @@ function BlogVideoSlide({
               src={item.imageUrl}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={`${alt} ${index + 1}`}
-              className="h-full w-full object-cover object-center"
+              className="h-auto w-full object-contain object-center"
             />
           ) : (
             <video
@@ -57,7 +57,7 @@ function BlogVideoSlide({
               preload="metadata"
               playsInline
               muted
-              className="pointer-events-none h-full w-full object-cover object-center"
+              className="pointer-events-none h-auto w-full object-contain object-center"
               aria-label={`${alt} ${index + 1}`}
             />
           )}
@@ -229,7 +229,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
               ) : null}
 
               <div className="w-full max-w-[min(92vw,1120px)] md:max-w-[min(82vw,980px)]">
-                <div className="relative aspect-[16/9] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+                <div className="relative flex max-h-[72vh] w-full items-center justify-center overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
                   <video
                     ref={videoRef}
                     src={activeItem?.videoUrl || undefined}
@@ -238,7 +238,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                     playsInline
                     loop
                     muted
-                    className="pointer-events-none h-full w-full object-cover object-center"
+                    className="pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center"
                     {...videoEvents}
                   />
 

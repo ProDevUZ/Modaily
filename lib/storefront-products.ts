@@ -48,6 +48,7 @@ type ProductWithCategory = {
   categoryId: string;
   categoryLinks?: { categoryId: string; sortOrder: number }[] | null;
   size: string | null;
+  weight: string | null;
   packageWidth: string | null;
   packageHeight: string | null;
   price: number;
@@ -107,6 +108,7 @@ const storefrontProductSelect = {
     }
   },
   size: true,
+  weight: true,
   packageWidth: true,
   packageHeight: true,
   price: true,
@@ -181,6 +183,7 @@ export type StorefrontProduct = {
   categorySlugs: string[];
   skinTypes: string[];
   size: string;
+  weight: string;
   packageWidth: string;
   packageHeight: string;
   price: number;
@@ -404,6 +407,7 @@ function mapStorefrontProduct(
     categorySlugs: localizedCategories.map((category) => category.slug),
     skinTypes: product.skinTypes ? product.skinTypes.split(",").map((entry) => entry.trim()).filter(Boolean) : [],
     size: product.size || "",
+    weight: product.weight || "",
     packageWidth: product.packageWidth || "",
     packageHeight: product.packageHeight || "",
     price: product.price,

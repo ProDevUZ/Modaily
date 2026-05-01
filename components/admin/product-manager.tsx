@@ -64,6 +64,7 @@ type ProductFormState = {
   storeContactsEn: string;
   skinTypes: string[];
   size: string;
+  weight: string;
   packageWidth: string;
   packageHeight: string;
   price: string;
@@ -133,6 +134,7 @@ const emptyForm: ProductFormState = {
   storeContactsEn: "",
   skinTypes: ["universal"],
   size: "",
+  weight: "",
   packageWidth: "",
   packageHeight: "",
   price: "0",
@@ -356,6 +358,7 @@ function buildFormFromProduct(product: AdminProduct): ProductFormState {
     storeContactsEn: product.storeContactsEn || "",
     skinTypes: normalizeEditableSkinTypes(product.skinTypes),
     size: product.size || "",
+    weight: product.weight || "",
     packageWidth: product.packageWidth || "",
     packageHeight: product.packageHeight || "",
     price: String(product.price),
@@ -1949,6 +1952,16 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                     placeholder="e.g. 150 ml"
                     value={form.size}
                     onChange={(event) => setForm((current) => ({ ...current, size: event.target.value }))}
+                  />
+                </FieldGroup>
+
+                <FieldGroup label="Вес / Vazni" hint="Вес товара, например 500 грамм.">
+                  <input
+                    className="admin-input h-12"
+                    aria-label="Вес"
+                    placeholder="e.g. 500 грамм"
+                    value={form.weight}
+                    onChange={(event) => setForm((current) => ({ ...current, weight: event.target.value }))}
                   />
                 </FieldGroup>
 

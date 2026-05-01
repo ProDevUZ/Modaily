@@ -114,6 +114,7 @@ function createViewedProductSnapshot(product: StorefrontProductDetail): Storefro
     categorySlugs: product.categorySlugs,
     skinTypes: product.skinTypes,
     size: normalizeDisplayText(product.size),
+    weight: normalizeDisplayText(product.weight),
     packageWidth: normalizeDisplayText(product.packageWidth),
     packageHeight: normalizeDisplayText(product.packageHeight),
     price: product.price,
@@ -143,6 +144,7 @@ function normalizeViewedProduct(product: StorefrontProduct): StorefrontProduct {
       name: normalizeDisplayText(category.name)
     })),
     size: normalizeDisplayText(product.size),
+    weight: normalizeDisplayText(product.weight),
     packageWidth: normalizeDisplayText(product.packageWidth),
     packageHeight: normalizeDisplayText(product.packageHeight),
     name: normalizeDisplayText(product.name),
@@ -579,28 +581,29 @@ function formatPrice(price: number) {
 function packagingDetails(locale: Locale, product: StorefrontProductDetail) {
   const width = normalizeDisplayText(product.packageWidth);
   const height = normalizeDisplayText(product.packageHeight);
+  const weight = normalizeDisplayText(product.weight);
 
   if (width || height) {
     if (locale === "ru") {
-      return [`Ширина: ${width || "-"} Высота: ${height || "-"}`, "Вес: 500 грам", "Упаковка(и): 1"];
+      return [`Ширина: ${width || "-"} Высота: ${height || "-"}`, `Вес: ${weight || "-"}`, "Упаковка(и): 1"];
     }
 
     if (locale === "en") {
-      return [`Width: ${width || "-"} Height: ${height || "-"}`, "Weight: 500 g", "Package(s): 1"];
+      return [`Width: ${width || "-"} Height: ${height || "-"}`, `Weight: ${weight || "-"}`, "Package(s): 1"];
     }
 
-    return [`Eni: ${width || "-"} Bo'yi: ${height || "-"}`, "Vazni: 500 gramm", "Qadoq(lar): 1"];
+    return [`Eni: ${width || "-"} Bo'yi: ${height || "-"}`, `Vazni: ${weight || "-"}`, "Qadoq(lar): 1"];
   }
 
   if (locale === "ru") {
-    return ['Ширина: 15 " Высота: 45 "', "Вес: 500 грам", "Упаковка(и): 1"];
+    return ['Ширина: 15 " Высота: 45 "', `Вес: ${weight || "-"}`, "Упаковка(и): 1"];
   }
 
   if (locale === "en") {
-    return ['Width: 15" Height: 45"', "Weight: 500 g", "Package(s): 1"];
+    return ['Width: 15" Height: 45"', `Weight: ${weight || "-"}`, "Package(s): 1"];
   }
 
-  return ['Eni: 15" Bo\'yi: 45"', "Vazni: 500 gramm", "Qadoq(lar): 1"];
+  return ['Eni: 15" Bo\'yi: 45"', `Vazni: ${weight || "-"}`, "Qadoq(lar): 1"];
 }
 
 const reviewSortLabels: Record<

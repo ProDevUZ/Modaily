@@ -91,6 +91,7 @@ export type AdminProduct = {
   skinTypes: string | null;
   categoryLinkIds: string[];
   size: string | null;
+  weight: string | null;
   packageWidth: string | null;
   packageHeight: string | null;
   price: number;

@@ -90,6 +90,7 @@ model Product {
   storeContactsEn     String?
   skinTypes           String?
   size                String?
+  weight              String?
   packageWidth        String?
   packageHeight       String?
   price               Int

@@ -66,6 +66,7 @@ export type ProductPayload = {
   skinTypes: string | null;
   categoryLinkIds: string[];
   size: string | null;
+  weight: string | null;
   packageWidth: string | null;
   packageHeight: string | null;
   price: number;
@@ -586,6 +587,7 @@ export function validateProductPayload(body: unknown): ValidationResult<ProductP
       skinTypes,
       categoryLinkIds,
       size: asOptionalString(payload.size),
+      weight: asOptionalString(payload.weight),
       packageWidth: asOptionalString(payload.packageWidth),
       packageHeight: asOptionalString(payload.packageHeight),
       price: Math.round(price),
