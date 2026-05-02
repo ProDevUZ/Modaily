@@ -444,6 +444,7 @@ function MobileVideoLightboxReel({
 
   return (
     <div className="main-video-gallery-lightbox fixed inset-x-0 bottom-0 top-[-80px] z-[2147483647] w-screen overflow-hidden bg-transparent md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
+      <span className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80px] bg-black" />
       <button
         type="button"
         onClick={onClose}
@@ -455,14 +456,14 @@ function MobileVideoLightboxReel({
 
       <div
         ref={scrollerRef}
-        className="relative z-10 h-[calc(100dvh+80px)] snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative z-10 mt-[80px] h-[100dvh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={normalizeMobileScroll}
         onTouchStart={dismissSwipeHint}
       >
         {loopItems.map(({ item, itemIndex }, virtualIndex) => (
           <section
             key={`${item.id}-${virtualIndex}`}
-            className="relative h-[calc(100dvh+80px)] snap-center snap-always overflow-hidden bg-transparent"
+            className="relative h-[100dvh] snap-center snap-always overflow-hidden bg-transparent"
           >
             {item.videoUrl ? (
               <div className="main-video-gallery-lightbox-media">
