@@ -18,7 +18,7 @@ export function ProductCard({
   buttonLabel
 }: HomeProductCardProps) {
   return (
-    <article className="flex h-full flex-col items-start gap-5">
+    <Link href={href} className="flex h-full flex-col items-start gap-5">
       <div className="grid aspect-[584/356] w-full overflow-hidden rounded-tl-[5px] rounded-tr-[20px] rounded-br-[5px] rounded-bl-[20px] bg-[#f3f3f1]">
         <FallbackImage
           src={imageUrl || ""}
@@ -38,13 +38,12 @@ export function ProductCard({
       </div>
 
       <div className="flex w-full justify-end">
-        <Link
-          href={href}
+        <span
           className="inline-flex h-[46px] w-full items-center justify-center border border-black px-6 text-center text-[13px] uppercase tracking-[0.16em] text-black transition hover:bg-black hover:text-white sm:w-[256px]"
         >
           {buttonLabel}
-        </Link>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }

@@ -63,6 +63,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("media-lightbox-open");
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -87,6 +88,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [items.length, onClose]);
@@ -153,10 +155,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
           <span className="translate-y-[5%]">×</span>
         </button>
 
-        <div className="mb-4 flex items-center justify-between gap-4 pt-14 text-white/80">
-          <p className="inline-flex max-w-[calc(100%-4.5rem)] rounded-full bg-black/42 px-4 py-2 text-sm uppercase tracking-[0.22em] text-black shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-            <span className="truncate">{activeItem?.title || title}</span>
-          </p>
+        <div className="mb-4 hidden items-center justify-end pt-14 text-white/80">
           <p className="shrink-0 text-sm">
             {currentIndex + 1}/{items.length}
           </p>
@@ -181,7 +180,10 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
                 </button>
               ) : null}
 
-              <div className="relative inline-flex max-w-full items-center justify-center">
+              <div className="relative inline-flex max-w-full translate-y-[-15px] items-center justify-center pt-[calc(2.25rem+3px)] md:translate-y-0">
+                <p className="absolute bottom-[calc(100%-2.25rem)] left-1/2 z-10 max-w-full -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 text-sm uppercase tracking-[0.22em] text-black shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm [overflow-wrap:anywhere]">
+                  {activeItem?.title || title}
+                </p>
                 <FallbackImage
                   src={activeItem?.imageUrl || ""}
                   fallbackSrc="https://placehold.co/1200x900/f4f4f2/bb102b?text=Gallery"

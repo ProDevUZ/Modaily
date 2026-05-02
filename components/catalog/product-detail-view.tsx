@@ -458,6 +458,7 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("media-lightbox-open");
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -482,12 +483,12 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [media.length, onClose]);
 
   const activeItem = media[currentIndex] ?? media[0];
-  const showMediaTitle = activeItem?.type !== "VIDEO";
 
   function showPreviousImage() {
     setCurrentIndex((current) => (current === 0 ? media.length - 1 : current - 1));
@@ -552,16 +553,9 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
           <span className="translate-y-[5%]">×</span>
         </button>
 
-        <div className={`mb-4 flex items-center pt-14 text-white/80 ${showMediaTitle ? "justify-between gap-4" : "justify-end"}`}>
-          {showMediaTitle ? (
-            <p className="inline-flex max-w-[calc(100%-4.5rem)] rounded-full bg-white/18 px-4 py-2 text-sm uppercase tracking-[0.22em] text-white shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-              <span className="truncate">{productName}</span>
-            </p>
-          ) : null}
-          <p className="shrink-0 text-sm">
-            {currentIndex + 1}/{media.length}
-          </p>
-        </div>
+        <p className="absolute right-0 top-14 z-20 shrink-0 text-sm text-white/80">
+          {currentIndex + 1}/{media.length}
+        </p>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
           <div
