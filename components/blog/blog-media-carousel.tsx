@@ -22,6 +22,14 @@ type BlogVideoLightboxProps = {
   onClose: () => void;
 };
 
+function VideoBufferingSpinner() {
+  return (
+    <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center">
+      <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
+    </span>
+  );
+}
+
 function BlogVideoSlide({
   item,
   index,
@@ -33,6 +41,7 @@ function BlogVideoSlide({
   alt: string;
   onOpen: () => void;
 }) {
+  const [isBuffering, setIsBuffering] = useState(false);
   const showVideo = item.type === "VIDEO" && item.videoUrl;
   const imageClassName = "aspect-[16/9] w-full rounded-[1.25rem] object-cover object-center";
   const videoPreviewClassName = "h-full w-full object-cover object-center";
@@ -61,8 +70,13 @@ function BlogVideoSlide({
               muted
               className={`pointer-events-none ${videoPreviewClassName}`}
               aria-label={`${alt} ${index + 1}`}
+              onWaiting={() => setIsBuffering(true)}
+              onCanPlay={() => setIsBuffering(false)}
+              onPlaying={() => setIsBuffering(false)}
             />
           )}
+
+          {isBuffering ? <VideoBufferingSpinner /> : null}
 
           <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
@@ -86,6 +100,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
+  const [isBuffering, setIsBuffering] = useState(false);
   const activeItem = items[currentIndex] ?? items[0];
   const {
     videoRef,
@@ -141,6 +156,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
     if (activeItem?.videoUrl) {
       void startPlayback();
     }
+    setIsBuffering(false);
   }, [activeItem?.id, activeItem?.videoUrl]);
 
   function showPreviousVideo() {
@@ -192,6 +208,12 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
   const lightboxVideoClassName = playing
     ? "pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center"
     : "pointer-events-none h-full w-full object-cover object-center";
+  const playbackEvents = {
+    ...videoEvents,
+    onWaiting: () => setIsBuffering(true),
+    onCanPlay: () => setIsBuffering(false),
+    onPlaying: () => setIsBuffering(false)
+  };
 
   return (
     <div
@@ -247,8 +269,10 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
                     loop
                     muted
                     className={lightboxVideoClassName}
-                    {...videoEvents}
+                    {...playbackEvents}
                   />
+
+                  {isBuffering ? <VideoBufferingSpinner /> : null}
 
                   <button
                     type="button"

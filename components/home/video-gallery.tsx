@@ -45,6 +45,37 @@ function MainVideoGalleryIndicator({ kind }: { kind: "play" | "pause" }) {
   );
 }
 
+function VideoBufferingSpinner() {
+  return (
+    <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center">
+      <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
+    </span>
+  );
+}
+
+function MobileSwipeHint() {
+  return (
+    <span className="pointer-events-none absolute bottom-24 left-1/2 z-[4] flex -translate-x-1/2 items-center justify-center lg:hidden">
+      <span className="flex h-16 w-8 animate-bounce items-center justify-center rounded-full border border-white/35 bg-white/20 shadow-[0_12px_28px_rgba(0,0,0,0.22)] backdrop-blur-md">
+        <span className="relative h-9 w-px rounded-full bg-white/75">
+          <span className="absolute -top-0.5 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-l border-t border-white/80" />
+        </span>
+      </span>
+    </span>
+  );
+}
+
+function pauseOtherPageVideos(activeVideo: HTMLVideoElement | null) {
+  document.querySelectorAll("video").forEach((video) => {
+    if (video === activeVideo) {
+      return;
+    }
+
+    video.pause();
+    video.muted = true;
+  });
+}
+
 function GalleryArrow({
   direction,
   onClick,
@@ -149,10 +180,334 @@ function VideoCard({
   );
 }
 
+function MobileVideoLightboxReel({
+  items,
+  title,
+  initialIndex,
+  onClose
+}: {
+  items: VideoItem[];
+  title: string;
+  initialIndex: number;
+  onClose: () => void;
+}) {
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const adjustingRef = useRef(false);
+  const scrollEndTimeoutRef = useRef<number | null>(null);
+  const swipeHintDelayTimeoutRef = useRef<number | null>(null);
+  const swipeHintHideTimeoutRef = useRef<number | null>(null);
+  const swipeHintDismissedRef = useRef(false);
+  const [activeVirtualIndex, setActiveVirtualIndex] = useState(items.length > 1 ? initialIndex + 1 : initialIndex);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [isActivePlaying, setIsActivePlaying] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+
+  const loopItems = useMemo(() => {
+    if (items.length <= 1) {
+      return items.map((item, index) => ({ item, itemIndex: index }));
+    }
+
+    const lastIndex = items.length - 1;
+
+    return [
+      { item: items[lastIndex], itemIndex: lastIndex },
+      ...items.map((item, index) => ({ item, itemIndex: index })),
+      { item: items[0], itemIndex: 0 }
+    ];
+  }, [items]);
+
+  function pauseAllVideos() {
+    videoRefs.current.forEach((video) => {
+      if (!video) {
+        return;
+      }
+
+      video.pause();
+      video.muted = true;
+    });
+    setIsActivePlaying(false);
+  }
+
+  function playVideoAt(index: number) {
+    const activeVideo = videoRefs.current[index];
+
+    videoRefs.current.forEach((video, videoIndex) => {
+      if (!video || videoIndex === index) {
+        return;
+      }
+
+      video.pause();
+      video.muted = true;
+    });
+
+    if (!activeVideo) {
+      setIsActivePlaying(false);
+      return;
+    }
+
+    pauseOtherPageVideos(activeVideo);
+    activeVideo.currentTime = 0;
+    activeVideo.muted = false;
+    void activeVideo
+      .play()
+      .then(() => setIsActivePlaying(true))
+      .catch(() => setIsActivePlaying(false));
+  }
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+
+    if (!scroller) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      scroller.scrollTop = (items.length > 1 ? initialIndex + 1 : initialIndex) * scroller.clientHeight;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [initialIndex, items.length]);
+
+  useEffect(() => {
+    playVideoAt(activeVirtualIndex);
+    setIsBuffering(false);
+  }, [activeVirtualIndex]);
+
+  useEffect(
+    () => () => {
+      if (scrollEndTimeoutRef.current !== null) {
+        window.clearTimeout(scrollEndTimeoutRef.current);
+      }
+      if (swipeHintDelayTimeoutRef.current !== null) {
+        window.clearTimeout(swipeHintDelayTimeoutRef.current);
+      }
+      if (swipeHintHideTimeoutRef.current !== null) {
+        window.clearTimeout(swipeHintHideTimeoutRef.current);
+      }
+
+      pauseAllVideos();
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (swipeHintDelayTimeoutRef.current !== null) {
+      window.clearTimeout(swipeHintDelayTimeoutRef.current);
+      swipeHintDelayTimeoutRef.current = null;
+    }
+    if (swipeHintHideTimeoutRef.current !== null) {
+      window.clearTimeout(swipeHintHideTimeoutRef.current);
+      swipeHintHideTimeoutRef.current = null;
+    }
+
+    setShowSwipeHint(false);
+
+    if (!isActivePlaying || items.length <= 1 || swipeHintDismissedRef.current) {
+      return;
+    }
+
+    swipeHintDelayTimeoutRef.current = window.setTimeout(() => {
+      if (swipeHintDismissedRef.current) {
+        return;
+      }
+
+      setShowSwipeHint(true);
+      swipeHintHideTimeoutRef.current = window.setTimeout(() => {
+        setShowSwipeHint(false);
+      }, 3500);
+    }, 2000);
+
+    return () => {
+      if (swipeHintDelayTimeoutRef.current !== null) {
+        window.clearTimeout(swipeHintDelayTimeoutRef.current);
+        swipeHintDelayTimeoutRef.current = null;
+      }
+      if (swipeHintHideTimeoutRef.current !== null) {
+        window.clearTimeout(swipeHintHideTimeoutRef.current);
+        swipeHintHideTimeoutRef.current = null;
+      }
+    };
+  }, [activeVirtualIndex, isActivePlaying, items.length]);
+
+  function dismissSwipeHint() {
+    swipeHintDismissedRef.current = true;
+    setShowSwipeHint(false);
+
+    if (swipeHintDelayTimeoutRef.current !== null) {
+      window.clearTimeout(swipeHintDelayTimeoutRef.current);
+      swipeHintDelayTimeoutRef.current = null;
+    }
+    if (swipeHintHideTimeoutRef.current !== null) {
+      window.clearTimeout(swipeHintHideTimeoutRef.current);
+      swipeHintHideTimeoutRef.current = null;
+    }
+  }
+
+  function normalizeMobileScroll() {
+    const scroller = scrollerRef.current;
+
+    if (!scroller || items.length <= 1 || adjustingRef.current) {
+      return;
+    }
+
+    pauseAllVideos();
+
+    const slideHeight = scroller.clientHeight || 1;
+
+    if (scrollEndTimeoutRef.current !== null) {
+      window.clearTimeout(scrollEndTimeoutRef.current);
+    }
+
+    scrollEndTimeoutRef.current = window.setTimeout(() => {
+      const currentIndex = Math.round(scroller.scrollTop / slideHeight);
+      let targetIndex = currentIndex;
+
+      if (currentIndex === 0) {
+        targetIndex = items.length;
+      } else if (currentIndex === loopItems.length - 1) {
+        targetIndex = 1;
+      }
+
+      if (targetIndex !== currentIndex) {
+        adjustingRef.current = true;
+        scroller.scrollTop = targetIndex * slideHeight;
+        setActiveVirtualIndex(targetIndex);
+        window.requestAnimationFrame(() => {
+          adjustingRef.current = false;
+        });
+        return;
+      }
+
+      setActiveVirtualIndex(currentIndex);
+      if (currentIndex === activeVirtualIndex) {
+        playVideoAt(currentIndex);
+      }
+    }, 120);
+  }
+
+  function toggleActiveVideo() {
+    const activeVideo = videoRefs.current[activeVirtualIndex];
+
+    if (!activeVideo) {
+      return;
+    }
+
+    if (activeVideo.paused) {
+      playVideoAt(activeVirtualIndex);
+      return;
+    }
+
+    pauseAllVideos();
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-[220] bg-black md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close gallery"
+        className="interactive-glass-press interactive-glass-icon absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+      >
+        <span className="translate-y-[5%]">×</span>
+      </button>
+
+      <p className="pointer-events-none absolute right-4 top-[4.75rem] z-20 rounded-full bg-black/35 px-3 py-1.5 text-sm text-white/80 backdrop-blur-sm">
+        {(loopItems[activeVirtualIndex]?.itemIndex ?? 0) + 1}/{items.length}
+      </p>
+
+      <div
+        ref={scrollerRef}
+        className="h-[100svh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        onScroll={normalizeMobileScroll}
+        onTouchStart={dismissSwipeHint}
+      >
+        {loopItems.map(({ item, itemIndex }, virtualIndex) => (
+          <section
+            key={`${item.id}-${virtualIndex}`}
+            className="relative h-[100svh] snap-center snap-always overflow-hidden bg-black"
+          >
+            {item.videoUrl ? (
+              <video
+                ref={(element) => {
+                  videoRefs.current[virtualIndex] = element;
+                }}
+                src={item.videoUrl}
+                poster={item.imageUrl || undefined}
+                playsInline
+                muted
+                loop
+                preload="metadata"
+                className="h-full w-full object-cover object-center"
+                onWaiting={() => {
+                  if (virtualIndex === activeVirtualIndex) {
+                    setIsBuffering(true);
+                  }
+                }}
+                onCanPlay={() => setIsBuffering(false)}
+                onPlaying={() => {
+                  if (virtualIndex !== activeVirtualIndex) {
+                    const video = videoRefs.current[virtualIndex];
+                    video?.pause();
+                    if (video) {
+                      video.muted = true;
+                    }
+                    return;
+                  }
+
+                  setIsBuffering(false);
+                  setIsActivePlaying(true);
+                }}
+                onPause={() => {
+                  if (virtualIndex === activeVirtualIndex) {
+                    setIsActivePlaying(false);
+                  }
+                }}
+              />
+            ) : (
+              <FallbackImage
+                src={item.imageUrl || "https://placehold.co/375x667"}
+                fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
+                alt={item.title || `Video ${itemIndex + 1}`}
+                className="h-full w-full object-cover object-center"
+              />
+            )}
+
+            <VideoPreviewSurface item={item} index={itemIndex} />
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
+            {isBuffering && virtualIndex === activeVirtualIndex ? <VideoBufferingSpinner /> : null}
+            {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
+            {item.videoUrl && virtualIndex === activeVirtualIndex ? (
+              <button
+                type="button"
+                onClick={toggleActiveVideo}
+                aria-label={isActivePlaying ? "Pause video" : "Play video"}
+                className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
+              >
+                {!isActivePlaying ? <MainVideoGalleryIndicator kind="play" /> : null}
+              </button>
+            ) : null}
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGalleryLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [isDesktopLightbox, setIsDesktopLightbox] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia("(min-width: 768px)").matches
+  );
   const activeItem = items[currentIndex] ?? items[0];
   const {
     videoRef,
@@ -166,8 +521,23 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
     videoEvents
   } = useInteractiveVideoPlayback({
     videoUrl: activeItem?.videoUrl,
-    isActive: true
+    isActive: isDesktopLightbox
   });
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+
+    function updateLightboxMode() {
+      setIsDesktopLightbox(query.matches);
+    }
+
+    updateLightboxMode();
+    query.addEventListener("change", updateLightboxMode);
+
+    return () => {
+      query.removeEventListener("change", updateLightboxMode);
+    };
+  }, []);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -205,10 +575,12 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
   }, [items.length, onClose]);
 
   useEffect(() => {
-    if (activeItem?.videoUrl) {
+    if (isDesktopLightbox && activeItem?.videoUrl) {
+      pauseOtherPageVideos(videoRef.current);
       void startPlayback();
     }
-  }, [activeItem?.id, activeItem?.videoUrl]);
+    setIsBuffering(false);
+  }, [activeItem?.id, activeItem?.videoUrl, isDesktopLightbox]);
 
   function showPreviousVideo() {
     setCurrentIndex((current) => (current === 0 ? items.length - 1 : current - 1));
@@ -253,10 +625,22 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
   }
 
   const centerIndicatorKind = !playing && !centerIcon ? "play" : centerIcon;
+  const playbackEvents = {
+    ...videoEvents,
+    onWaiting: () => setIsBuffering(true),
+    onCanPlay: () => setIsBuffering(false),
+    onPlaying: () => {
+      pauseOtherPageVideos(videoRef.current);
+      setIsBuffering(false);
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
+    <>
+      {!isDesktopLightbox ? <MobileVideoLightboxReel items={items} title={title} initialIndex={initialIndex} onClose={onClose} /> : null}
+      {isDesktopLightbox ? (
+      <div
+      className="fixed inset-0 z-[220] hidden items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6 md:flex"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -308,12 +692,15 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
                     loop
                     muted
                     className="pointer-events-none h-full w-full object-cover object-center"
-                    {...videoEvents}
+                    {...playbackEvents}
                   />
+
+                  {isBuffering ? <VideoBufferingSpinner /> : null}
 
                   <button
                     type="button"
                     onClick={() => {
+                      pauseOtherPageVideos(videoRef.current);
                       void togglePause();
                     }}
                     aria-label={playing ? "Pause video" : "Play video"}
@@ -383,7 +770,9 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
           </div>
         ) : null}
       </div>
-    </div>
+      </div>
+      ) : null}
+    </>
   );
 }
 

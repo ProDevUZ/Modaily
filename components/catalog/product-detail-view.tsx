@@ -238,6 +238,7 @@ function ProductMediaFrame({
   interactiveVideo?: boolean;
 }) {
   const [videoActivated, setVideoActivated] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const {
     videoRef,
     failed,
@@ -257,9 +258,35 @@ function ProductMediaFrame({
 
   useEffect(() => {
     setVideoActivated(false);
+    setIsBuffering(false);
   }, [interactiveVideo, item?.id]);
 
   if (item?.type === "VIDEO" && item.videoUrl) {
+    const playbackEvents = {
+      ...videoEvents,
+      onWaiting: () => {
+        setIsBuffering(true);
+      },
+      onCanPlay: () => {
+        setIsBuffering(false);
+      },
+      onPlaying: () => {
+        setIsBuffering(false);
+      },
+      onPlay: () => {
+        setIsBuffering(false);
+        videoEvents.onPlay();
+      },
+      onPause: () => {
+        setIsBuffering(false);
+        videoEvents.onPause();
+      },
+      onError: () => {
+        setIsBuffering(false);
+        videoEvents.onError();
+      }
+    };
+
     if (interactiveVideo) {
       const mediaClassNames = `${videoClassName || className} mx-auto block`;
 
@@ -292,12 +319,20 @@ function ProductMediaFrame({
               loop
               muted
               className={`pointer-events-none ${mediaClassNames}`}
-              {...videoEvents}
+              {...playbackEvents}
             />
           )}
 
           {!failed && videoActivated ? (
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          ) : null}
+
+          {!failed ? (
+            isBuffering ? (
+              <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center lg:hidden">
+                <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
+              </span>
+            ) : null
           ) : null}
 
           {!failed ? (
@@ -364,7 +399,17 @@ function ProductMediaFrame({
           loop={!controls}
           playsInline
           preload="metadata"
+          onWaiting={() => setIsBuffering(true)}
+          onCanPlay={() => setIsBuffering(false)}
+          onPlaying={() => setIsBuffering(false)}
+          onPause={() => setIsBuffering(false)}
+          onError={() => setIsBuffering(false)}
         />
+        {isBuffering ? (
+          <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center lg:hidden">
+            <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
+          </span>
+        ) : null}
         {!controls ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
@@ -385,6 +430,19 @@ function ProductMediaFrame({
       alt={alt}
       className={className}
     />
+  );
+}
+
+function MobileZoomHint() {
+  return (
+    <span className="pointer-events-none absolute bottom-3 right-3 z-[5] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 p-2 text-black shadow-[0_8px_20px_rgba(0,0,0,0.12)] backdrop-blur-sm lg:hidden">
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="6" />
+        <path d="m16 16 4 4" />
+        <path d="M11 8v6" />
+        <path d="M8 11h6" />
+      </svg>
+    </span>
   );
 }
 
@@ -827,26 +885,34 @@ export function ProductDetailView({
         <div>
           <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] lg:hidden">
             {activeMedia?.type === "VIDEO" ? (
-              <ProductMediaFrame
-                item={activeMedia}
-                alt={product.name}
-                className="h-[394px] w-full object-contain p-5"
-                videoClassName="h-[394px] w-full bg-[#f5f5f2] object-contain p-5"
-                interactiveVideo
-              />
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(activeImageIndex)}
+                aria-label={`Open ${product.name} video gallery`}
+                className="interactive-glass-press relative block aspect-[1200/1540] w-full cursor-zoom-in"
+              >
+                <ProductMediaFrame
+                  item={activeMedia}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                  videoClassName="h-full w-full bg-[#f5f5f2] object-cover"
+                />
+                <MobileZoomHint />
+              </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setLightboxIndex(activeImageIndex)}
                 aria-label={`Open ${product.name} media gallery`}
-                className="interactive-glass-press block w-full cursor-zoom-in"
+                className="interactive-glass-press relative block aspect-[1200/1540] w-full cursor-zoom-in"
               >
                 <ProductMediaFrame
                   item={activeMedia}
                   alt={product.name}
-                  className="h-[394px] w-full object-contain p-5"
-                  videoClassName="h-[394px] w-full bg-[#f5f5f2] object-contain p-5"
+                  className="h-full w-full object-cover"
+                  videoClassName="h-full w-full bg-[#f5f5f2] object-cover"
                 />
+                <MobileZoomHint />
               </button>
             )}
 
@@ -876,14 +942,14 @@ export function ProductDetailView({
                 type="button"
                 onClick={() => setLightboxIndex(index)}
                 aria-label={`Open ${product.name} media ${index + 1}`}
-                className="interactive-glass-press relative overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
+                className="interactive-glass-press relative aspect-[1200/1540] overflow-hidden rounded-[4px] bg-[#f5f5f2] text-left transition hover:opacity-95"
               >
                 {index === 0 ? <ProductBadgeStack badges={product.badges} className="left-4 top-4" /> : null}
                 <ProductMediaFrame
                   item={item}
                   alt={product.name}
-                  className="h-[320px] w-full cursor-zoom-in object-cover md:h-[360px] xl:h-[410px]"
-                  videoClassName="h-[320px] w-full cursor-zoom-in bg-[#f5f5f2] object-cover md:h-[360px] xl:h-[410px]"
+                  className="h-full w-full cursor-zoom-in object-cover"
+                  videoClassName="h-full w-full cursor-zoom-in bg-[#f5f5f2] object-cover"
                 />
               </button>
             ))}

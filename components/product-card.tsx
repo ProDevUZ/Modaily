@@ -53,10 +53,8 @@ export function ProductCard({
       <div
         className={`pointer-events-none relative overflow-hidden bg-[#f5f5f2] ${
           isCatalog
-            ? compactMobile
-              ? "flex aspect-[120/154] items-center justify-center md:aspect-[186/214]"
-              : "flex aspect-[186/214] items-center justify-center"
-            : ""
+            ? "flex aspect-[1200/1540] items-center justify-center"
+            : "aspect-[1200/1540]"
         }`}
       >
         <ProductBadgeStack badges={product.badges} />
@@ -66,10 +64,8 @@ export function ProductCard({
           alt={displayName}
           className={
             isCatalog
-              ? compactMobile
-                ? "h-[82%] w-[82%] object-contain transition duration-500 group-hover:scale-[1.03] md:h-[84%] md:w-[82%]"
-                : "h-[84%] w-[82%] object-contain transition duration-500 group-hover:scale-[1.03]"
-              : "h-[320px] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              ? "h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              : "h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           }
         />
       </div>
