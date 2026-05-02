@@ -24,7 +24,7 @@ RUN pnpm run prisma:generate
 RUN pnpm run db:push
 RUN pnpm run build
 RUN mkdir -p .next/standalone/.next && cp -r .next/static .next/standalone/.next/static
-RUN cp -r public .next/standalone/public
+RUN mkdir -p .next/standalone/public && cp -r public/. .next/standalone/public/
 
 ENV NODE_ENV=production
 
