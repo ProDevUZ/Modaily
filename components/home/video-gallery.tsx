@@ -443,20 +443,20 @@ function MobileVideoLightboxReel({
   }
 
   return (
-    <div className="main-video-gallery-lightbox fixed inset-x-0 bottom-0 top-[-80px] z-[2147483647] w-screen overflow-hidden bg-transparent md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
-      <span className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[80px] bg-black" />
+    <div className="main-video-gallery-lightbox fixed inset-0 z-[2147483647] h-[100dvh] w-screen overflow-hidden bg-black md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
       <button
         type="button"
         onClick={onClose}
         aria-label="Close gallery"
-        className="interactive-glass-press interactive-glass-icon absolute right-[max(3%,env(safe-area-inset-right))] top-[calc(env(safe-area-inset-top)+calc(3%+80px))] z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+        style={{ left: "auto", right: 3, top: 3 }}
+        className="interactive-glass-press interactive-glass-icon !absolute right-[3px] top-[3px] z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
       >
         <span className="translate-y-[5%]">×</span>
       </button>
 
       <div
         ref={scrollerRef}
-        className="relative z-10 mt-[80px] h-[100dvh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="relative z-10 h-[100dvh] snap-y snap-mandatory overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onScroll={normalizeMobileScroll}
         onTouchStart={dismissSwipeHint}
       >
@@ -529,7 +529,7 @@ function MobileVideoLightboxReel({
             {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
             {item.videoUrl && virtualIndex === activeVirtualIndex ? (
               <div
-                className="absolute bottom-[calc(env(safe-area-inset-bottom)+18px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
+                className="absolute bottom-[calc(env(safe-area-inset-bottom)+76px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="shrink-0">
