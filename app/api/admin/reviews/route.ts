@@ -2,6 +2,18 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
+type AdminReviewRow = {
+  id: string;
+  body: string;
+  phoneNumber: string;
+  createdAt: Date;
+  product: {
+    nameUz: string;
+    nameRu: string;
+    nameEn: string;
+  };
+};
+
 export async function GET() {
   const reviews = await prisma.productReview.findMany({
     orderBy: {
@@ -23,7 +35,7 @@ export async function GET() {
   });
 
   return NextResponse.json(
-    reviews.map((review) => ({
+    (reviews as AdminReviewRow[]).map((review) => ({
       id: review.id,
       text: review.body,
       phoneNumber: review.phoneNumber,

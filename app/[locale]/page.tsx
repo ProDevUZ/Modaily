@@ -19,6 +19,35 @@ type PageProps = {
   params: Promise<{ locale: string }>;
 };
 
+type HomeGalleryImageItem = {
+  id: string;
+  title: string;
+  imageUrl: string;
+};
+
+type HomeGalleryVideoItem = HomeGalleryImageItem & {
+  videoUrl: string;
+};
+
+type HomePromoCardItem = {
+  id: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  buttonLink: string;
+  imageUrl: string;
+};
+
+type HomeTestimonialItem = {
+  id: string;
+  authorName: string;
+  authorRole: string;
+  productName: string;
+  body: string;
+  avatarUrl: string;
+  rating: number;
+};
+
 const labels = {
   uz: {
     bestsellers: "Bestsellerlar",
@@ -126,6 +155,7 @@ function getFallbackTestimonials(locale: keyof typeof labels) {
       id: "testimonial-fallback-1",
       authorName: locale === "ru" ? "Азиза" : "Aziza",
       authorRole: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Cleanser",
+      productName: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Cleanser",
       body:
         locale === "ru"
           ? "Пользуюсь косметикой MODAILY уже больше месяца. Кожа стала мягче, а текстура выглядит заметно ровнее."
@@ -139,6 +169,7 @@ function getFallbackTestimonials(locale: keyof typeof labels) {
       id: "testimonial-fallback-2",
       authorName: locale === "ru" ? "Камола" : "Kamola",
       authorRole: locale === "ru" ? "Крем для рук Silk Touch Modaily" : "Silk Touch Hand Cream",
+      productName: locale === "ru" ? "Крем для рук Silk Touch Modaily" : "Silk Touch Hand Cream",
       body:
         locale === "ru"
           ? "Крем хорошо ложится под повседневный уход и держит ощущение комфорта в течение дня."
@@ -152,6 +183,7 @@ function getFallbackTestimonials(locale: keyof typeof labels) {
       id: "testimonial-fallback-3",
       authorName: locale === "ru" ? "Умида" : "Umida",
       authorRole: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Foam Cleanser",
+      productName: locale === "ru" ? "Очищающая пенка Modaily" : "Modaily Foam Cleanser",
       body:
         locale === "ru"
           ? "У меня чувствительная кожа, поэтому особенно важно, что формулы работают мягко и без раздражения."
@@ -198,7 +230,7 @@ export default async function HomePage({ params }: PageProps) {
     return null;
   }
 
-  const content = await getHomePageContent(locale);
+  const content: Awaited<ReturnType<typeof getHomePageContent>> = await getHomePageContent(locale);
   const catalogProducts = await getStorefrontProducts(locale);
   const copy = labels[locale];
   const bestsellerProducts =
@@ -230,11 +262,15 @@ export default async function HomePage({ params }: PageProps) {
           h1: product.h1,
           imageUrl: product.imageUrl
         }));
-  const gallerySource = content.galleryImages.some((item) => item.imageUrl?.trim()) ? content.galleryImages : getLocalGalleryItems();
+  const contentGalleryImages = content.galleryImages as HomeGalleryImageItem[];
+  const contentGalleryVideos = content.galleryVideos as HomeGalleryVideoItem[];
+  const contentTestimonials = content.testimonials as HomeTestimonialItem[];
+  const gallerySource = contentGalleryImages.some((item) => item.imageUrl?.trim()) ? contentGalleryImages : getLocalGalleryItems();
   const galleryImages = gallerySource.length > 0 ? gallerySource : getFallbackGalleryItems();
-  const promoCards = content.promoCards.length > 0 ? content.promoCards : getFallbackPromoCards(locale);
-  const testimonials = repeatToCount(content.testimonials.length > 0 ? content.testimonials : getFallbackTestimonials(locale), 6);
-  const validVideoItems = content.galleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
+  const contentPromoCards = content.promoCards as HomePromoCardItem[];
+  const promoCards = contentPromoCards.length > 0 ? contentPromoCards : getFallbackPromoCards(locale);
+  const testimonials = repeatToCount(contentTestimonials.length > 0 ? contentTestimonials : getFallbackTestimonials(locale), 6);
+  const validVideoItems = contentGalleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
   const videoItems = repeatToMinimum(validVideoItems, 3);
 
   return (
@@ -334,7 +370,7 @@ export default async function HomePage({ params }: PageProps) {
             items={testimonials.map((item, index) => ({
               id: `${item.id}-${index}`,
               authorName: item.authorName,
-              authorRole: item.authorRole,
+              authorRole: item.productName || item.authorRole,
               body: item.body,
               avatarUrl: item.avatarUrl,
               rating: item.rating

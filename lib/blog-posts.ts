@@ -106,6 +106,10 @@ type BlogPostCardRow = Pick<
   | "linkedProduct"
 >;
 
+type BlogPostSlugRow = {
+  slug: string;
+};
+
 export const blogPostLinkedProductSelect = {
   id: true,
   sku: true,
@@ -354,7 +358,7 @@ export async function getStorefrontBlogPosts(locale: Locale, options?: {
 }) {
   noStore();
 
-  const rows = await prisma.blogPost.findMany({
+  const rows = (await prisma.blogPost.findMany({
     where: {
       publishDate: publishedAtOrBeforeNow(),
       ...(options?.category ? { category: options.category } : {}),
@@ -385,7 +389,7 @@ export async function getStorefrontBlogPosts(locale: Locale, options?: {
         select: blogPostLinkedProductSelect
       }
     }
-  });
+  })) as BlogPostCardRow[];
 
   return rows.map((row) => mapBlogPostCard(row, locale));
 }
@@ -397,7 +401,7 @@ export async function getStorefrontFeaturedBlogPosts(locale: Locale, limit = 3) 
 export async function getStorefrontBlogPost(locale: Locale, slug: string): Promise<StorefrontBlogPost | null> {
   noStore();
 
-  const row = await prisma.blogPost.findFirst({
+  const row = (await prisma.blogPost.findFirst({
     where: {
       slug,
       publishDate: publishedAtOrBeforeNow()
@@ -413,7 +417,7 @@ export async function getStorefrontBlogPost(locale: Locale, slug: string): Promi
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
       }
     }
-  });
+  })) as BlogPostRow | null;
 
   return row ? serializeBlogPost(row, locale) : null;
 }
@@ -421,7 +425,7 @@ export async function getStorefrontBlogPost(locale: Locale, slug: string): Promi
 export async function getStorefrontBlogPostSlugs() {
   noStore();
 
-  const rows = await prisma.blogPost.findMany({
+  const rows = (await prisma.blogPost.findMany({
     where: {
       publishDate: publishedAtOrBeforeNow()
     },
@@ -429,7 +433,7 @@ export async function getStorefrontBlogPostSlugs() {
       slug: true
     },
     orderBy: [{ publishDate: "desc" }, { createdAt: "desc" }]
-  });
+  })) as BlogPostSlugRow[];
 
   return rows.map((row) => row.slug);
 }

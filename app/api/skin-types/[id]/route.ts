@@ -7,6 +7,13 @@ type RouteProps = {
   params: Promise<{ id: string }>;
 };
 
+type ProductSkinTypesRow = {
+  id: string;
+  skinTypes: string | null;
+};
+
+type SkinTypeTransaction = Pick<typeof prisma, "product" | "skinTypeOption">;
+
 export async function GET(_: Request, { params }: RouteProps) {
   const { id } = await params;
   const option = await prisma.skinTypeOption.findUnique({ where: { id } });
@@ -34,14 +41,14 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   }
 
   try {
-    const option = await prisma.$transaction(async (tx) => {
+    const option = await prisma.$transaction(async (tx: SkinTypeTransaction) => {
       const updated = await tx.skinTypeOption.update({
         where: { id },
         data: parsed.data
       });
 
       if (existing.value !== parsed.data.value) {
-        const products = await tx.product.findMany({
+        const products = (await tx.product.findMany({
           where: {
             skinTypes: {
               not: null
@@ -51,7 +58,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
             id: true,
             skinTypes: true
           }
-        });
+        })) as ProductSkinTypesRow[];
 
         const affectedProducts = products
           .map((product) => {
@@ -98,7 +105,7 @@ export async function DELETE(_: Request, { params }: RouteProps) {
     return NextResponse.json({ error: "Skin type not found." }, { status: 404 });
   }
 
-  const products = await prisma.product.findMany({
+  const products = (await prisma.product.findMany({
     where: {
       skinTypes: {
         not: null
@@ -107,7 +114,7 @@ export async function DELETE(_: Request, { params }: RouteProps) {
     select: {
       skinTypes: true
     }
-  });
+  })) as Pick<ProductSkinTypesRow, "skinTypes">[];
 
   const isUsed = products.some((product) =>
     (product.skinTypes || "")

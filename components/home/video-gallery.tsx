@@ -451,7 +451,7 @@ function MobileVideoLightboxReel({
         style={{ left: "auto", right: 3, top: 3 }}
         className="interactive-glass-press interactive-glass-icon !absolute right-[3px] top-[3px] z-30 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
       >
-        <span className="translate-y-[5%]">×</span>
+        <span className="flex h-full w-full items-center justify-center leading-none">×</span>
       </button>
 
       <div
@@ -529,7 +529,7 @@ function MobileVideoLightboxReel({
             {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
             {item.videoUrl && virtualIndex === activeVirtualIndex ? (
               <div
-                className="absolute bottom-[calc(env(safe-area-inset-bottom)+76px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
+                className="absolute bottom-[calc(env(safe-area-inset-bottom)+38px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="shrink-0">
@@ -722,7 +722,7 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
           aria-label="Close gallery"
           className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          <span className="translate-y-[5%]">×</span>
+          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
         </button>
 
         <div className="mb-4 flex items-center justify-end pt-14 text-white/80">

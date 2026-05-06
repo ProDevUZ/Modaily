@@ -298,12 +298,44 @@ function UploadPlaceholderIcon({ className }: { className?: string }) {
   );
 }
 
+function GalleryActionButton({
+  label,
+  onClick,
+  disabled = false
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+        disabled
+          ? "cursor-not-allowed border-[#e5e7ef] text-slate-300"
+          : "border-[#dbe4ef] text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function buildInitialForm(categoryId: string, skinTypeValue: string) {
   return {
     ...emptyForm,
     categoryLinkIds: categoryId ? [categoryId] : [],
     skinTypes: skinTypeValue ? [skinTypeValue] : []
   };
+}
+
+function normalizeGalleryImages(galleryImages: GalleryFormItem[]) {
+  return galleryImages.map((item, index) => ({
+    ...item,
+    sortOrder: index
+  }));
 }
 
 function normalizeEditableSkinTypes(skinTypes?: string | null) {
@@ -1180,6 +1212,25 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     }
   }
 
+  function moveGalleryImage(index: number, direction: -1 | 1) {
+    setForm((current) => {
+      const targetIndex = index + direction;
+
+      if (targetIndex < 0 || targetIndex >= current.galleryImages.length) {
+        return current;
+      }
+
+      const nextImages = [...current.galleryImages];
+      const [item] = nextImages.splice(index, 1);
+      nextImages.splice(targetIndex, 0, item);
+
+      return {
+        ...current,
+        galleryImages: normalizeGalleryImages(nextImages)
+      };
+    });
+  }
+
   async function handleCreateCategoryOption() {
     const label = newCategoryName.trim();
 
@@ -1726,6 +1777,18 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                           >
                             Удалить
                           </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 border-t border-[#e5eaf2] px-3 py-3">
+                          <GalleryActionButton
+                            label="Влево"
+                            disabled={index === 0}
+                            onClick={() => moveGalleryImage(index, -1)}
+                          />
+                          <GalleryActionButton
+                            label="Вправо"
+                            disabled={index === form.galleryImages.length - 1}
+                            onClick={() => moveGalleryImage(index, 1)}
+                          />
                         </div>
                         {image.type === "VIDEO" ? (
                           <div className="space-y-2 border-t border-[#e5eaf2] p-3 pt-3">

@@ -29,6 +29,28 @@ function getProductOptionLabel(product: AdminProduct) {
   return product.nameRu || product.nameEn || product.nameUz;
 }
 
+function getProductLocalizedNames(product: AdminProduct) {
+  return {
+    uz: product.nameUz || product.nameRu || product.nameEn,
+    ru: product.nameRu || product.nameEn || product.nameUz,
+    en: product.nameEn || product.nameRu || product.nameUz
+  };
+}
+
+function getSelectedTestimonialProductId(form: TestimonialForm, products: AdminProduct[]) {
+  const productNameUz = form.productNameUz || form.authorRoleUz || "";
+  const productNameRu = form.productNameRu || form.authorRoleRu || "";
+  const productNameEn = form.productNameEn || form.authorRoleEn || "";
+
+  const product = products.find((item) => {
+    const names = getProductLocalizedNames(item);
+
+    return names.uz === productNameUz || names.ru === productNameRu || names.en === productNameEn;
+  });
+
+  return product?.id || "";
+}
+
 const emptyPromoForm: PromoForm = {
   titleUz: "",
   titleRu: "",
@@ -584,6 +606,36 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить отзыв.");
     }
+  }
+
+  function handleTestimonialProductSelect(productId: string) {
+    const product = products.find((item) => item.id === productId);
+
+    setTestimonialForm((current) => {
+      if (!product) {
+        return {
+          ...current,
+          authorRoleUz: "",
+          authorRoleRu: "",
+          authorRoleEn: "",
+          productNameUz: "",
+          productNameRu: "",
+          productNameEn: ""
+        };
+      }
+
+      const names = getProductLocalizedNames(product);
+
+      return {
+        ...current,
+        authorRoleUz: names.uz,
+        authorRoleRu: names.ru,
+        authorRoleEn: names.en,
+        productNameUz: names.uz,
+        productNameRu: names.ru,
+        productNameEn: names.en
+      };
+    });
   }
 
   async function handleDelete(endpoint: string, successMessage: string, reset: () => void) {
@@ -1483,13 +1535,23 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                 disabled={testimonialAvatarUploadPending}
               />
             </label>
-            <Field value={testimonialForm.authorRoleUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleUz: value }))} placeholder="Роль UZ" />
-            <Field value={testimonialForm.authorRoleRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleRu: value }))} placeholder="Роль RU" />
-            <Field value={testimonialForm.authorRoleEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorRoleEn: value }))} placeholder="Роль EN" />
+            <div className="md:col-span-2">
+              <select
+                className="admin-select"
+                aria-label="Выберите товар"
+                value={getSelectedTestimonialProductId(testimonialForm, products)}
+                onChange={(event) => handleTestimonialProductSelect(event.target.value)}
+              >
+                <option value="">Товар не выбран</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {getProductOptionLabel(product)}
+                  </option>
+                ))}
+              </select>
+              <p className="admin-form-hint">Товар</p>
+            </div>
             <Field value={String(testimonialForm.rating)} onChange={(value) => setTestimonialForm((current) => ({ ...current, rating: Number(value) || 5 }))} placeholder="Оценка" type="number" />
-            <Field value={testimonialForm.productNameUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameUz: value }))} placeholder="Название товара UZ" />
-            <Field value={testimonialForm.productNameRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameRu: value }))} placeholder="Название товара RU" />
-            <Field value={testimonialForm.productNameEn} onChange={(value) => setTestimonialForm((current) => ({ ...current, productNameEn: value }))} placeholder="Название товара EN" />
             <Field value={String(testimonialForm.sortOrder)} onChange={(value) => setTestimonialForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))} placeholder="Порядок сортировки" type="number" />
             <Area value={testimonialForm.bodyUz} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyUz: value }))} placeholder="Отзыв UZ" />
             <Area value={testimonialForm.bodyRu} onChange={(value) => setTestimonialForm((current) => ({ ...current, bodyRu: value }))} placeholder="Отзыв RU" />

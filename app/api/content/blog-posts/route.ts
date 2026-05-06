@@ -4,6 +4,8 @@ import { validateBlogPostPayload } from "@/lib/admin-validators";
 import { blogPostLinkedProductSelect, serializeBlogPost } from "@/lib/blog-posts";
 import { prisma } from "@/lib/prisma";
 
+type SerializableBlogPost = Parameters<typeof serializeBlogPost>[0];
+
 async function assertLinkedProductExists(linkedProductId: string | null) {
   if (!linkedProductId) {
     return null;
@@ -34,7 +36,7 @@ export async function GET() {
       orderBy: [{ publishDate: "desc" }, { createdAt: "desc" }]
     });
 
-    return NextResponse.json(posts.map((post) => serializeBlogPost(post)));
+    return NextResponse.json((posts as SerializableBlogPost[]).map((post) => serializeBlogPost(post)));
   } catch (error) {
     console.error("blog posts fallback", error);
     return NextResponse.json([]);

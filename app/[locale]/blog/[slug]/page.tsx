@@ -18,7 +18,7 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const slugs = await getStorefrontBlogPostSlugs();
+  const slugs: string[] = await getStorefrontBlogPostSlugs();
 
   return locales.flatMap((locale) =>
     slugs.map((slug) => ({

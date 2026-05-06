@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BlogCard } from "@/components/blog/blog-card";
 import { BlogListingControls } from "@/components/blog/blog-listing-controls";
 import { getBlogPageCopy } from "@/lib/blog-page-copy";
+import type { StorefrontBlogPostCard } from "@/lib/blog-post-types";
 import { isLocale, type Locale } from "@/lib/i18n";
 import { getStorefrontBlogPosts } from "@/lib/blog-posts";
 
@@ -65,7 +66,7 @@ export default async function BlogListingPage({ params, searchParams }: PageProp
   const selectedSort = rawSelectedSort === "oldest" ? "oldest" : "newest";
   const selectedView = rawSelectedView === "2" || rawSelectedView === "1" ? rawSelectedView : "3";
   const copy = getBlogPageCopy(locale as Locale);
-  const allPosts = await getStorefrontBlogPosts(locale as Locale);
+  const allPosts: StorefrontBlogPostCard[] = await getStorefrontBlogPosts(locale as Locale);
   const categories = Array.from(new Set(allPosts.map((post) => post.category).filter(Boolean))).sort((left, right) =>
     left.localeCompare(right, "ru")
   );

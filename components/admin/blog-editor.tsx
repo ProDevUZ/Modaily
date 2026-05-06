@@ -47,6 +47,7 @@ type BlogMediaFormItem = {
 
 type BlogFormState = {
   cardTitle: LocalizedText;
+  coverImage: string;
   media: BlogMediaFormItem[];
   publishDate: string;
   category: LocalizedText;
@@ -79,6 +80,7 @@ function createLocalizedText(initial = ""): LocalizedText {
 
 const emptyForm: BlogFormState = {
   cardTitle: createLocalizedText(),
+  coverImage: "",
   media: [],
   publishDate: new Date().toISOString().slice(0, 10),
   category: createLocalizedText(),
@@ -142,22 +144,11 @@ function buildFormFromPost(post: AdminBlogPost): BlogFormState {
       ru: post.cardTitleRu || post.cardTitle,
       en: post.cardTitleEn || post.cardTitle
     },
+    coverImage: post.coverImage,
     media: normalizeMedia(
-      (post.media.length
-        ? post.media
-        : post.coverImage
-          ? [
-              {
-                id: `${post.id}-cover`,
-                type: "IMAGE" as const,
-                imageUrl: post.coverImage,
-                videoUrl: null,
-                videoPosterUrl: null,
-                sortOrder: 0
-              }
-            ]
-          : []
-      ).map((item) =>
+      post.media
+        .filter((item) => !(item.type === "IMAGE" && item.imageUrl === post.coverImage))
+        .map((item) =>
         createLocalMedia({
           id: item.id,
           type: item.type,
@@ -505,6 +496,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
   const [initialLinkedProduct, setInitialLinkedProduct] = useState<BlogPostLinkedProduct | null>(null);
   const [form, setForm] = useState<BlogFormState>(emptyForm);
   const [loading, setLoading] = useState(true);
+  const [uploadingCoverImage, setUploadingCoverImage] = useState(false);
   const [uploadingMediaImages, setUploadingMediaImages] = useState(false);
   const [uploadingMediaVideos, setUploadingMediaVideos] = useState(false);
   const [uploadingMediaPosterId, setUploadingMediaPosterId] = useState<string | null>(null);
@@ -512,11 +504,6 @@ export function BlogEditor({ postId }: BlogEditorProps) {
   const [error, setError] = useState<BlogSubmitError | null>(null);
   const [linkedProductQuery, setLinkedProductQuery] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-
-  const coverMedia = useMemo(
-    () => form.media.find((item) => item.type === "IMAGE" && item.imageUrl) || null,
-    [form.media]
-  );
 
   const selectedProduct = useMemo(() => {
     if (!form.linkedProductId) {
@@ -623,6 +610,35 @@ export function BlogEditor({ postId }: BlogEditorProps) {
       method: "POST",
       body: uploadFormData
     });
+  }
+
+  async function handleCoverImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setError(null);
+    setMessage(null);
+    setUploadingCoverImage(true);
+
+    try {
+      const payload = await uploadBlogImage(file);
+
+      setForm((current) => ({
+        ...current,
+        coverImage: payload.url
+      }));
+      setMessage("Cover загружен.");
+    } catch (uploadError) {
+      setError({
+        message: uploadError instanceof Error ? uploadError.message : "Не удалось загрузить cover."
+      });
+    } finally {
+      setUploadingCoverImage(false);
+      event.target.value = "";
+    }
   }
 
   async function handleMediaImageUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -854,6 +870,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
           introDescriptionUz: form.introDescription.uz,
           introDescriptionRu: form.introDescription.ru,
           introDescriptionEn: form.introDescription.en,
+          coverImage: form.coverImage,
           media: normalizeMedia(form.media).map((item, index) => ({
             type: item.type,
             imageUrl: item.type === "IMAGE" ? item.imageUrl : null,
@@ -1054,15 +1071,51 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             <EditorCard title="Media">
               <div className="space-y-5">
                 <FieldGroup
-                  label="Файлы публикации"
-                  hint="Загрузите до 6 изображений или видео. Первая фотография автоматически станет cover для карточек и страницы статьи."
+                  label="Cover"
+                  hint="Загрузите 1x1 изображение для карточки поста в списке блога. Внутри поста этот cover не показывается."
                 >
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
+                    <label className="flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] text-center transition hover:border-slate-400 hover:bg-white">
+                      {form.coverImage ? (
+                        <img src={form.coverImage} alt="Cover" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="grid justify-items-center gap-2 px-4 text-sm font-semibold text-slate-700">
+                          <UploadPlaceholderIcon className="h-7 w-7 text-slate-300" />
+                          <span>{uploadingCoverImage ? "Загрузка..." : "Добавить cover"}</span>
+                          <span className="text-[11px] font-medium text-slate-400">1x1</span>
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        className="hidden"
+                        onChange={handleCoverImageUpload}
+                        disabled={uploadingCoverImage}
+                      />
+                    </label>
+                    <div>
+                      <input
+                        className="admin-input h-12"
+                        value={form.coverImage}
+                        placeholder="URL cover"
+                        onChange={(event) => setForm((current) => ({ ...current, coverImage: event.target.value }))}
+                      />
+                      <p className="admin-form-hint">URL cover</p>
+                    </div>
+                  </div>
+                </FieldGroup>
+
+                {form.coverImage ? (
+                  <FieldGroup
+                    label="Файлы публикации"
+                    hint="Загрузите до 6 изображений или видео для внутренней страницы поста."
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
                     <label className="flex cursor-pointer items-center justify-center gap-3 rounded-[1.15rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-4 py-4 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-white">
                       <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
                       <span className="grid gap-1">
                         <span>{uploadingMediaImages ? "Загрузка..." : "Добавить image"}</span>
-                        <span className="text-[11px] font-medium text-slate-400">1600×900 px</span>
+                        <span className="text-[11px] font-medium text-slate-400">1140×600 px</span>
                       </span>
                       <input
                         type="file"
@@ -1077,7 +1130,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                       <UploadPlaceholderIcon className="h-6 w-6 text-slate-300" />
                       <span className="grid gap-1">
                         <span>{uploadingMediaVideos ? "Загрузка..." : "Добавить video"}</span>
-                        <span className="text-[11px] font-medium text-slate-400">1600×900 px</span>
+                        <span className="text-[11px] font-medium text-slate-400">1140×600 px</span>
                       </span>
                       <input
                         type="file"
@@ -1089,13 +1142,13 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                       />
                     </label>
                   </div>
-                </FieldGroup>
+                  </FieldGroup>
+                ) : null}
 
-                {form.media.length ? (
+                {form.coverImage ? (
+                  form.media.length ? (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {form.media.map((item, index) => {
-                      const isCover = item.type === "IMAGE" && coverMedia?.id === item.id;
-
                       return (
                         <div
                           key={item.id}
@@ -1123,11 +1176,6 @@ export function BlogEditor({ postId }: BlogEditorProps) {
 
                             <div className="absolute left-3 top-3 flex items-center gap-2">
                               <MediaTypeBadge type={item.type} />
-                              {isCover ? (
-                                <span className="inline-flex rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">
-                                  Cover
-                                </span>
-                              ) : null}
                             </div>
                           </div>
 
@@ -1159,7 +1207,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                                   Обложка видео
                                 </p>
-                                <p className="text-[11px] leading-4 text-slate-400">Рекомендуемый размер: 1600×900 px</p>
+                                <p className="text-[11px] leading-4 text-slate-400">Рекомендуемый размер: 1140×600 px</p>
                                 <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                                   <input
                                     className="admin-input h-10 text-xs"
@@ -1194,11 +1242,12 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                       );
                     })}
                   </div>
-                ) : (
+                  ) : (
                   <div className="rounded-[1.25rem] border border-dashed border-[#d5dce8] bg-[#fbfcfe] px-5 py-6 text-sm text-slate-500">
-                    Медиа пока не добавлены. Загрузите хотя бы одну фотографию, чтобы пост получил cover.
+                    Медиа для внутренней страницы поста пока не добавлены.
                   </div>
-                )}
+                  )
+                ) : null}
               </div>
             </EditorCard>
 
@@ -1428,16 +1477,16 @@ export function BlogEditor({ postId }: BlogEditorProps) {
               <div className="space-y-4">
                 <div className="overflow-hidden rounded-[1.2rem] border border-[#e5eaf2] bg-[#fbfcff]">
                   <div className="flex min-h-[220px] items-center justify-center bg-white">
-                    {coverMedia?.imageUrl ? (
+                    {form.coverImage ? (
                       <img
-                        src={coverMedia.imageUrl}
+                        src={form.coverImage}
                         alt={getPrimaryLocalizedValue(form.cardTitle) || "Cover preview"}
                         className="h-full w-full object-cover"
                       />
                     ) : (
                       <div className="text-center">
                         <UploadPlaceholderIcon className="mx-auto h-10 w-10 text-slate-300" />
-                        <p className="mt-3 text-sm text-slate-400">Cover появится после первой загруженной фотографии</p>
+                        <p className="mt-3 text-sm text-slate-400">Cover появится после загрузки 1x1 изображения</p>
                       </div>
                     )}
                   </div>

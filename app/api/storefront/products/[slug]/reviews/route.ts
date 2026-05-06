@@ -6,6 +6,20 @@ type RouteProps = {
   params: Promise<{ slug: string }>;
 };
 
+type StorefrontReviewRow = {
+  id: string;
+  authorName: string;
+  phoneNumber: string;
+  body: string;
+  imageUrl: string | null;
+  rating: number;
+  createdAt: Date;
+};
+
+type StorefrontProductReviewsRow = {
+  reviews: StorefrontReviewRow[];
+};
+
 function asString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -17,7 +31,7 @@ function isValidPhoneNumber(value: string) {
 export async function GET(_: Request, { params }: RouteProps) {
   const { slug } = await params;
 
-  const product = await prisma.product.findFirst({
+  const product = (await prisma.product.findFirst({
     where: {
       slug,
       active: true
@@ -41,7 +55,7 @@ export async function GET(_: Request, { params }: RouteProps) {
         }
       }
     }
-  });
+  })) as StorefrontProductReviewsRow | null;
 
   if (!product) {
     return NextResponse.json({ error: "Product not found." }, { status: 404 });
@@ -95,7 +109,7 @@ export async function POST(request: Request, { params }: RouteProps) {
     return NextResponse.json({ error: "Product not found." }, { status: 404 });
   }
 
-  const review = await prisma.productReview.create({
+  const review = (await prisma.productReview.create({
     data: {
       productId: product.id,
       authorName,
@@ -114,7 +128,7 @@ export async function POST(request: Request, { params }: RouteProps) {
       rating: true,
       createdAt: true
     }
-  });
+  })) as StorefrontReviewRow;
 
   return NextResponse.json(
     {

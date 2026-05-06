@@ -4,6 +4,8 @@ import { blogPostLinkedProductSelect, serializeBlogPost } from "@/lib/blog-posts
 import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "@/lib/content-defaults";
 import { prisma } from "@/lib/prisma";
 
+type SerializableBlogPost = Parameters<typeof serializeBlogPost>[0];
+
 export async function GET() {
   try {
     const [siteSettings, hero, about, promoCards, galleryItems, galleryHeadings, testimonials, blogPosts] = await Promise.all([
@@ -38,7 +40,7 @@ export async function GET() {
       galleryItems,
       galleryHeadings,
       testimonials,
-      blogPosts: blogPosts.map((post) => serializeBlogPost(post))
+      blogPosts: (blogPosts as SerializableBlogPost[]).map((post) => serializeBlogPost(post))
     });
   } catch (error) {
     console.error("content dashboard fallback", error);

@@ -10,6 +10,8 @@ import {
 import { buildProductCategoryLinkCreateData } from "@/lib/product-category-links";
 import { getProductWriteErrorPayload } from "@/lib/product-write-errors";
 
+type ProductHomeFieldsInput = Parameters<typeof normalizeProductHomeFields>[0];
+
 export async function GET() {
   const products = await prisma.product.findMany({
     include: {
@@ -48,7 +50,7 @@ export async function GET() {
     }
   });
 
-  return NextResponse.json(products.map((product) => normalizeProductHomeFields(product)));
+  return NextResponse.json((products as ProductHomeFieldsInput[]).map((product) => normalizeProductHomeFields(product)));
 }
 
 export async function POST(request: Request) {

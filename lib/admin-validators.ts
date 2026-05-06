@@ -677,10 +677,6 @@ export function validateHomeHeroPayload(body: unknown): ValidationResult<HomeHer
     return { success: false, error: "Desktop and mobile hero images are required." };
   }
 
-  if (!heroProductId) {
-    return { success: false, error: "Linked hero product is required." };
-  }
-
   return {
     success: true,
     data: {
@@ -982,12 +978,17 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
     return { success: false, error: "Media must be an array." };
   }
 
-  if (payload.media.length === 0) {
-    return { success: false, error: "Add at least one image or video." };
-  }
-
   if (payload.media.length > 6) {
     return { success: false, error: "No more than 6 media items are allowed." };
+  }
+
+  const coverImage = asString(payload.coverImage);
+
+  if (!coverImage) {
+    return {
+      success: false,
+      error: "Cover image is required."
+    };
   }
 
   const media: BlogPostMediaPayload[] = [];
@@ -1023,15 +1024,6 @@ export function validateBlogPostPayload(body: unknown): ValidationResult<BlogPos
       videoPosterUrl: type === "VIDEO" ? videoPosterUrl : null,
       sortOrder: asInteger(row.sortOrder, index)
     });
-  }
-
-  const coverImage = media.find((entry) => entry.type === "IMAGE" && entry.imageUrl)?.imageUrl;
-
-  if (!coverImage) {
-    return {
-      success: false,
-      error: "Add at least one image. The first image is used as the blog cover."
-    };
   }
 
   if (!Array.isArray(payload.dynamicSections)) {

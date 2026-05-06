@@ -550,7 +550,7 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
           aria-label="Close gallery"
           className="absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          <span className="translate-y-[5%]">×</span>
+          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
         </button>
 
         <p className="absolute right-0 top-14 z-20 shrink-0 text-sm text-white/80">

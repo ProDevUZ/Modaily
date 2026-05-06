@@ -152,7 +152,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
           aria-label="Close gallery"
           className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          <span className="translate-y-[5%]">×</span>
+          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
         </button>
 
         <div className="mb-4 hidden items-center justify-end pt-14 text-white/80">

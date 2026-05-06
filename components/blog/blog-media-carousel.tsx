@@ -15,7 +15,7 @@ type BlogMediaCarouselProps = {
   alt: string;
 };
 
-type BlogVideoLightboxProps = {
+type BlogMediaLightboxProps = {
   items: BlogPostMediaItem[];
   alt: string;
   initialIndex: number;
@@ -30,7 +30,7 @@ function VideoBufferingSpinner() {
   );
 }
 
-function BlogVideoSlide({
+function BlogMediaSlide({
   item,
   index,
   alt,
@@ -85,22 +85,44 @@ function BlogVideoSlide({
           </span>
         </button>
       ) : (
-        <FallbackImage
-          src={item.imageUrl || undefined}
-          fallbackSrc="/images/home/mainpage.jpg"
-          alt={`${alt} ${index + 1}`}
-          className={imageClassName}
-        />
+        <button
+          type="button"
+          className="block w-full overflow-hidden rounded-[1.25rem] bg-[#f6f5f2] text-left"
+          onClick={onOpen}
+        >
+          <FallbackImage
+            src={item.imageUrl || undefined}
+            fallbackSrc="/images/home/mainpage.jpg"
+            alt={`${alt} ${index + 1}`}
+            className={imageClassName}
+          />
+        </button>
       )}
     </div>
   );
 }
 
-function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLightboxProps) {
+function BlogLightboxMedia({ item, alt }: { item: BlogPostMediaItem | undefined; alt: string }) {
+  if (item?.type === "VIDEO" && item.videoUrl) {
+    return null;
+  }
+
+  return (
+    <FallbackImage
+      src={item?.imageUrl || undefined}
+      fallbackSrc="/images/home/mainpage.jpg"
+      alt={alt}
+      className="max-h-[72vh] w-auto max-w-full rounded-[18px] object-contain"
+    />
+  );
+}
+
+function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [videoActivated, setVideoActivated] = useState(false);
   const activeItem = items[currentIndex] ?? items[0];
   const {
     videoRef,
@@ -113,8 +135,8 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
     handleProgressChange,
     videoEvents
   } = useInteractiveVideoPlayback({
-    videoUrl: activeItem?.videoUrl,
-    isActive: true
+    videoUrl: activeItem?.type === "VIDEO" ? activeItem.videoUrl : undefined,
+    isActive: activeItem?.type === "VIDEO"
   });
 
   useEffect(() => {
@@ -124,6 +146,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("media-lightbox-open");
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -148,22 +171,21 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [items.length, onClose]);
 
   useEffect(() => {
-    if (activeItem?.videoUrl) {
-      void startPlayback();
-    }
     setIsBuffering(false);
-  }, [activeItem?.id, activeItem?.videoUrl]);
+    setVideoActivated(false);
+  }, [activeItem?.id, activeItem?.type, activeItem?.videoUrl]);
 
-  function showPreviousVideo() {
+  function showPreviousMedia() {
     setCurrentIndex((current) => (current === 0 ? items.length - 1 : current - 1));
   }
 
-  function showNextVideo() {
+  function showNextMedia() {
     setCurrentIndex((current) => (current === items.length - 1 ? 0 : current + 1));
   }
 
@@ -191,9 +213,9 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
 
     if (Math.abs(deltaX) > 50) {
       if (deltaX < 0) {
-        showNextVideo();
+        showNextMedia();
       } else {
-        showPreviousVideo();
+        showPreviousMedia();
       }
     }
 
@@ -202,12 +224,9 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
   }
 
   const centerIndicatorKind = !playing && !centerIcon ? "play" : centerIcon;
-  const lightboxFrameClassName = playing
-    ? "relative flex max-h-[72vh] w-full items-center justify-center overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]"
-    : "relative aspect-[16/9] w-full overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]";
-  const lightboxVideoClassName = playing
-    ? "pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center"
-    : "pointer-events-none h-full w-full object-cover object-center";
+  const showActiveVideo = activeItem?.type === "VIDEO" && activeItem.videoUrl;
+  const lightboxFrameClassName = "relative flex max-h-[72vh] w-full items-center justify-center overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)]";
+  const lightboxVideoClassName = "pointer-events-none max-h-[72vh] w-auto max-w-full object-contain object-center";
   const playbackEvents = {
     ...videoEvents,
     onWaiting: () => setIsBuffering(true),
@@ -221,7 +240,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`${alt} video gallery`}
+      aria-label={`${alt} media gallery`}
     >
       <div className="relative flex max-h-full w-full max-w-[1320px] flex-col" onClick={(event) => event.stopPropagation()}>
         <button
@@ -230,7 +249,7 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
           aria-label="Close gallery"
           className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
         >
-          <span className="translate-y-[5%]">×</span>
+          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
         </button>
 
         <div className="mb-4 flex items-center justify-end pt-14 text-white/80">
@@ -250,8 +269,8 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
               {items.length > 1 ? (
                 <button
                   type="button"
-                  onClick={showPreviousVideo}
-                  aria-label="Previous video"
+                  onClick={showPreviousMedia}
+                  aria-label="Previous media"
                   className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
                 >
                   ←
@@ -259,61 +278,78 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
               ) : null}
 
               <div className="w-full max-w-[min(92vw,1120px)] md:max-w-[min(82vw,980px)]">
-                <div className={lightboxFrameClassName}>
-                  <video
-                    ref={videoRef}
-                    src={activeItem?.videoUrl || undefined}
-                    poster={activeItem?.videoPosterUrl || activeItem?.imageUrl || undefined}
-                    preload="metadata"
-                    playsInline
-                    loop
-                    muted
-                    className={lightboxVideoClassName}
-                    {...playbackEvents}
-                  />
+                {showActiveVideo ? (
+                  <>
+                    <div className={lightboxFrameClassName}>
+                      <video
+                        ref={videoRef}
+                        src={activeItem?.videoUrl || undefined}
+                        poster={activeItem?.videoPosterUrl || activeItem?.imageUrl || undefined}
+                        preload="metadata"
+                        playsInline
+                        loop
+                        muted
+                        className={lightboxVideoClassName}
+                        {...playbackEvents}
+                      />
 
-                  {isBuffering ? <VideoBufferingSpinner /> : null}
+                      {isBuffering ? <VideoBufferingSpinner /> : null}
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void togglePause();
-                    }}
-                    aria-label={playing ? "Pause video" : "Play video"}
-                    className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
-                  >
-                    {centerIndicatorKind ? <VideoPlaybackIndicator kind={centerIndicatorKind} /> : null}
-                  </button>
-                </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!playing && currentTime === 0) {
+                            setVideoActivated(true);
+                            void startPlayback();
+                            return;
+                          }
 
-                <div
-                  onClick={(event) => event.stopPropagation()}
-                  className="mt-3 rounded-[12px] bg-black/8 px-3 py-2 text-black/80 sm:mt-4 sm:rounded-[18px] sm:border sm:border-white/18 sm:bg-black/42 sm:px-4 sm:py-2.5 sm:text-white sm:shadow-[0_14px_28px_rgba(0,0,0,0.18)] sm:backdrop-blur-sm"
-                >
-                  <div className="min-w-0">
-                    <input
-                      type="range"
-                      min={0}
-                      max={duration || 0}
-                      step="0.1"
-                      value={Math.min(currentTime, duration || 0)}
-                      onChange={(event) => handleProgressChange(Number(event.target.value))}
-                      className="h-1.5 w-full cursor-pointer accent-white"
-                      aria-label="Video progress"
-                    />
-                    <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] md:text-xs">
-                      <span>{formatInteractiveVideoTime(currentTime)}</span>
-                      <span>{formatInteractiveVideoTime(duration)}</span>
+                          setVideoActivated(true);
+                          void togglePause();
+                        }}
+                        aria-label={playing ? "Pause video" : "Play video"}
+                        className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
+                      >
+                        {centerIndicatorKind ? <VideoPlaybackIndicator kind={centerIndicatorKind} /> : null}
+                      </button>
+
+                      {videoActivated ? (
+                        <div
+                          onClick={(event) => event.stopPropagation()}
+                          className="absolute inset-x-3 bottom-3 z-10 rounded-[18px] border border-white/18 bg-black/42 px-3 py-2.5 text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] backdrop-blur-sm md:inset-x-4 md:bottom-4 md:px-4"
+                        >
+                          <div className="min-w-0">
+                            <input
+                              type="range"
+                              min={0}
+                              max={duration || 0}
+                              step="0.1"
+                              value={Math.min(currentTime, duration || 0)}
+                              onChange={(event) => handleProgressChange(Number(event.target.value))}
+                              className="h-1.5 w-full cursor-pointer accent-white"
+                              aria-label="Video progress"
+                            />
+                            <div className="mt-1.5 flex items-center justify-between text-[11px] font-medium tracking-[0.02em] text-white/82 md:text-xs">
+                              <span>{formatInteractiveVideoTime(currentTime)}</span>
+                              <span>{formatInteractiveVideoTime(duration)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
+                  </>
+                ) : (
+                  <div className="relative inline-flex w-full items-center justify-center">
+                    <BlogLightboxMedia item={activeItem} alt={`${alt} media ${currentIndex + 1}`} />
                   </div>
-                </div>
+                )}
               </div>
 
               {items.length > 1 ? (
                 <button
                   type="button"
-                  onClick={showNextVideo}
-                  aria-label="Next video"
+                  onClick={showNextMedia}
+                  aria-label="Next media"
                   className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
                 >
                   →
@@ -322,6 +358,47 @@ function BlogVideoLightbox({ items, alt, initialIndex, onClose }: BlogVideoLight
             </div>
           </div>
         </div>
+
+        {items.length > 1 ? (
+          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+            {items.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setCurrentIndex(index)}
+                className={`relative h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[10px] border bg-black transition ${
+                  index === currentIndex ? "border-white" : "border-white/18"
+                }`}
+              >
+                {item.type === "VIDEO" && item.videoUrl ? (
+                  <>
+                    {item.imageUrl || item.videoPosterUrl ? (
+                      <FallbackImage
+                        src={item.videoPosterUrl || item.imageUrl || undefined}
+                        fallbackSrc="/images/home/mainpage.jpg"
+                        alt={`${alt} thumbnail ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <video src={item.videoUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                    )}
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/18 text-white">
+                      <VideoPlaybackIndicator kind="play" />
+                    </span>
+                  </>
+                ) : (
+                  <FallbackImage
+                    src={item.imageUrl || undefined}
+                    fallbackSrc="/images/home/mainpage.jpg"
+                    alt={`${alt} thumbnail ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                )}
+                {index === currentIndex ? <span className="absolute inset-0 ring-1 ring-white/80" /> : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -331,7 +408,6 @@ export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
   const railRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const videoItems = media.filter((item) => item.type === "VIDEO" && item.videoUrl);
 
   useEffect(() => {
     const rail = railRef.current;
@@ -375,18 +451,12 @@ export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
         className="flex snap-x snap-mandatory overflow-x-auto rounded-[1.25rem] scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {media.map((item, index) => (
-          <BlogVideoSlide
+          <BlogMediaSlide
             key={item.id}
             item={item}
             index={index}
             alt={alt}
-            onOpen={() => {
-              const videoIndex = videoItems.findIndex((videoItem) => videoItem.id === item.id);
-
-              if (videoIndex >= 0) {
-                setLightboxIndex(videoIndex);
-              }
-            }}
+            onOpen={() => setLightboxIndex(index)}
           />
         ))}
       </div>
@@ -405,8 +475,8 @@ export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
         </div>
       ) : null}
 
-      {lightboxIndex !== null && videoItems.length > 0 ? (
-        <BlogVideoLightbox items={videoItems} alt={alt} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+      {lightboxIndex !== null ? (
+        <BlogMediaLightbox items={media} alt={alt} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       ) : null}
     </div>
   );
