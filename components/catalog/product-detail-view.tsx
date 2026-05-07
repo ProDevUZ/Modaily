@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { DisplayText } from "@/components/ui/display-text";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -450,13 +452,20 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
 
   useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.classList.add("media-lightbox-open");
 
@@ -482,6 +491,7 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.body.style.overflow = previousOverflow;
       document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", onKeyDown);
@@ -532,9 +542,9 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
     setTouchCurrentX(null);
   }
 
-  return (
+  const lightbox = (
     <div
-      className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
+      className="media-lightbox-overlay fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -548,15 +558,12 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+          className="fixed right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/50 sm:right-6 sm:top-6"
         >
-          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
+          <LightboxCloseIcon />
         </button>
 
-        <p className="absolute right-0 top-14 z-20 shrink-0 text-sm text-white/80">
-          {currentIndex + 1}/{media.length}
-        </p>
-
+        <div className="flex max-h-full w-full flex-col translate-y-[10%]">
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
           <div
             className="flex w-full items-center justify-center overflow-hidden rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
@@ -621,9 +628,12 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
             ))}
           </div>
         ) : null}
+        </div>
       </div>
     </div>
   );
+
+  return portalTarget ? createPortal(lightbox, portalTarget) : null;
 }
 
 function formatPrice(price: number) {

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -123,6 +125,7 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const [videoActivated, setVideoActivated] = useState(false);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const activeItem = items[currentIndex] ?? items[0];
   const {
     videoRef,
@@ -144,7 +147,13 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
   }, [initialIndex]);
 
   useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     document.body.classList.add("media-lightbox-open");
 
@@ -170,6 +179,7 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.body.style.overflow = previousOverflow;
       document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", handleKeyDown);
@@ -234,9 +244,9 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
     onPlaying: () => setIsBuffering(false)
   };
 
-  return (
+  const lightbox = (
     <div
-      className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
+      className="media-lightbox-overlay fixed inset-0 z-[220] flex items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -247,9 +257,9 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+          className="fixed right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/50 sm:right-6 sm:top-6"
         >
-          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
+          <LightboxCloseIcon />
         </button>
 
         <div className="mb-4 flex items-center justify-end pt-14 text-white/80">
@@ -402,6 +412,8 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
       </div>
     </div>
   );
+
+  return portalTarget ? createPortal(lightbox, portalTarget) : null;
 }
 
 export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {

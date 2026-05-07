@@ -108,6 +108,20 @@ body.media-lightbox-open .where-to-buy-pin {
   display: none;
 }
 
+body.media-lightbox-open header,
+body.mobile-video-lightbox-open header {
+  z-index: 1 !important;
+}
+
+header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.media-lightbox-overlay {
+  padding-top: env(safe-area-inset-top);
+  min-height: -webkit-fill-available;
+}
+
 .main-mobile-reel-video::-webkit-media-controls,
 .main-mobile-reel-video::-webkit-media-controls-panel,
 .main-mobile-reel-video::-webkit-media-controls-timeline,

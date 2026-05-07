@@ -232,7 +232,7 @@ function MobileVideoLightboxReel({
     setIsActivePlaying(false);
   }
 
-  function playVideoAt(index: number) {
+  function playVideoAt(index: number, options: { restart?: boolean } = {}) {
     const activeVideo = videoRefs.current[index];
 
     videoRefs.current.forEach((video, videoIndex) => {
@@ -250,7 +250,9 @@ function MobileVideoLightboxReel({
     }
 
     pauseOtherPageVideos(activeVideo);
-    activeVideo.currentTime = 0;
+    if (options.restart) {
+      activeVideo.currentTime = 0;
+    }
     activeVideo.muted = false;
     void activeVideo
       .play()
@@ -275,7 +277,7 @@ function MobileVideoLightboxReel({
   }, [initialIndex, items.length]);
 
   useEffect(() => {
-    playVideoAt(activeVirtualIndex);
+    playVideoAt(activeVirtualIndex, { restart: true });
     setIsBuffering(false);
     setActiveCurrentTime(0);
     setActiveDuration(0);
@@ -299,10 +301,18 @@ function MobileVideoLightboxReel({
   );
 
   useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
     document.body.classList.add("mobile-video-lightbox-open");
+    document.body.classList.add("media-lightbox-open");
 
     return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousOverflow;
       document.body.classList.remove("mobile-video-lightbox-open");
+      document.body.classList.remove("media-lightbox-open");
     };
   }, []);
 
@@ -443,7 +453,7 @@ function MobileVideoLightboxReel({
   }
 
   return (
-    <div className="main-video-gallery-lightbox fixed inset-0 z-[2147483647] h-[100dvh] w-screen overflow-hidden bg-black md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
+    <div className="main-video-gallery-lightbox media-lightbox-overlay fixed inset-0 z-[2147483647] h-[100dvh] w-screen overflow-hidden bg-black md:hidden" role="dialog" aria-modal="true" aria-label={`${title} gallery`}>
       <button
         type="button"
         onClick={onClose}
@@ -613,8 +623,11 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
   }, [initialIndex]);
 
   useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.classList.add("media-lightbox-open");
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -638,7 +651,9 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("media-lightbox-open");
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [items.length, onClose]);
@@ -709,7 +724,7 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
       {!isDesktopLightbox ? <MobileVideoLightboxReel items={items} title={title} initialIndex={initialIndex} onClose={onClose} /> : null}
       {isDesktopLightbox ? (
       <div
-      className="fixed inset-0 z-[220] hidden items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6 md:flex"
+      className="media-lightbox-overlay fixed inset-0 z-[220] hidden items-center justify-center bg-black/88 px-4 py-6 backdrop-blur-sm sm:px-6 md:flex"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -720,7 +735,7 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="interactive-glass-press interactive-glass-icon absolute right-0 top-0 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50"
+          className="fixed right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50 sm:right-6 sm:top-6"
         >
           <span className="flex h-full w-full items-center justify-center leading-none">×</span>
         </button>
