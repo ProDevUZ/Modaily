@@ -191,7 +191,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
               ) : null}
 
               <div className="relative inline-flex max-w-full translate-y-[-15px] items-center justify-center pt-[calc(2.25rem+3px)] md:translate-y-0">
-                <p className="absolute bottom-[calc(100%-2.25rem)] left-1/2 z-10 max-w-full -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 text-sm uppercase tracking-[0.22em] text-black shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm [overflow-wrap:anywhere]">
+                <p className="absolute bottom-[calc(100%-2.25rem)] left-1/2 z-10 max-w-full -translate-x-1/2 rounded-full bg-white/90 px-4 py-2 text-center text-sm uppercase tracking-[0.22em] text-black shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur-sm [overflow-wrap:anywhere]">
                   {activeItem?.title || title}
                 </p>
                 <FallbackImage

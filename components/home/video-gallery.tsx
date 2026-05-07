@@ -816,7 +816,7 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
                     aria-label={playing ? "Pause video" : "Play video"}
                     className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
                   >
-                    {centerIndicatorKind ? <MainVideoGalleryIndicator kind={centerIndicatorKind} /> : null}
+                    {centerIndicatorKind ? <VideoPlaybackIndicator kind={centerIndicatorKind} /> : null}
                   </button>
 
                   <div
