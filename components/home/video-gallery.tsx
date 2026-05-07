@@ -10,6 +10,7 @@ import {
   useInteractiveVideoPlayback
 } from "@/components/ui/use-interactive-video-playback";
 import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
+import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 
 type VideoItem = {
   id: string;
@@ -760,9 +761,9 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
           type="button"
           onClick={onClose}
           aria-label="Close gallery"
-          className="fixed right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-2xl text-white transition hover:bg-black/50 sm:right-6 sm:top-6"
+          className="fixed right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/50 sm:right-6 sm:top-6"
         >
-          <span className="flex h-full w-full items-center justify-center leading-none">×</span>
+          <LightboxCloseIcon />
         </button>
 
         <div className="mb-4 flex items-center justify-end pt-14 text-white/80">
