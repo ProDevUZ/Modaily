@@ -173,7 +173,7 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center">
           <div
-            className="flex w-full items-center justify-center overflow-hidden rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
+            className="flex w-full items-center justify-center overflow-visible rounded-[18px] bg-white/4 px-4 py-4 sm:px-10"
             onTouchStart={(event) => handleTouchStart(event.touches[0]?.clientX ?? 0)}
             onTouchMove={(event) => handleTouchMove(event.touches[0]?.clientX ?? 0)}
             onTouchEnd={handleTouchEnd}

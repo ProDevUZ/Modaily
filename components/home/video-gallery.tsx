@@ -9,6 +9,7 @@ import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
 } from "@/components/ui/use-interactive-video-playback";
+import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
 
 type VideoItem = {
   id: string;
@@ -199,11 +200,13 @@ function MobileVideoLightboxReel({
   const swipeHintDelayTimeoutRef = useRef<number | null>(null);
   const swipeHintHideTimeoutRef = useRef<number | null>(null);
   const swipeHintDismissedRef = useRef(false);
+  const centerIconTimeoutRef = useRef<number | null>(null);
   const [activeVirtualIndex, setActiveVirtualIndex] = useState(items.length > 1 ? initialIndex + 1 : initialIndex);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isActivePlaying, setIsActivePlaying] = useState(false);
   const [activeCurrentTime, setActiveCurrentTime] = useState(0);
   const [activeDuration, setActiveDuration] = useState(0);
+  const [centerIcon, setCenterIcon] = useState<"play" | "pause" | null>(null);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
 
   const loopItems = useMemo(() => {
@@ -220,7 +223,26 @@ function MobileVideoLightboxReel({
     ];
   }, [items]);
 
-  function pauseAllVideos() {
+  function clearCenterIconTimeout() {
+    if (centerIconTimeoutRef.current !== null) {
+      window.clearTimeout(centerIconTimeoutRef.current);
+      centerIconTimeoutRef.current = null;
+    }
+  }
+
+  function showCenterIcon(kind: "play" | "pause", autoHide: boolean) {
+    clearCenterIconTimeout();
+    setCenterIcon(kind);
+
+    if (autoHide) {
+      centerIconTimeoutRef.current = window.setTimeout(() => {
+        setCenterIcon(null);
+        centerIconTimeoutRef.current = null;
+      }, 1000);
+    }
+  }
+
+  function pauseAllVideos(options: { showIndicator?: boolean } = {}) {
     videoRefs.current.forEach((video) => {
       if (!video) {
         return;
@@ -230,9 +252,12 @@ function MobileVideoLightboxReel({
       video.muted = true;
     });
     setIsActivePlaying(false);
+    if (options.showIndicator) {
+      showCenterIcon("pause", false);
+    }
   }
 
-  function playVideoAt(index: number, options: { restart?: boolean } = {}) {
+  function playVideoAt(index: number, options: { restart?: boolean; showIndicator?: boolean } = {}) {
     const activeVideo = videoRefs.current[index];
 
     videoRefs.current.forEach((video, videoIndex) => {
@@ -256,7 +281,12 @@ function MobileVideoLightboxReel({
     activeVideo.muted = false;
     void activeVideo
       .play()
-      .then(() => setIsActivePlaying(true))
+      .then(() => {
+        setIsActivePlaying(true);
+        if (options.showIndicator) {
+          showCenterIcon("play", true);
+        }
+      })
       .catch(() => setIsActivePlaying(false));
   }
 
@@ -294,6 +324,7 @@ function MobileVideoLightboxReel({
       if (swipeHintHideTimeoutRef.current !== null) {
         window.clearTimeout(swipeHintHideTimeoutRef.current);
       }
+      clearCenterIconTimeout();
 
       pauseAllVideos();
     },
@@ -301,18 +332,10 @@ function MobileVideoLightboxReel({
   );
 
   useEffect(() => {
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousOverflow = document.body.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
     document.body.classList.add("mobile-video-lightbox-open");
-    document.body.classList.add("media-lightbox-open");
 
     return () => {
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousOverflow;
       document.body.classList.remove("mobile-video-lightbox-open");
-      document.body.classList.remove("media-lightbox-open");
     };
   }, []);
 
@@ -377,6 +400,7 @@ function MobileVideoLightboxReel({
     }
 
     pauseAllVideos();
+    setCenterIcon(null);
 
     const slideHeight = scroller.clientHeight || 1;
 
@@ -419,11 +443,11 @@ function MobileVideoLightboxReel({
     }
 
     if (activeVideo.paused) {
-      playVideoAt(activeVirtualIndex);
+      playVideoAt(activeVirtualIndex, { showIndicator: true });
       return;
     }
 
-    pauseAllVideos();
+    pauseAllVideos({ showIndicator: true });
   }
 
   function updateActiveTime(video: HTMLVideoElement, virtualIndex: number) {
@@ -564,7 +588,8 @@ function MobileVideoLightboxReel({
                 aria-label={isActivePlaying ? "Pause video" : "Play video"}
                 className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
               >
-                {!isActivePlaying ? <MainVideoGalleryIndicator kind="play" /> : null}
+                {!isActivePlaying && !centerIcon ? <VideoPlaybackIndicator kind="play" /> : null}
+                {centerIcon ? <VideoPlaybackIndicator kind={centerIcon} /> : null}
               </button>
             ) : null}
           </section>

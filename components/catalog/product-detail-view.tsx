@@ -591,6 +591,33 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
                   videoClassName="max-h-[72vh] w-auto max-w-full rounded-[18px] bg-black object-contain"
                   interactiveVideo
                 />
+
+                {media.length > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={showPreviousImage}
+                      aria-label="Previous image"
+                      className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-[0_12px_28px_rgba(0,0,0,0.28)] backdrop-blur-sm transition hover:bg-black/50 md:hidden"
+                    >
+                      <svg viewBox="0 0 20 20" className="h-5 w-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 10h11" />
+                        <path d="m11 5 5 5-5 5" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={showNextImage}
+                      aria-label="Next image"
+                      className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-[0_12px_28px_rgba(0,0,0,0.28)] backdrop-blur-sm transition hover:bg-black/50 md:hidden"
+                    >
+                      <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 10h11" />
+                        <path d="m11 5 5 5-5 5" />
+                      </svg>
+                    </button>
+                  </>
+                ) : null}
               </div>
 
               {media.length > 1 ? (
@@ -608,7 +635,7 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
         </div>
 
         {media.length > 1 ? (
-          <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 hidden items-center gap-2 overflow-x-auto pb-1 md:flex">
             {media.map((item, index) => (
               <button
                 key={item.id}
@@ -922,13 +949,13 @@ export function ProductDetailView({
 
           </div>
 
-          <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
-            {product.media.slice(0, 4).map((item, index) => (
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {product.media.map((item, index) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setActiveImageIndex(index)}
-                className={`interactive-glass-press overflow-hidden border ${index === activeImageIndex ? "border-black/55" : "border-transparent"}`}
+                className={`interactive-glass-press w-[calc(25%_-_0.375rem)] shrink-0 overflow-hidden border ${index === activeImageIndex ? "border-black/55" : "border-transparent"}`}
               >
                 <ProductMediaFrame
                   item={item}
