@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
+import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -101,6 +102,30 @@ function BlogMediaSlide({
         </button>
       )}
     </div>
+  );
+}
+
+function BlogCarouselArrow({
+  direction,
+  disabled,
+  onClick
+}: {
+  direction: "previous" | "next";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const isPrevious = direction === "previous";
+
+  return (
+    <LightboxNavArrow
+      direction={direction}
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={isPrevious ? "Previous media" : "Next media"}
+      className={`!absolute inset-y-0 z-10 my-auto hidden md:flex ${
+        isPrevious ? "-left-[1.375rem]" : "-right-[1.375rem]"
+      }`}
+    />
   );
 }
 
@@ -277,14 +302,12 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
           >
             <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="previous"
                   onClick={showPreviousMedia}
                   aria-label="Previous media"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  ←
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
 
               <div className="w-full max-w-[min(92vw,1120px)] md:max-w-[min(82vw,980px)]">
@@ -356,14 +379,12 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
               </div>
 
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="next"
                   onClick={showNextMedia}
                   aria-label="Next media"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  →
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
             </div>
           </div>
@@ -418,6 +439,7 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
 
 export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
   const railRef = useRef<HTMLDivElement | null>(null);
+  const activeIndexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -436,7 +458,9 @@ export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
       }
 
       const nextIndex = Math.round(rail.scrollLeft / slideWidth);
-      setActiveIndex(Math.max(0, Math.min(media.length - 1, nextIndex)));
+      const clampedIndex = Math.max(0, Math.min(media.length - 1, nextIndex));
+      activeIndexRef.current = clampedIndex;
+      setActiveIndex(clampedIndex);
     };
 
     updateActiveIndex();
@@ -453,24 +477,61 @@ export function BlogMediaCarousel({ media, alt }: BlogMediaCarouselProps) {
     return null;
   }
 
+  function scrollToMediaIndex(index: number) {
+    const rail = railRef.current;
+    const nextIndex = Math.max(0, Math.min(media.length - 1, index));
+
+    if (!rail) {
+      activeIndexRef.current = nextIndex;
+      setActiveIndex(nextIndex);
+      return;
+    }
+
+    const targetSlide = rail.children.item(nextIndex) as HTMLElement | null;
+
+    rail.scrollTo({
+      left: targetSlide?.offsetLeft ?? rail.clientWidth * nextIndex,
+      behavior: "smooth"
+    });
+    activeIndexRef.current = nextIndex;
+    setActiveIndex(nextIndex);
+  }
+
   const thumbWidth = `${100 / media.length}%`;
   const thumbOffset = `${(100 / media.length) * activeIndex}%`;
 
   return (
     <div>
-      <div
-        ref={railRef}
-        className="flex snap-x snap-mandatory overflow-x-auto rounded-[1.25rem] scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {media.map((item, index) => (
-          <BlogMediaSlide
-            key={item.id}
-            item={item}
-            index={index}
-            alt={alt}
-            onOpen={() => setLightboxIndex(index)}
-          />
-        ))}
+      <div className="relative">
+        <div
+          ref={railRef}
+          className="flex snap-x snap-mandatory overflow-x-auto rounded-[1.25rem] scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {media.map((item, index) => (
+            <BlogMediaSlide
+              key={item.id}
+              item={item}
+              index={index}
+              alt={alt}
+              onOpen={() => setLightboxIndex(index)}
+            />
+          ))}
+        </div>
+
+        {media.length > 1 ? (
+          <>
+            <BlogCarouselArrow
+              direction="previous"
+              disabled={activeIndex === 0}
+              onClick={() => scrollToMediaIndex(activeIndexRef.current - 1)}
+            />
+            <BlogCarouselArrow
+              direction="next"
+              disabled={activeIndex === media.length - 1}
+              onClick={() => scrollToMediaIndex(activeIndexRef.current + 1)}
+            />
+          </>
+        ) : null}
       </div>
 
       {media.length > 1 ? (

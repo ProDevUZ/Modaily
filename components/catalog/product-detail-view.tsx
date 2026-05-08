@@ -9,6 +9,7 @@ import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { DisplayText } from "@/components/ui/display-text";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
+import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -573,14 +574,12 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
           >
             <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
               {media.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="previous"
                   onClick={showPreviousImage}
                   aria-label="Previous image"
-                  className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-                >
-                  ←
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
 
               <div className="relative inline-flex max-w-full items-center justify-center">
@@ -594,41 +593,29 @@ function ProductLightbox({ media, productName, initialIndex, onClose }: ProductL
 
                 {media.length > 1 ? (
                   <>
-                    <button
-                      type="button"
+                    <LightboxNavArrow
+                      direction="previous"
                       onClick={showPreviousImage}
                       aria-label="Previous image"
-                      className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-[0_12px_28px_rgba(0,0,0,0.28)] backdrop-blur-sm transition hover:bg-black/50 md:hidden"
-                    >
-                      <svg viewBox="0 0 20 20" className="h-5 w-5 rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 10h11" />
-                        <path d="m11 5 5 5-5 5" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
+                      className="!absolute left-2 top-1/2 z-20 flex -translate-y-1/2 md:hidden"
+                    />
+                    <LightboxNavArrow
+                      direction="next"
                       onClick={showNextImage}
                       aria-label="Next image"
-                      className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white shadow-[0_12px_28px_rgba(0,0,0,0.28)] backdrop-blur-sm transition hover:bg-black/50 md:hidden"
-                    >
-                      <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M4 10h11" />
-                        <path d="m11 5 5 5-5 5" />
-                      </svg>
-                    </button>
+                      className="!absolute right-2 top-1/2 z-20 flex -translate-y-1/2 md:hidden"
+                    />
                   </>
                 ) : null}
               </div>
 
               {media.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="next"
                   onClick={showNextImage}
                   aria-label="Next image"
-                  className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex"
-                >
-                  →
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
             </div>
           </div>

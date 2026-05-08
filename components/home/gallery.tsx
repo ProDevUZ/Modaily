@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { RotatingSectionHeading } from "@/components/home/rotating-section-heading";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
+import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
 
 type GalleryItem = {
   id: string;
@@ -180,14 +181,12 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
           >
             <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="previous"
                   onClick={showPreviousImage}
                   aria-label="Previous image"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  ←
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
 
               <div className="relative inline-flex max-w-full translate-y-[-15px] items-center justify-center pt-[calc(2.25rem+3px)] md:translate-y-0">
@@ -203,14 +202,12 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
               </div>
 
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="next"
                   onClick={showNextImage}
                   aria-label="Next image"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  →
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
             </div>
           </div>

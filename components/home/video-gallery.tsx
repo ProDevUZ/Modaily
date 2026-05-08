@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/use-interactive-video-playback";
 import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
+import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
 
 type VideoItem = {
   id: string;
@@ -781,14 +782,12 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
           >
             <div className="flex max-w-full items-center justify-center gap-4 md:gap-6">
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="previous"
                   onClick={showPreviousVideo}
                   aria-label="Previous video"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  ←
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
 
               <div className="relative w-[min(72vw,280px)] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:w-[min(62vw,360px)]">
@@ -844,14 +843,12 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
               </div>
 
               {items.length > 1 ? (
-                <button
-                  type="button"
+                <LightboxNavArrow
+                  direction="next"
                   onClick={showNextVideo}
                   aria-label="Next video"
-                  className="interactive-glass-press interactive-glass-icon hidden h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/35 text-xl text-white transition hover:bg-black/50 md:flex md:h-12 md:w-12"
-                >
-                  →
-                </button>
+                  className="hidden md:flex"
+                />
               ) : null}
             </div>
           </div>

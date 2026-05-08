@@ -571,6 +571,9 @@ header {
 
 .interactive-glass-press:active {
   transform: scale(0.988);
+  box-shadow:
+    inset 0 0 0 999px rgba(var(--brand-rgb), 0.07),
+    0 0 0 2px rgba(var(--brand-rgb), 0.13);
   filter: saturate(1.02);
 }
 
@@ -581,6 +584,66 @@ header {
 
 .interactive-glass-icon::after {
   border-radius: 999px;
+}
+
+:where(a[href], button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"], label.cursor-pointer, .cursor-pointer):not(:disabled):not([aria-disabled="true"]) {
+  -webkit-tap-highlight-color: rgba(var(--brand-rgb), 0.14);
+}
+
+:where(a[href], button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"], label.cursor-pointer, .cursor-pointer):not(:disabled):not([aria-disabled="true"]):active {
+  animation: tap-press-feedback 160ms ease-out;
+  box-shadow:
+    inset 0 0 0 999px rgba(var(--brand-rgb), 0.055),
+    0 0 0 2px rgba(var(--brand-rgb), 0.12);
+  color: rgb(var(--brand-rgb));
+  filter: brightness(0.98) saturate(1.04);
+}
+
+:where(a[href], button, [role="button"], label.cursor-pointer, .cursor-pointer):not(:disabled):not([aria-disabled="true"]):active
+  :where(svg, img) {
+  animation: tap-icon-feedback 160ms ease-out;
+}
+
+@keyframes tap-press-feedback {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(0.982);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes tap-icon-feedback {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(0.92);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(a[href], button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"], label.cursor-pointer, .cursor-pointer):not(:disabled):not([aria-disabled="true"]):active,
+  :where(a[href], button, [role="button"], label.cursor-pointer, .cursor-pointer):not(:disabled):not([aria-disabled="true"]):active
+    :where(svg, img) {
+    animation: none;
+  }
+}
+
+.brand-wordmark:active {
+  animation: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .hero-title {
