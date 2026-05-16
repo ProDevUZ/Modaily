@@ -3,6 +3,23 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  images: {
+    unoptimized: false,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "modaily.uk"
+      },
+      {
+        protocol: "https",
+        hostname: "www.modaily.uk"
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co"
+      }
+    ]
+  },
   experimental: {
     middlewareClientMaxBodySize: 250 * 1024 * 1024
   },

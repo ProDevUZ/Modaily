@@ -14,6 +14,7 @@ type ProductCardProps = {
   variant?: "default" | "catalog";
   hideCommerce?: boolean;
   compactMobile?: boolean;
+  imagePriority?: boolean;
 };
 
 function formatPrice(price: number) {
@@ -37,7 +38,8 @@ export function ProductCard({
   product,
   variant = "default",
   hideCommerce = false,
-  compactMobile = false
+  compactMobile = false,
+  imagePriority = false
 }: ProductCardProps) {
   const dictionary = getDictionary(locale);
   const isCatalog = variant === "catalog";
@@ -62,6 +64,8 @@ export function ProductCard({
           src={product.imageUrl}
           fallbackSrc="/images/home/mainpage.jpg"
           alt={displayName}
+          priority={imagePriority}
+          sizes={isCatalog ? "(max-width: 768px) 50vw, 25vw" : "(max-width: 768px) 50vw, 20vw"}
           className={
             isCatalog
               ? "h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type FallbackImageProps = {
@@ -7,9 +8,22 @@ type FallbackImageProps = {
   fallbackSrc: string;
   alt: string;
   className?: string;
+  priority?: boolean;
+  sizes?: string;
+  width?: number;
+  height?: number;
 };
 
-export function FallbackImage({ src, fallbackSrc, alt, className }: FallbackImageProps) {
+export function FallbackImage({
+  src,
+  fallbackSrc,
+  alt,
+  className,
+  priority = false,
+  sizes = "(max-width: 768px) 100vw, 50vw",
+  width = 1200,
+  height = 1540
+}: FallbackImageProps) {
   const inlineFallback = `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
       <defs>
@@ -35,10 +49,15 @@ export function FallbackImage({ src, fallbackSrc, alt, className }: FallbackImag
   }, [fallbackSrc, inlineFallback, src]);
 
   return (
-    <img
+    <Image
       src={currentSrc}
       alt={alt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      priority={priority}
       className={className}
+      unoptimized={currentSrc.startsWith("data:")}
       onError={() => {
         if (currentSrc !== fallbackSrc && fallbackSrc) {
           setCurrentSrc(fallbackSrc);

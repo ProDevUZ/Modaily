@@ -79,6 +79,47 @@ const localeDropdownLabels = {
   }
 } as const;
 
+const mobileLocaleOrder = ["en", "uz", "ru"] as const satisfies readonly Locale[];
+
+function LocaleFlag({ locale }: { locale: Locale }) {
+  if (locale === "en") {
+    return (
+      <svg viewBox="0 0 60 40" className="h-[14px] w-[21px] overflow-hidden rounded-[2px]" aria-hidden="true">
+        <rect width="60" height="40" fill="#012169" />
+        <path d="M0 0 60 40M60 0 0 40" stroke="#fff" strokeWidth="8" />
+        <path d="M0 0 60 40M60 0 0 40" stroke="#c8102e" strokeWidth="4" />
+        <path d="M30 0v40M0 20h60" stroke="#fff" strokeWidth="13" />
+        <path d="M30 0v40M0 20h60" stroke="#c8102e" strokeWidth="7" />
+        <rect width="59" height="39" x="0.5" y="0.5" rx="3.5" fill="none" stroke="rgba(0,0,0,0.16)" />
+      </svg>
+    );
+  }
+
+  if (locale === "uz") {
+    return (
+      <svg viewBox="0 0 60 40" className="h-[14px] w-[21px] overflow-hidden rounded-[2px]" aria-hidden="true">
+        <rect width="60" height="40" fill="#1eb6e9" />
+        <rect y="13" width="60" height="2" fill="#ce1126" />
+        <rect y="15" width="60" height="10" fill="#fff" />
+        <rect y="25" width="60" height="2" fill="#ce1126" />
+        <rect y="27" width="60" height="13" fill="#1eb53a" />
+        <circle cx="9" cy="7" r="4" fill="#fff" />
+        <circle cx="11" cy="7" r="4" fill="#1eb6e9" />
+        <rect width="59" height="39" x="0.5" y="0.5" rx="3.5" fill="none" stroke="rgba(0,0,0,0.16)" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 60 40" className="h-[14px] w-[21px] overflow-hidden rounded-[2px]" aria-hidden="true">
+      <rect width="60" height="40" fill="#fff" />
+      <rect y="13.33" width="60" height="13.34" fill="#0039a6" />
+      <rect y="26.67" width="60" height="13.33" fill="#d52b1e" />
+      <rect width="59" height="39" x="0.5" y="0.5" rx="3.5" fill="none" stroke="rgba(0,0,0,0.16)" />
+    </svg>
+  );
+}
+
 const profileLabels = {
   uz: {
     login: "Login",
@@ -376,6 +417,40 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
               >
                 <Image src="/icons/search.svg" alt="" width={31} height={31} className="h-[22px] w-[22px]" aria-hidden="true" />
               </button>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  aria-label={localeCopy.trigger}
+                  className="flex h-[34px] w-[34px] items-center justify-center text-[19px] leading-none"
+                  onClick={() => {
+                    setIsLocaleOpen((current) => !current);
+                    setIsSearchOpen(false);
+                    setIsProfileOpen(false);
+                    setIsOpen(false);
+                  }}
+                >
+                  <LocaleFlag locale={locale} />
+                </button>
+
+                {isLocaleOpen ? (
+                  <div className="absolute right-0 top-[calc(100%+8px)] z-50 flex overflow-hidden rounded-[8px] border border-black/12 bg-white shadow-[0_12px_30px_rgba(0,0,0,0.12)]">
+                    {mobileLocaleOrder.map((entry) => (
+                      <Link
+                        key={entry}
+                        href={switchLocale(entry)}
+                        aria-label={localeCopy[entry]}
+                        className={`flex h-[34px] w-[34px] items-center justify-center text-[18px] leading-none transition ${
+                          entry === locale ? "bg-[#f8f6f4]" : "bg-white"
+                        }`}
+                        onClick={() => setIsLocaleOpen(false)}
+                      >
+                        <LocaleFlag locale={entry} />
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
 
               {!siteSettings.hideCommerce ? (
                 <Link href={`/${locale}/cart`} aria-label="Cart" className="relative flex h-[34px] w-[34px] items-center justify-center text-black">

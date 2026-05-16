@@ -22,11 +22,22 @@ export function middleware(request: NextRequest) {
 
   if (pathname === "/admin123" || pathname.startsWith("/admin123/")) {
     const url = request.nextUrl.clone();
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-admin-secret-rewrite", "1");
+
     url.pathname = `/admin${pathname.slice("/admin123".length)}`;
-    return NextResponse.rewrite(url);
+    return NextResponse.rewrite(url, {
+      request: {
+        headers: requestHeaders
+      }
+    });
   }
 
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    if (request.headers.get("x-admin-secret-rewrite") === "1") {
+      return NextResponse.next();
+    }
+
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

@@ -230,7 +230,8 @@ function ProductMediaFrame({
   videoClassName,
   controls = false,
   autoPlay = false,
-  interactiveVideo = false
+  interactiveVideo = false,
+  imagePriority = false
 }: {
   item: StorefrontProductDetail["media"][number] | undefined;
   alt: string;
@@ -239,6 +240,7 @@ function ProductMediaFrame({
   controls?: boolean;
   autoPlay?: boolean;
   interactiveVideo?: boolean;
+  imagePriority?: boolean;
 }) {
   const [videoActivated, setVideoActivated] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -260,8 +262,15 @@ function ProductMediaFrame({
   });
 
   useEffect(() => {
-    setVideoActivated(false);
     setIsBuffering(false);
+
+    if (interactiveVideo && item?.type === "VIDEO" && item.videoUrl) {
+      setVideoActivated(true);
+      void startPlayback();
+      return;
+    }
+
+    setVideoActivated(false);
   }, [interactiveVideo, item?.id]);
 
   if (item?.type === "VIDEO" && item.videoUrl) {
@@ -310,6 +319,8 @@ function ProductMediaFrame({
               src={item.imageUrl || ""}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={alt}
+              priority={imagePriority}
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className={className}
             />
           ) : (
@@ -431,6 +442,8 @@ function ProductMediaFrame({
       src={item?.imageUrl || ""}
       fallbackSrc="/images/home/mainpage.jpg"
       alt={alt}
+      priority={imagePriority}
+      sizes="(max-width: 1024px) 100vw, 50vw"
       className={className}
     />
   );
@@ -914,6 +927,7 @@ export function ProductDetailView({
                   alt={product.name}
                   className="h-full w-full object-cover"
                   videoClassName="h-full w-full bg-[#f5f5f2] object-cover"
+                  imagePriority={activeImageIndex === 0}
                 />
                 <MobileZoomHint />
               </button>
@@ -929,6 +943,7 @@ export function ProductDetailView({
                   alt={product.name}
                   className="h-full w-full object-cover"
                   videoClassName="h-full w-full bg-[#f5f5f2] object-cover"
+                  imagePriority={activeImageIndex === 0}
                 />
                 <MobileZoomHint />
               </button>
@@ -968,6 +983,7 @@ export function ProductDetailView({
                   alt={product.name}
                   className="h-full w-full cursor-zoom-in object-cover"
                   videoClassName="h-full w-full cursor-zoom-in bg-[#f5f5f2] object-cover"
+                  imagePriority={index === 0}
                 />
               </button>
             ))}
@@ -1058,33 +1074,6 @@ export function ProductDetailView({
           <div className="mt-8">
             <AccordionSection title={copy.labels.description} defaultOpen>
               <div className="space-y-6">
-                <div>
-                  <p className="font-medium text-black/55">{copy.labels.details}</p>
-                  <div className="mt-3 space-y-4">
-                    {renderRichText(product.description, {
-                      containerClassName: "space-y-4",
-                      blockClassName: "whitespace-pre-wrap",
-                      listClassName: "space-y-2 pl-5",
-                      listItemClassName: "whitespace-pre-wrap"
-                    })}
-                    {product.shortDescription && product.shortDescription !== product.description
-                      ? renderRichText(product.shortDescription, {
-                          containerClassName: "space-y-4",
-                          blockClassName: "whitespace-pre-wrap",
-                          listClassName: "space-y-2 pl-5",
-                          listItemClassName: "whitespace-pre-wrap"
-                        })
-                      : null}
-                  </div>
-                </div>
-                <div>
-                  <p className="font-medium text-black/55">{copy.labels.packaging}</p>
-                  <div className="mt-3 space-y-1 text-black/75">
-                    {packagingDetails(locale, product).map((line) => (
-                      <p key={line}>{line}</p>
-                    ))}
-                  </div>
-                </div>
               </div>
             </AccordionSection>
             {ingredientsContent ? (

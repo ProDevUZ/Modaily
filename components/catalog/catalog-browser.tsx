@@ -397,7 +397,7 @@ export function CatalogBrowser({
                 : "grid gap-x-4 gap-y-7 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3 xl:gap-y-8"
             }
           >
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product, index) => (
               <ProductCard
                 key={product.slug}
                 locale={locale}
@@ -405,6 +405,7 @@ export function CatalogBrowser({
                 variant="catalog"
                 hideCommerce={hideCommerce}
                 compactMobile={hideCommerce}
+                imagePriority={index === 0}
               />
             ))}
           </div>

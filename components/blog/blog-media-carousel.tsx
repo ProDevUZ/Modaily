@@ -213,6 +213,13 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
 
   useEffect(() => {
     setIsBuffering(false);
+
+    if (activeItem?.type === "VIDEO" && activeItem.videoUrl) {
+      setVideoActivated(true);
+      void startPlayback();
+      return;
+    }
+
     setVideoActivated(false);
   }, [activeItem?.id, activeItem?.type, activeItem?.videoUrl]);
 
