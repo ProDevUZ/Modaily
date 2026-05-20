@@ -505,38 +505,6 @@ export function SiteHeader({ locale, siteSettings, searchProducts }: SiteHeaderP
                   </Link>
                 ))}
 
-                <div className="border-t border-black/8 pt-5">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 text-[17px] text-black"
-                    onClick={() => setIsLocaleOpen((current) => !current)}
-                  >
-                    <span>{localeCopy.trigger}</span>
-                    <svg viewBox="0 0 16 16" className={`h-[17px] w-[17px] transition ${isLocaleOpen ? "rotate-180" : ""}`} fill="currentColor">
-                      <path d="M4.2 6.1 8 9.9l3.8-3.8" />
-                    </svg>
-                  </button>
-
-                  {isLocaleOpen ? (
-                    <div className="flex flex-wrap gap-2.5 pt-3">
-                      {locales.map((entry) => (
-                        <Link
-                          key={entry}
-                          href={switchLocale(entry)}
-                          className={`rounded-full px-4 py-2 text-[14px] ${
-                            entry === locale ? "bg-black text-white" : "border border-black/10 text-black/55"
-                          }`}
-                          onClick={() => {
-                            setIsOpen(false);
-                            setIsLocaleOpen(false);
-                          }}
-                        >
-                          {localeCopy[entry]}
-                        </Link>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
               </div>
             </div>
           </div>

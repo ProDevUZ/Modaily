@@ -367,6 +367,7 @@ export default async function HomePage({ params }: PageProps) {
         <section className="py-12 text-white">
           <Reviews
             title={copy.reviews}
+            headings={content.reviewHeadings}
             items={testimonials.map((item, index) => ({
               id: `${item.id}-${index}`,
               authorName: item.authorName,

@@ -101,7 +101,7 @@ export async function getLocalizedSiteSettings(locale: Locale) {
 
 export async function getHomePageContent(locale: Locale) {
   noStore();
-  const [heroRow, aboutRow, promoRows, galleryRows, galleryHeadingRows, testimonialRows, bestsellers] = await Promise.all([
+  const [heroRow, aboutRow, promoRows, galleryRows, galleryHeadingRows, reviewHeadingRows, testimonialRows, bestsellers] = await Promise.all([
     prisma.homeHero.findFirst({
       orderBy: { createdAt: "asc" },
       select: {
@@ -185,6 +185,15 @@ export async function getHomePageContent(locale: Locale) {
         textEn: true
       },
       orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
+    }),
+    prisma.reviewSectionHeading.findMany({
+      where: { active: true },
+      select: {
+        textUz: true,
+        textRu: true,
+        textEn: true
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
     }),
     prisma.testimonial.findMany({
       where: { active: true },
@@ -299,6 +308,9 @@ export async function getHomePageContent(locale: Locale) {
       })),
     galleryVideoHeadings: galleryHeadingRows
       .filter((row) => row.type === "VIDEO")
+      .map((row) => localizedFlexibleValue(row, "text", locale))
+      .filter((value) => value.trim().length > 0),
+    reviewHeadings: reviewHeadingRows
       .map((row) => localizedFlexibleValue(row, "text", locale))
       .filter((value) => value.trim().length > 0),
     testimonials: testimonialRows.map((row) => ({

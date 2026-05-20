@@ -11,15 +11,18 @@ import {
   type AdminHomeHero,
   type AdminHomePromoCard,
   type AdminProduct,
+  type AdminReviewHeading,
   type AdminTestimonial,
   requestJson
 } from "@/components/admin/admin-types";
+import { uploadVideoWithDirectR2Fallback } from "@/components/admin/direct-video-upload";
 import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
 
 type HeroForm = Omit<AdminHomeHero, "id" | "createdAt" | "updatedAt">;
 type AboutForm = Omit<AdminHomeAbout, "id" | "createdAt" | "updatedAt">;
 type PromoForm = Omit<AdminHomePromoCard, "id" | "createdAt" | "updatedAt">;
 type GalleryHeadingForm = Omit<AdminGalleryHeading, "id" | "createdAt" | "updatedAt">;
+type ReviewHeadingForm = Omit<AdminReviewHeading, "id" | "createdAt" | "updatedAt">;
 type GalleryForm = Omit<AdminGalleryItem, "id" | "createdAt" | "updatedAt">;
 type TestimonialForm = Omit<AdminTestimonial, "id" | "createdAt" | "updatedAt">;
 type HeroImageLocale = "uz" | "ru" | "en";
@@ -84,6 +87,14 @@ const emptyGalleryForm: GalleryForm = {
 
 const emptyGalleryHeadingForm: GalleryHeadingForm = {
   type: "IMAGE",
+  textUz: "",
+  textRu: "",
+  textEn: "",
+  sortOrder: 0,
+  active: true
+};
+
+const emptyReviewHeadingForm: ReviewHeadingForm = {
   textUz: "",
   textRu: "",
   textEn: "",
@@ -241,15 +252,18 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [about, setAbout] = useState<AboutForm | null>(null);
   const [promoCards, setPromoCards] = useState<AdminHomePromoCard[]>([]);
   const [galleryHeadings, setGalleryHeadings] = useState<AdminGalleryHeading[]>([]);
+  const [reviewHeadings, setReviewHeadings] = useState<AdminReviewHeading[]>([]);
   const [galleryItems, setGalleryItems] = useState<AdminGalleryItem[]>([]);
   const [testimonials, setTestimonials] = useState<AdminTestimonial[]>([]);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [promoForm, setPromoForm] = useState<PromoForm>(emptyPromoForm);
   const [galleryHeadingForm, setGalleryHeadingForm] = useState<GalleryHeadingForm>(emptyGalleryHeadingForm);
+  const [reviewHeadingForm, setReviewHeadingForm] = useState<ReviewHeadingForm>(emptyReviewHeadingForm);
   const [galleryForm, setGalleryForm] = useState<GalleryForm>(emptyGalleryForm);
   const [testimonialForm, setTestimonialForm] = useState<TestimonialForm>(emptyTestimonialForm);
   const [editingPromoId, setEditingPromoId] = useState<string | null>(null);
   const [editingGalleryHeadingId, setEditingGalleryHeadingId] = useState<string | null>(null);
+  const [editingReviewHeadingId, setEditingReviewHeadingId] = useState<string | null>(null);
   const [editingGalleryId, setEditingGalleryId] = useState<string | null>(null);
   const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -261,6 +275,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
   const [promoUploadPending, setPromoUploadPending] = useState(false);
   const [galleryUploadPending, setGalleryUploadPending] = useState(false);
   const [galleryVideoUploadPending, setGalleryVideoUploadPending] = useState(false);
+  const [galleryVideoUploadProgress, setGalleryVideoUploadProgress] = useState<number | null>(null);
   const [testimonialAvatarUploadPending, setTestimonialAvatarUploadPending] = useState(false);
 
   async function loadData() {
@@ -274,6 +289,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
           about: AboutForm;
           promoCards: AdminHomePromoCard[];
           galleryHeadings: AdminGalleryHeading[];
+          reviewHeadings: AdminReviewHeading[];
           galleryItems: AdminGalleryItem[];
           testimonials: AdminTestimonial[];
         }>("/api/content/dashboard"),
@@ -284,6 +300,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setAbout(dashboard.about);
       setPromoCards(dashboard.promoCards);
       setGalleryHeadings(dashboard.galleryHeadings);
+      setReviewHeadings(dashboard.reviewHeadings);
       setGalleryItems(dashboard.galleryItems);
       setTestimonials(dashboard.testimonials);
       setProducts(productPayload);
@@ -492,6 +509,26 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     }
   }
 
+  async function handleReviewHeadingSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      await requestJson(
+        editingReviewHeadingId ? `/api/content/review-headings/${editingReviewHeadingId}` : "/api/content/review-headings",
+        {
+          method: editingReviewHeadingId ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reviewHeadingForm)
+        }
+      );
+      setEditingReviewHeadingId(null);
+      setReviewHeadingForm(emptyReviewHeadingForm);
+      setMessage(editingReviewHeadingId ? "РўРµРєСЃС‚ Reviews РѕР±РЅРѕРІР»РµРЅ." : "РўРµРєСЃС‚ Reviews РґРѕР±Р°РІР»РµРЅ.");
+      await loadData();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ С‚РµРєСЃС‚ Reviews.");
+    }
+  }
+
   async function handleGalleryImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -533,16 +570,16 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
     }
 
     setGalleryVideoUploadPending(true);
+    setGalleryVideoUploadProgress(0);
     setError(null);
     setMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const payload = await requestJson<{ url: string }>("/api/uploads/gallery-video", {
-        method: "POST",
-        body: formData
+      const payload = await uploadVideoWithDirectR2Fallback({
+        file,
+        kind: "gallery-video",
+        fallbackEndpoint: "/api/uploads/gallery-video",
+        onProgress: setGalleryVideoUploadProgress
       });
 
       setGalleryForm((current) => ({
@@ -554,6 +591,7 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       setError(uploadError instanceof Error ? uploadError.message : "Не удалось загрузить видео галереи.");
     } finally {
       setGalleryVideoUploadPending(false);
+      setGalleryVideoUploadProgress(null);
       event.target.value = "";
     }
   }
@@ -1386,7 +1424,11 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
                     <p className="mt-1 text-xs text-slate-500">MP4, WebM, MOV. До 250 МБ. Рекомендуемый кадр: 1080×1920 px (9:16).</p>
                   </div>
                   <label className={`admin-button-secondary ${galleryVideoUploadPending ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
-                    {galleryVideoUploadPending ? "Загрузка..." : "Выбрать видео"}
+                    {galleryVideoUploadPending
+                      ? galleryVideoUploadProgress === null
+                        ? "Загрузка..."
+                        : `Загрузка ${galleryVideoUploadProgress}%`
+                      : "Выбрать видео"}
                     <input
                       type="file"
                       accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
@@ -1509,6 +1551,141 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       {section === "testimonials" ? (
         <div className="grid gap-6 xl:grid-cols-[520px_1fr]">
         <SectionCard title="Отзывы" description="Карточки отзывов для главной страницы.">
+          <div className="mb-6 space-y-4">
+            <form onSubmit={handleReviewHeadingSubmit} className="admin-panel-muted space-y-4 px-4 py-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Reviews dynamic text</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Add multiple short Reviews heading texts. Storefront text rotates every 2 seconds, like gallery headings.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <RichTextTextarea
+                    value={reviewHeadingForm.textUz ?? ""}
+                    onChange={(value) => setReviewHeadingForm((current) => ({ ...current, textUz: value }))}
+                    className="admin-textarea min-h-[120px]"
+                    ariaLabel="Reviews text UZ"
+                    placeholder="Reviews UZ"
+                  />
+                  <p className="admin-form-hint">Reviews text UZ</p>
+                </div>
+                <div>
+                  <RichTextTextarea
+                    value={reviewHeadingForm.textRu ?? ""}
+                    onChange={(value) => setReviewHeadingForm((current) => ({ ...current, textRu: value }))}
+                    className="admin-textarea min-h-[120px]"
+                    ariaLabel="Reviews text RU"
+                    placeholder="Reviews RU"
+                  />
+                  <p className="admin-form-hint">Reviews text RU</p>
+                </div>
+                <div>
+                  <RichTextTextarea
+                    value={reviewHeadingForm.textEn ?? ""}
+                    onChange={(value) => setReviewHeadingForm((current) => ({ ...current, textEn: value }))}
+                    className="admin-textarea min-h-[120px]"
+                    ariaLabel="Reviews text EN"
+                    placeholder="Reviews EN"
+                  />
+                  <p className="admin-form-hint">Reviews text EN</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[170px_auto]">
+                <Field
+                  value={String(reviewHeadingForm.sortOrder)}
+                  onChange={(value) => setReviewHeadingForm((current) => ({ ...current, sortOrder: Number(value) || 0 }))}
+                  placeholder="Sort order"
+                  type="number"
+                />
+                <label className="admin-panel-muted flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={reviewHeadingForm.active}
+                    onChange={(event) => setReviewHeadingForm((current) => ({ ...current, active: event.target.checked }))}
+                  />
+                  Text active
+                </label>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" className="admin-button-primary">
+                  {editingReviewHeadingId ? "Update text" : "Add text"}
+                </button>
+                {editingReviewHeadingId ? (
+                  <button
+                    type="button"
+                    className="admin-button-secondary"
+                    onClick={() => {
+                      setEditingReviewHeadingId(null);
+                      setReviewHeadingForm(emptyReviewHeadingForm);
+                    }}
+                  >
+                    Reset
+                  </button>
+                ) : null}
+              </div>
+            </form>
+
+            {reviewHeadings.length > 0 ? (
+              <div className="space-y-3">
+                {reviewHeadings.map((item) => {
+                  const previewText = item.textRu || item.textUz || item.textEn || "No text";
+
+                  return (
+                    <article key={item.id} className="admin-list-card p-4">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Reviews text #{item.sortOrder}</p>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${item.active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"}`}>
+                              {item.active ? "Active" : "Draft"}
+                            </span>
+                          </div>
+                          <p className="mt-2 whitespace-pre-line text-base font-medium leading-6 text-slate-950">
+                            {previewText}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            className="admin-button-secondary"
+                            onClick={() => {
+                              setEditingReviewHeadingId(item.id);
+                              setReviewHeadingForm({
+                                textUz: item.textUz,
+                                textRu: item.textRu,
+                                textEn: item.textEn,
+                                sortOrder: item.sortOrder,
+                                active: item.active
+                              });
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-button-danger"
+                            onClick={() =>
+                              void handleDelete("/api/content/review-headings/" + item.id, "Reviews text deleted.", () => {
+                                setEditingReviewHeadingId(null);
+                                setReviewHeadingForm(emptyReviewHeadingForm);
+                              })
+                            }
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+
           <form onSubmit={handleTestimonialSubmit} className="grid gap-4 md:grid-cols-2">
             <Field value={testimonialForm.authorName} onChange={(value) => setTestimonialForm((current) => ({ ...current, authorName: value }))} placeholder="Имя автора" />
             <Field value={testimonialForm.avatarUrl} onChange={(value) => setTestimonialForm((current) => ({ ...current, avatarUrl: value }))} placeholder="Ссылка на аватар" />

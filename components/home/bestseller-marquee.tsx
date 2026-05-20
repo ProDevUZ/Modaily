@@ -314,7 +314,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
                 <ProductBadgeStack badges={product.badges || []} />
                 <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
               </div>
-              <h3 className="mt-3 min-h-[44px] text-[13px] uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:leading-6">
+              <h3 className="mt-3 min-h-[44px] text-[13px] font-bold uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:font-normal lg:leading-6">
                 {product.name}
               </h3>
               <span className="relative z-[2] mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">

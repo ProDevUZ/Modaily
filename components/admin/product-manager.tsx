@@ -17,7 +17,9 @@ import {
   type AdminSkinTypeOption,
   requestJson
 } from "@/components/admin/admin-types";
+import { uploadVideoWithDirectR2Fallback } from "@/components/admin/direct-video-upload";
 import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
+import { HlsVideo } from "@/components/ui/hls-video";
 import { getDiscountPercent } from "@/lib/product-badges";
 import { getSkinTypeLabel } from "@/lib/skin-types";
 
@@ -502,8 +504,8 @@ function ProductGalleryItemPreview({
   if (item.type === "VIDEO" && item.videoUrl) {
     return (
       <div className={`relative overflow-hidden bg-[#0f172a] ${className || ""}`}>
-        <video
-          src={item.videoUrl}
+        <HlsVideo
+          mp4Url={item.videoUrl}
           poster={item.videoPosterUrl || undefined}
           className="h-full w-full object-cover"
           muted
@@ -969,6 +971,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGalleryImages, setUploadingGalleryImages] = useState(false);
   const [uploadingGalleryVideos, setUploadingGalleryVideos] = useState(false);
+  const [galleryVideoUploadProgress, setGalleryVideoUploadProgress] = useState<number | null>(null);
   const [uploadingGalleryPosterIndex, setUploadingGalleryPosterIndex] = useState<number | null>(null);
   const [creatingCategory, setCreatingCategory] = useState(false);
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
@@ -1036,12 +1039,12 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     });
   }
 
-  async function uploadProductVideo(file: File) {
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", file);
-    return requestJson<{ url: string }>("/api/uploads/product-video", {
-      method: "POST",
-      body: uploadFormData
+  async function uploadProductVideo(file: File, onProgress?: (progress: number) => void) {
+    return uploadVideoWithDirectR2Fallback({
+      file,
+      kind: "product-video",
+      fallbackEndpoint: "/api/uploads/product-video",
+      onProgress
     });
   }
 
@@ -1140,9 +1143,18 @@ export function ProductEditor({ productId }: ProductEditorProps) {
     setError(null);
     setMessage(null);
     setUploadingGalleryVideos(true);
+    setGalleryVideoUploadProgress(0);
 
     try {
-      const uploaded = await Promise.all(files.map((file) => uploadProductVideo(file)));
+      const uploaded: Awaited<ReturnType<typeof uploadProductVideo>>[] = [];
+
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const uploadedVideo = await uploadProductVideo(file, (progress) => {
+          setGalleryVideoUploadProgress(Math.round(((index * 100) + progress) / files.length));
+        });
+        uploaded.push(uploadedVideo);
+      }
 
       setForm((current) => {
         const nextImages = [...current.galleryImages];
@@ -1174,6 +1186,7 @@ export function ProductEditor({ productId }: ProductEditorProps) {
       });
     } finally {
       setUploadingGalleryVideos(false);
+      setGalleryVideoUploadProgress(null);
       event.target.value = "";
     }
   }
@@ -1865,7 +1878,11 @@ export function ProductEditor({ productId }: ProductEditorProps) {
                             </svg>
                           </span>
                           <p className="mt-3 text-base font-semibold text-slate-700">
-                            {uploadingGalleryVideos ? "Загрузка..." : "Добавить видео"}
+                            {uploadingGalleryVideos
+                              ? galleryVideoUploadProgress === null
+                                ? "Загрузка..."
+                                : `Загрузка ${galleryVideoUploadProgress}%`
+                              : "Добавить видео"}
                           </p>
                           <p className="mt-2 text-xs text-slate-400">MP4, WEBM, MOV до 50 МБ</p>
                           <p className="mt-1 text-[11px] text-slate-400">1200×1540 px</p>

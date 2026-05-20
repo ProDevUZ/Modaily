@@ -2,11 +2,9 @@ import { notFound } from "next/navigation";
 
 import { CartProvider } from "@/components/cart-provider";
 import { CustomerProfileProvider } from "@/components/customer-profile-provider";
-import { GlobalWhereToBuyPin } from "@/components/global-where-to-buy-pin";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDictionary, isLocale } from "@/lib/i18n";
-import { getStorefrontShopLocations } from "@/lib/shop-locations";
 import { getStorefrontProducts } from "@/lib/storefront-products";
 import { getLocalizedSiteSettings } from "@/lib/storefront-content";
 
@@ -26,10 +24,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   }
 
   const dictionary = getDictionary(locale);
-  const [siteSettings, searchProducts, shopLocations] = await Promise.all([
+  const [siteSettings, searchProducts] = await Promise.all([
     getLocalizedSiteSettings(locale),
-    getStorefrontProducts(locale),
-    getStorefrontShopLocations()
+    getStorefrontProducts(locale)
   ]);
 
   return (
@@ -38,7 +35,6 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         <div className="min-h-screen">
           <SiteHeader locale={locale} dictionary={dictionary} siteSettings={siteSettings} searchProducts={searchProducts} />
           <main>{children}</main>
-          <GlobalWhereToBuyPin locale={locale} locations={shopLocations} />
           <SiteFooter locale={locale} dictionary={dictionary} siteSettings={siteSettings} />
         </div>
       </CustomerProfileProvider>

@@ -2,6 +2,8 @@ import { randomUUID } from "crypto";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 
+import { saveHybridMediaFile } from "@/lib/storage/hybrid-media-storage";
+
 const MAX_PRODUCT_VIDEO_SIZE = 50 * 1024 * 1024;
 const allowedMimeTypes = new Map<string, string>([
   ["video/mp4", ".mp4"],
@@ -52,13 +54,7 @@ export function validateProductVideoFile(file: File) {
   return null;
 }
 
-export async function saveProductVideo(file: File) {
-  const validationError = validateProductVideoFile(file);
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
+async function saveProductVideoLocal(file: File) {
   const directory = await ensureProductVideoDirectory();
   const extension = allowedMimeTypes.get(file.type) || normalizeExtension(path.extname(file.name));
   const filename = `${Date.now()}-${randomUUID()}${extension}`;
@@ -70,6 +66,20 @@ export async function saveProductVideo(file: File) {
     filename,
     url: getProductVideoUrl(filename)
   };
+}
+
+export async function saveProductVideo(file: File) {
+  return saveHybridMediaFile({
+    file,
+    namespace: "products",
+    allowedMimeTypes,
+    maxSize: MAX_PRODUCT_VIDEO_SIZE,
+    maxSizeLabel: "50MB",
+    emptyMessage: "Video file is empty.",
+    mimeMessage: "Only MP4, WebM and MOV videos are allowed.",
+    sizeMessage: "Video size must be 50 MB or smaller.",
+    localSave: saveProductVideoLocal
+  });
 }
 
 export function sanitizeProductVideoFilename(filename: string) {

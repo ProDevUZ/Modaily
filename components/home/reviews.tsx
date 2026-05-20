@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
 import { FallbackImage } from "@/components/ui/fallback-image";
 
 type ReviewItem = {
@@ -11,6 +15,7 @@ type ReviewItem = {
 
 type ReviewsProps = {
   title: string;
+  headings?: string[];
   items: ReviewItem[];
 };
 
@@ -95,14 +100,58 @@ function ReviewRow({
   );
 }
 
-export function Reviews({ title, items }: ReviewsProps) {
+function ReviewsHeading({ title, headings = [] }: { title: string; headings?: string[] }) {
+  const normalizedTexts = useMemo(() => {
+    const values = headings
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value));
+
+    return values.length > 0 ? values : [title];
+  }, [headings, title]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setVisible(true);
+  }, [normalizedTexts]);
+
+  useEffect(() => {
+    if (normalizedTexts.length <= 1) {
+      return;
+    }
+
+    let fadeTimer: number | undefined;
+    const switchTimer = window.setTimeout(() => {
+      setVisible(false);
+
+      fadeTimer = window.setTimeout(() => {
+        setActiveIndex((current) => (current + 1) % normalizedTexts.length);
+        setVisible(true);
+      }, 220);
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(switchTimer);
+      if (fadeTimer) {
+        window.clearTimeout(fadeTimer);
+      }
+    };
+  }, [activeIndex, normalizedTexts]);
+
+  return (
+    <h2 className={`px-8 text-[42px] tracking-[-0.04em] transition duration-300 md:px-10 md:text-[56px] lg:px-12 ${visible ? "opacity-100" : "opacity-0"}`}>
+      {normalizedTexts[activeIndex] ?? title}
+    </h2>
+  );
+}
+
+export function Reviews({ title, headings, items }: ReviewsProps) {
   const { topRow, bottomRow } = splitRows(items);
 
   return (
     <section className="space-y-8 py-10 text-white md:py-12">
-      <h2 className="px-8 text-[42px] tracking-[-0.04em] md:px-10 md:text-[56px] lg:px-12">
-        {title}
-      </h2>
+      <ReviewsHeading title={title} headings={headings} />
 
       <div className="space-y-4 sm:space-y-5">
         <ReviewRow items={topRow} animationClass="gallery-marquee-left" />

@@ -176,12 +176,14 @@ model ProductReview {
   imageUrl    String?
   rating      Int      @default(5)
   active      Boolean  @default(true)
+  adminSeenAt DateTime?
   productId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId, active, createdAt(sort: Desc)])
+  @@index([adminSeenAt, createdAt])
 }
 
 enum GalleryItemType {
@@ -377,6 +379,19 @@ model GallerySectionHeading {
   @@index([active, type, sortOrder, createdAt])
 }
 
+model ReviewSectionHeading {
+  id        String   @id @default(cuid())
+  textUz    String?
+  textRu    String?
+  textEn    String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder, createdAt])
+}
+
 model Testimonial {
   id            String   @id @default(cuid())
   authorName    String
@@ -472,4 +487,52 @@ model BlogPostSection {
   post          BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, sortOrder])
+}
+
+model ExperimentalHlsJob {
+  id                String   @id @default(cuid())
+  videoId           String   @unique
+  originalUrl       String
+  originalUrlHash   String   @unique
+  status            String   @default("pending")
+  attempts          Int      @default(0)
+  lockedAt          DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  masterPlaylistKey String?
+  masterPlaylistUrl String?
+  posterKey         String?
+  posterUrl         String?
+  metadataJson      String?
+  assetsJson        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([lockedAt])
+}
+
+model ExperimentalDirectUploadSession {
+  id              String    @id @default(cuid())
+  uploadTokenHash String    @unique
+  kind            String
+  namespace       String
+  objectKey       String    @unique
+  publicUrl       String
+  originalName    String
+  contentType     String
+  declaredSize    Int
+  status          String    @default("pending")
+  expiresAt       DateTime
+  completedAt     DateTime?
+  verifiedAt      DateTime?
+  hlsJobId        String?
+  errorMessage    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, expiresAt])
+  @@index([kind, createdAt])
 }

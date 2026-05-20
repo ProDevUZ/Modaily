@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { adminSections, type AdminSectionKey } from "@/lib/admin-navigation";
@@ -162,6 +162,40 @@ export function AdminShell({
   const showSearch = searchable ?? (current === "products" || current === "categories" || current === "skin-types");
   const searchValue = searchParams.get("q") || "";
   const compactHeader = headerVariant === "compact";
+  const [unreadReviewCount, setUnreadReviewCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadUnreadReviews() {
+      try {
+        const response = await fetch("/api/admin/reviews/unread-count", { cache: "no-store" });
+        const payload = (await response.json()) as { count?: number };
+
+        if (active) {
+          setUnreadReviewCount(Math.max(0, Number(payload.count) || 0));
+        }
+      } catch {
+        if (active) {
+          setUnreadReviewCount(0);
+        }
+      }
+    }
+
+    function handleRefresh() {
+      void loadUnreadReviews();
+    }
+
+    void loadUnreadReviews();
+    const intervalId = window.setInterval(loadUnreadReviews, 30000);
+    window.addEventListener("modaily:reviews-seen", handleRefresh);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener("modaily:reviews-seen", handleRefresh);
+    };
+  }, []);
 
   useEffect(() => {
     function resizeTextarea(textarea: HTMLTextAreaElement) {
@@ -230,6 +264,11 @@ export function AdminShell({
                 >
                   <AdminNavIcon section={section.key} active={active} />
                   <span>{section.label}</span>
+                  {section.key === "reviews" && unreadReviewCount > 0 ? (
+                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ba0c2f] px-1.5 text-[11px] font-semibold leading-none text-white">
+                      {unreadReviewCount > 99 ? "99+" : unreadReviewCount}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}

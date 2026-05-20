@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { HlsVideo } from "@/components/ui/hls-video";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
+import { VideoLoadingSpinner } from "@/components/ui/video-loading-spinner";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -24,14 +26,6 @@ type BlogMediaLightboxProps = {
   initialIndex: number;
   onClose: () => void;
 };
-
-function VideoBufferingSpinner() {
-  return (
-    <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center">
-      <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
-    </span>
-  );
-}
 
 function BlogMediaSlide({
   item,
@@ -65,21 +59,24 @@ function BlogMediaSlide({
               className={videoPreviewClassName}
             />
           ) : (
-            <video
-              src={item.videoUrl || undefined}
+            <HlsVideo
+              mp4Url={item.videoUrl || undefined}
               poster={item.videoPosterUrl || item.imageUrl || undefined}
               preload="metadata"
               playsInline
               muted
               className={`pointer-events-none ${videoPreviewClassName}`}
               aria-label={`${alt} ${index + 1}`}
+              onHlsStateChange={(state) => {
+                setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+              }}
               onWaiting={() => setIsBuffering(true)}
               onCanPlay={() => setIsBuffering(false)}
               onPlaying={() => setIsBuffering(false)}
             />
           )}
 
-          {isBuffering ? <VideoBufferingSpinner /> : null}
+          {isBuffering ? <VideoLoadingSpinner /> : null}
 
           <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
@@ -321,19 +318,22 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
                 {showActiveVideo ? (
                   <>
                     <div className={lightboxFrameClassName}>
-                      <video
+                      <HlsVideo
                         ref={videoRef}
-                        src={activeItem?.videoUrl || undefined}
+                        mp4Url={activeItem?.videoUrl || undefined}
                         poster={activeItem?.videoPosterUrl || activeItem?.imageUrl || undefined}
                         preload="metadata"
                         playsInline
                         loop
                         muted
                         className={lightboxVideoClassName}
+                        onHlsStateChange={(state) => {
+                          setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+                        }}
                         {...playbackEvents}
                       />
 
-                      {isBuffering ? <VideoBufferingSpinner /> : null}
+                      {isBuffering ? <VideoLoadingSpinner /> : null}
 
                       <button
                         type="button"
@@ -418,7 +418,7 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <video src={item.videoUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                      <HlsVideo mp4Url={item.videoUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                     )}
                     <span className="absolute inset-0 flex items-center justify-center bg-black/18 text-white">
                       <VideoPlaybackIndicator kind="play" />

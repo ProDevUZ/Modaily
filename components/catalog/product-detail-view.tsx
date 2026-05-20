@@ -8,8 +8,10 @@ import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { DisplayText } from "@/components/ui/display-text";
 import { FallbackImage } from "@/components/ui/fallback-image";
+import { HlsVideo } from "@/components/ui/hls-video";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
+import { VideoLoadingSpinner } from "@/components/ui/video-loading-spinner";
 import {
   formatInteractiveVideoTime,
   useInteractiveVideoPlayback
@@ -324,15 +326,18 @@ function ProductMediaFrame({
               className={className}
             />
           ) : (
-            <video
+            <HlsVideo
               ref={videoRef}
-              src={item.videoUrl}
+              mp4Url={item.videoUrl}
               poster={item.videoPosterUrl || item.imageUrl || undefined}
               preload="metadata"
               playsInline
               loop
               muted
               className={`pointer-events-none ${mediaClassNames}`}
+              onHlsStateChange={(state) => {
+                setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+              }}
               {...playbackEvents}
             />
           )}
@@ -342,11 +347,7 @@ function ProductMediaFrame({
           ) : null}
 
           {!failed ? (
-            isBuffering ? (
-              <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center lg:hidden">
-                <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
-              </span>
-            ) : null
+            isBuffering ? <VideoLoadingSpinner /> : null
           ) : null}
 
           {!failed ? (
@@ -403,8 +404,8 @@ function ProductMediaFrame({
 
     return (
       <div className="relative flex h-full w-full items-center justify-center">
-        <video
-          src={item.videoUrl}
+        <HlsVideo
+          mp4Url={item.videoUrl}
           poster={item.videoPosterUrl || item.imageUrl || undefined}
           className={`${videoClassName || className} mx-auto block`}
           controls={controls}
@@ -413,17 +414,16 @@ function ProductMediaFrame({
           loop={!controls}
           playsInline
           preload="metadata"
+          onHlsStateChange={(state) => {
+            setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+          }}
           onWaiting={() => setIsBuffering(true)}
           onCanPlay={() => setIsBuffering(false)}
           onPlaying={() => setIsBuffering(false)}
           onPause={() => setIsBuffering(false)}
           onError={() => setIsBuffering(false)}
         />
-        {isBuffering ? (
-          <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center lg:hidden">
-            <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
-          </span>
-        ) : null}
+        {isBuffering ? <VideoLoadingSpinner /> : null}
         {!controls ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
@@ -1003,14 +1003,16 @@ export function ProductDetailView({
             <DisplayText value={product.name} normalize={false} />
           </h1>
 
-          <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
-            {renderRichText(product.shortDescription || product.description, {
-              containerClassName: "space-y-3",
-              blockClassName: "whitespace-pre-wrap",
-              listClassName: "space-y-2 pl-5",
-              listItemClassName: "whitespace-pre-wrap"
-            })}
-          </div>
+          {product.shortDescription ? (
+            <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
+              {renderRichText(product.shortDescription, {
+                containerClassName: "space-y-3",
+                blockClassName: "whitespace-pre-wrap",
+                listClassName: "space-y-2 pl-5",
+                listItemClassName: "whitespace-pre-wrap"
+              })}
+            </div>
+          ) : null}
 
           {!hideCommerce ? <div className="mt-6 text-[2.3rem] leading-none text-black">{formatPrice(product.price)} сум</div> : null}
 
@@ -1074,6 +1076,12 @@ export function ProductDetailView({
           <div className="mt-8">
             <AccordionSection title={copy.labels.description} defaultOpen>
               <div className="space-y-6">
+                {renderRichText(product.description, {
+                  containerClassName: "space-y-4",
+                  blockClassName: "whitespace-pre-wrap",
+                  listClassName: "space-y-2 pl-5",
+                  listItemClassName: "whitespace-pre-wrap"
+                })}
               </div>
             </AccordionSection>
             {ingredientsContent ? (

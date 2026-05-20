@@ -25,8 +25,10 @@ export type AdminReview = {
   id: string;
   text: string;
   phoneNumber: string;
+  unread: boolean;
   createdAt: string;
   productName: string;
+  productSlug: string;
 };
 
 export type AdminShopWorkingHour = ShopWorkingHourRecord;
@@ -259,6 +261,17 @@ export type AdminGalleryItem = {
 export type AdminGalleryHeading = {
   id: string;
   type: "IMAGE" | "VIDEO";
+  textUz: string | null;
+  textRu: string | null;
+  textEn: string | null;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminReviewHeading = {
+  id: string;
   textUz: string | null;
   textRu: string | null;
   textEn: string | null;

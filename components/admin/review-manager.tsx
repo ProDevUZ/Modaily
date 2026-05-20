@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -76,6 +77,12 @@ export function ReviewListManager() {
 
         if (active) {
           setReviews(payload);
+        }
+
+        await requestJson("/api/admin/reviews/mark-seen", { method: "PATCH" });
+
+        if (active) {
+          window.dispatchEvent(new Event("modaily:reviews-seen"));
         }
       } catch (loadError) {
         if (active) {
@@ -182,10 +189,16 @@ export function ReviewListManager() {
                   className="border-b border-[#eef2f7] px-6 py-5 transition last:border-b-0 hover:bg-slate-50/60 lg:px-8"
                 >
                   <div className="grid gap-3 lg:grid-cols-[180px_220px_180px_minmax(0,1fr)_140px] lg:items-start">
-                    <p className="text-sm text-slate-500">{formatReceivedAt(review.createdAt)}</p>
-                    <p className="min-w-0 truncate text-[1.05rem] font-semibold text-slate-950">{review.productName}</p>
-                    <p className="truncate text-sm text-slate-600">{review.phoneNumber || "Без номера"}</p>
-                    <p className="text-sm leading-6 text-slate-600">{review.text}</p>
+                    <Link
+                      href={`/ru/catalog/${review.productSlug}`}
+                      className="grid min-w-0 gap-3 rounded-xl transition hover:text-[#ba0c2f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ba0c2f] lg:col-span-4 lg:grid-cols-[180px_220px_180px_minmax(0,1fr)] lg:items-start"
+                      aria-label={`Открыть товар ${review.productName}`}
+                    >
+                      <span className="text-sm text-slate-500">{formatReceivedAt(review.createdAt)}</span>
+                      <span className="min-w-0 truncate text-[1.05rem] font-semibold text-slate-950">{review.productName}</span>
+                      <span className="truncate text-sm text-slate-600">{review.phoneNumber || "Без номера"}</span>
+                      <span className="text-sm leading-6 text-slate-600">{review.text}</span>
+                    </Link>
 
                     <div className="flex lg:justify-end">
                       <button

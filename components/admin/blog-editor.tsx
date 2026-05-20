@@ -17,6 +17,7 @@ import {
   requestJson
 } from "@/components/admin/admin-types";
 import { RichTextTextarea } from "@/components/admin/rich-text-textarea";
+import { HlsVideo } from "@/components/ui/hls-video";
 import type { BlogPostLinkedProduct } from "@/lib/blog-post-types";
 
 type BlogEditorProps = {
@@ -1162,8 +1163,8 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 className="h-full w-full object-cover"
                               />
                             ) : item.videoUrl ? (
-                              <video
-                                src={item.videoUrl}
+                              <HlsVideo
+                                mp4Url={item.videoUrl}
                                 poster={item.videoPosterUrl || undefined}
                                 className="h-full w-full object-cover"
                                 muted

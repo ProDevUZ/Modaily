@@ -2,6 +2,8 @@ import { randomUUID } from "crypto";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 
+import { saveHybridMediaFile } from "@/lib/storage/hybrid-media-storage";
+
 const MAX_PRODUCT_IMAGE_SIZE = 5 * 1024 * 1024;
 const allowedMimeTypes = new Map<string, string>([
   ["image/jpeg", ".jpg"],
@@ -53,13 +55,7 @@ export function validateProductImageFile(file: File) {
   return null;
 }
 
-export async function saveProductImage(file: File) {
-  const validationError = validateProductImageFile(file);
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
+async function saveProductImageLocal(file: File) {
   const directory = await ensureProductImageDirectory();
   const extension = allowedMimeTypes.get(file.type) || normalizeExtension(path.extname(file.name));
   const filename = `${Date.now()}-${randomUUID()}${extension}`;
@@ -71,6 +67,20 @@ export async function saveProductImage(file: File) {
     filename,
     url: getProductImageUrl(filename)
   };
+}
+
+export async function saveProductImage(file: File) {
+  return saveHybridMediaFile({
+    file,
+    namespace: "products",
+    allowedMimeTypes,
+    maxSize: MAX_PRODUCT_IMAGE_SIZE,
+    maxSizeLabel: "5MB",
+    emptyMessage: "Image file is empty.",
+    mimeMessage: "Only JPG, PNG and WebP images are allowed.",
+    sizeMessage: "Image size must be 5 MB or smaller.",
+    localSave: saveProductImageLocal
+  });
 }
 
 export function sanitizeProductImageFilename(filename: string) {

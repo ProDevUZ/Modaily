@@ -12,6 +12,8 @@ import {
 import { VideoPlaybackIndicator } from "@/components/ui/video-playback-indicator";
 import { LightboxCloseIcon } from "@/components/ui/lightbox-close-icon";
 import { LightboxNavArrow } from "@/components/ui/lightbox-nav-arrow";
+import { HlsVideo } from "@/components/ui/hls-video";
+import { VideoLoadingSpinner } from "@/components/ui/video-loading-spinner";
 
 type VideoItem = {
   id: string;
@@ -45,14 +47,6 @@ function MainVideoGalleryIndicator({ kind }: { kind: "play" | "pause" }) {
           <path d="M5.5 4.5h3.5v11H5.5zM11 4.5h3.5v11H11z" />
         </svg>
       )}
-    </span>
-  );
-}
-
-function VideoBufferingSpinner() {
-  return (
-    <span className="pointer-events-none absolute inset-0 z-[3] flex items-center justify-center">
-      <span className="h-9 w-9 rounded-full border-2 border-white/45 border-t-white shadow-[0_8px_22px_rgba(0,0,0,0.22)] animate-spin" />
     </span>
   );
 }
@@ -509,11 +503,11 @@ function MobileVideoLightboxReel({
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover object-center"
                 />
-                <video
+                <HlsVideo
                   ref={(element) => {
                     videoRefs.current[virtualIndex] = element;
                   }}
-                  src={item.videoUrl}
+                  mp4Url={item.videoUrl}
                   poster={item.imageUrl || undefined}
                   playsInline
                   muted
@@ -528,6 +522,11 @@ function MobileVideoLightboxReel({
                     }
                   }}
                   onCanPlay={() => setIsBuffering(false)}
+                  onHlsStateChange={(state) => {
+                    if (virtualIndex === activeVirtualIndex) {
+                      setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+                    }
+                  }}
                   onPlaying={() => {
                     if (virtualIndex !== activeVirtualIndex) {
                       const video = videoRefs.current[virtualIndex];
@@ -561,7 +560,7 @@ function MobileVideoLightboxReel({
 
             <VideoPreviewSurface item={item} index={itemIndex} />
             <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-            {isBuffering && virtualIndex === activeVirtualIndex ? <VideoBufferingSpinner /> : null}
+            {isBuffering && virtualIndex === activeVirtualIndex ? <VideoLoadingSpinner /> : null}
             {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
             {item.videoUrl && virtualIndex === activeVirtualIndex ? (
               <div
@@ -792,19 +791,22 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
 
               <div className="relative w-[min(72vw,280px)] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:w-[min(62vw,360px)]">
                 <div className="relative aspect-[9/16] w-full">
-                  <video
+                  <HlsVideo
                     ref={videoRef}
-                    src={activeItem?.videoUrl || undefined}
+                    mp4Url={activeItem?.videoUrl || undefined}
                     poster={activeItem?.imageUrl || undefined}
                     preload="metadata"
                     playsInline
                     loop
                     muted
                     className="pointer-events-none h-full w-full object-cover object-center"
+                    onHlsStateChange={(state) => {
+                      setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+                    }}
                     {...playbackEvents}
                   />
 
-                  {isBuffering ? <VideoBufferingSpinner /> : null}
+                  {isBuffering ? <VideoLoadingSpinner /> : null}
 
                   <button
                     type="button"

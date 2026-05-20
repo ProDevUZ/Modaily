@@ -2,6 +2,8 @@ import { randomUUID } from "crypto";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 
+import { saveHybridMediaFile } from "@/lib/storage/hybrid-media-storage";
+
 const MAX_GALLERY_IMAGE_SIZE = 20 * 1024 * 1024;
 const allowedMimeTypes = new Map<string, string>([
   ["image/jpeg", ".jpg"],
@@ -54,13 +56,7 @@ export function validateGalleryImageFile(file: File) {
   return null;
 }
 
-export async function saveGalleryImage(file: File) {
-  const validationError = validateGalleryImageFile(file);
-
-  if (validationError) {
-    throw new Error(validationError);
-  }
-
+async function saveGalleryImageLocal(file: File) {
   const directory = await ensureGalleryImageDirectory();
   const extension = allowedMimeTypes.get(file.type) || normalizeExtension(path.extname(file.name));
   const filename = `${Date.now()}-${randomUUID()}${extension}`;
@@ -72,6 +68,20 @@ export async function saveGalleryImage(file: File) {
     filename,
     url: getGalleryImageUrl(filename)
   };
+}
+
+export async function saveGalleryImage(file: File) {
+  return saveHybridMediaFile({
+    file,
+    namespace: "gallery",
+    allowedMimeTypes,
+    maxSize: MAX_GALLERY_IMAGE_SIZE,
+    maxSizeLabel: "20MB",
+    emptyMessage: "Image file is empty.",
+    mimeMessage: "Only JPG, PNG, WebP and AVIF images are allowed.",
+    sizeMessage: "Gallery image must be 20 MB or smaller.",
+    localSave: saveGalleryImageLocal
+  });
 }
 
 export function sanitizeGalleryImageFilename(filename: string) {

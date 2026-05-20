@@ -222,6 +222,14 @@ export type GallerySectionHeadingPayload = {
   active: boolean;
 };
 
+export type ReviewSectionHeadingPayload = {
+  textUz: string | null;
+  textRu: string | null;
+  textEn: string | null;
+  sortOrder: number;
+  active: boolean;
+};
+
 export type TestimonialPayload = {
   authorName: string;
   authorRoleUz: string | null;
@@ -864,6 +872,28 @@ export function validateGallerySectionHeadingPayload(body: unknown): ValidationR
     success: true,
     data: {
       type,
+      textUz,
+      textRu,
+      textEn,
+      sortOrder: asInteger(payload.sortOrder),
+      active: asBoolean(payload.active)
+    }
+  };
+}
+
+export function validateReviewSectionHeadingPayload(body: unknown): ValidationResult<ReviewSectionHeadingPayload> {
+  const payload = body as Record<string, unknown>;
+  const textUz = asOptionalString(payload.textUz);
+  const textRu = asOptionalString(payload.textRu);
+  const textEn = asOptionalString(payload.textEn);
+
+  if (!textUz && !textRu && !textEn) {
+    return { success: false, error: "At least one review heading text is required." };
+  }
+
+  return {
+    success: true,
+    data: {
       textUz,
       textRu,
       textEn,

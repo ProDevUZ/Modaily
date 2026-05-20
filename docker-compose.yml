@@ -24,6 +24,28 @@ services:
       - modaily_next:/app/.next
       - modaily_data:/data
 
+  hls-worker:
+    profiles:
+      - hls
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: modaily-hls-worker
+    init: true
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: development
+      NODE_OPTIONS: --max-old-space-size=2048
+      DATABASE_URL: file:/data/dev.db
+      HLS_WORK_DIR: /data/hls-work
+    command: sh -c "pnpm run prisma:generate && pnpm run hls:worker"
+    volumes:
+      - .:/app
+      - modaily_node_modules:/app/node_modules
+      - modaily_data:/data
+
 volumes:
   modaily_node_modules:
   modaily_next:
