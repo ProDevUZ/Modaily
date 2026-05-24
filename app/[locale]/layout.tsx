@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 
-import { CartProvider } from "@/components/cart-provider";
-import { CustomerProfileProvider } from "@/components/customer-profile-provider";
+import { JsonLd } from "@/components/seo/json-ld";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getDictionary, isLocale } from "@/lib/i18n";
-import { getStorefrontProducts } from "@/lib/storefront-products";
+import { buildGraphSchema, buildOrganizationSchema, buildWebSiteSchema } from "@/lib/structured-data";
+import { getStorefrontProductSearchItems } from "@/lib/storefront-products";
 import { getLocalizedSiteSettings } from "@/lib/storefront-content";
 
 export const dynamic = "force-dynamic";
@@ -26,18 +26,30 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   const dictionary = getDictionary(locale);
   const [siteSettings, searchProducts] = await Promise.all([
     getLocalizedSiteSettings(locale),
-    getStorefrontProducts(locale)
+    getStorefrontProductSearchItems(locale)
+  ]);
+
+  const shell = (
+    <div className="min-h-screen">
+      <JsonLd data={buildGraphSchema([buildOrganizationSchema(siteSettings), buildWebSiteSchema(siteSettings)])} />
+      <SiteHeader locale={locale} siteSettings={siteSettings} searchProducts={searchProducts} />
+      <main>{children}</main>
+      <SiteFooter locale={locale} dictionary={dictionary} siteSettings={siteSettings} />
+    </div>
+  );
+
+  if (siteSettings.hideCommerce) {
+    return shell;
+  }
+
+  const [{ CartProvider }, { CustomerProfileProvider }] = await Promise.all([
+    import("@/components/cart-provider"),
+    import("@/components/customer-profile-provider")
   ]);
 
   return (
     <CartProvider locale={locale} currency={dictionary.currency}>
-      <CustomerProfileProvider>
-        <div className="min-h-screen">
-          <SiteHeader locale={locale} dictionary={dictionary} siteSettings={siteSettings} searchProducts={searchProducts} />
-          <main>{children}</main>
-          <SiteFooter locale={locale} dictionary={dictionary} siteSettings={siteSettings} />
-        </div>
-      </CustomerProfileProvider>
+      <CustomerProfileProvider>{shell}</CustomerProfileProvider>
     </CartProvider>
   );
 }

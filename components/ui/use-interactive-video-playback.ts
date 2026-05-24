@@ -102,6 +102,7 @@ export function useInteractiveVideoPlayback({
       try {
         videoRef.current.muted = true;
         await videoRef.current.play();
+        videoRef.current.muted = false;
         setPlaying(true);
         showCenterIcon("play", true);
       } catch {
@@ -120,6 +121,7 @@ export function useInteractiveVideoPlayback({
     if (videoRef.current.paused) {
       try {
         await videoRef.current.play();
+        videoRef.current.muted = false;
         setPlaying(true);
         showCenterIcon("play", true);
       } catch {

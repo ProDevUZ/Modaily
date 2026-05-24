@@ -49,7 +49,7 @@ function ReviewCard({ item }: { item: ReviewItem }) {
     item.avatarUrl && !item.avatarUrl.includes("/images/home/avatar-") ? item.avatarUrl : "/images/home/ModailyProduct.png";
 
   return (
-    <article className="w-[360px] shrink-0 rounded-[24px] bg-white p-6 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)] sm:w-[420px] xl:w-[520px]">
+    <article className="w-[360px] shrink-0 rounded-[24px] bg-white p-6 text-[#0f1125] shadow-[0_16px_30px_rgba(0,0,0,0.08)] sm:w-[420px] laptop:w-[440px] desktop:w-[500px] wide:w-[520px]">
       <div className="flex items-start gap-4">
         <FallbackImage
           src={avatarSrc}
@@ -140,7 +140,7 @@ function ReviewsHeading({ title, headings = [] }: { title: string; headings?: st
   }, [activeIndex, normalizedTexts]);
 
   return (
-    <h2 className={`px-8 text-[42px] tracking-[-0.04em] transition duration-300 md:px-10 md:text-[56px] lg:px-12 ${visible ? "opacity-100" : "opacity-0"}`}>
+    <h2 className={`section-x text-[42px] tracking-[-0.04em] transition duration-300 md:text-[56px] ${visible ? "opacity-100" : "opacity-0"}`}>
       {normalizedTexts[activeIndex] ?? title}
     </h2>
   );

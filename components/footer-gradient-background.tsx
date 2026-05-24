@@ -20,6 +20,8 @@ export function FooterGradientBackground({
           alt=""
           fill
           priority={false}
+          sizes="100vw"
+          quality={82}
           className="object-cover object-center"
           aria-hidden="true"
         />

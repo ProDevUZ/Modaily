@@ -203,6 +203,15 @@ export type StorefrontProduct = {
   searchIndex: string;
 };
 
+export type StorefrontProductSearchItem = {
+  slug: string;
+  name: string;
+  category: string;
+  categories: { slug: string; name: string }[];
+  imageUrl: string;
+  searchIndex: string;
+};
+
 export type StorefrontProductGalleryItem = {
   id: string;
   type: "IMAGE" | "VIDEO";
@@ -428,6 +437,27 @@ function mapStorefrontProduct(
   };
 }
 
+function mapStorefrontProductSearchItem(
+  product: ProductWithCategory,
+  locale: Locale,
+  categoriesById: Map<string, NonNullable<ProductCategory>>
+): StorefrontProductSearchItem {
+  const localizedCategories = buildLocalizedCategories(product, locale, categoriesById);
+  const primaryCategory = localizedCategories[0];
+
+  return {
+    slug: product.slug,
+    name: localizedProductValue(product, locale, "name"),
+    category: primaryCategory?.name || localizedCategoryName(product.category ?? null, locale),
+    categories: localizedCategories.map((category) => ({
+      slug: category.slug,
+      name: category.name
+    })),
+    imageUrl: product.imageUrl || "",
+    searchIndex: buildSearchIndex(product, categoriesById)
+  };
+}
+
 function collectCategoryIds(products: ProductWithCategory | ProductWithCategory[]) {
   const rows = Array.isArray(products) ? products : [products];
   const ids = rows.flatMap((product) => resolveCategoryIds(product));
@@ -549,6 +579,18 @@ export async function getStorefrontProducts(locale: Locale) {
   return products.map((product) => mapStorefrontProduct(product, locale, categoriesById));
 }
 
+export async function getStorefrontProductSearchItems(locale: Locale) {
+  noStore();
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: storefrontProductSelect,
+    orderBy: [{ homeSortOrder: "asc" }, { createdAt: "asc" }]
+  });
+  const categoriesById = await getCategoriesByIds(collectCategoryIds(products));
+
+  return products.map((product) => mapStorefrontProductSearchItem(product, locale, categoriesById));
+}
+
 export async function getStorefrontProduct(locale: Locale, slug: string) {
   noStore();
   const product = await prisma.product.findFirst({
@@ -630,4 +672,21 @@ export async function getStorefrontProductSlugs() {
   });
 
   return products.map((product) => product.slug);
+}
+
+export async function getStorefrontProductSitemapEntries() {
+  noStore();
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: {
+      slug: true,
+      updatedAt: true
+    },
+    orderBy: [{ updatedAt: "desc" }]
+  });
+
+  return products.map((product) => ({
+    slug: product.slug,
+    lastModified: product.updatedAt
+  }));
 }

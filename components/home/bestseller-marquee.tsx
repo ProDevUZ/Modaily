@@ -54,6 +54,10 @@ function ProductPackshot({ imageUrl, name }: { imageUrl: string; name: string })
       src={imageUrl}
       fallbackSrc="https://placehold.co/180x240/f3f3f3/bb102b?text=Modaily"
       alt={name}
+      sizes="180px"
+      width={180}
+      height={240}
+      quality={86}
       className="h-[240px] w-[180px] object-contain"
     />
   );
@@ -70,6 +74,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const topProgressRailRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
+  const visibleRef = useRef(false);
   const draggingRef = useRef(false);
   const adjustingRef = useRef(false);
   const suppressClickRef = useRef(false);
@@ -119,6 +124,22 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
 
     scroller.scrollLeft = scroller.scrollWidth / 3;
     syncProgressIndicator();
+    visibleRef.current = typeof IntersectionObserver === "undefined";
+
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            ([entry]) => {
+              visibleRef.current = Boolean(entry?.isIntersecting);
+            },
+            {
+              rootMargin: "240px 0px",
+              threshold: 0.01
+            }
+          );
+
+    observer?.observe(scroller);
 
     let frameId = 0;
     let lastTimestamp = 0;
@@ -132,7 +153,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
       const delta = timestamp - lastTimestamp;
       lastTimestamp = timestamp;
 
-      if (!pausedRef.current && !draggingRef.current) {
+      if (visibleRef.current && !pausedRef.current && !draggingRef.current) {
         scroller.scrollLeft += delta * speed;
         normalizeScrollPosition();
         syncProgressIndicator();
@@ -145,6 +166,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      observer?.disconnect();
     };
   }, [actualProductCount, baseProducts.length]);
 
@@ -264,7 +286,7 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
   }
 
   return (
-    <div className="mt-7">
+    <div className="mt-6 desktop:mt-7">
       <div className="mb-4 flex justify-center px-8 md:mb-5 md:px-0">
         <div className="relative h-[3px] w-[90%] overflow-hidden rounded-full bg-black/10">
           <div
@@ -301,20 +323,20 @@ export function BestsellerMarquee({ locale, products, learnMoreLabel }: Bestsell
         }}
         onClickCapture={handleClickCapture}
       >
-        <div className="flex w-max items-start gap-4 pr-0 lg:gap-[10px] lg:pr-[10px]">
+        <div className="flex w-max items-start gap-4 pr-0 lg:gap-3 lg:pr-3 desktop:gap-[10px] desktop:pr-[10px]">
           {loopProducts.map((product, index) => (
             <Link
               key={`${product.id}-${index}`}
               href={`/${locale}/catalog/${product.slug}`}
               data-bestseller-link="true"
-              className="interactive-glass-press relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[290px] xl:w-[320px]"
+              className="interactive-glass-press relative w-[182px] shrink-0 select-none sm:w-[220px] lg:w-[252px] laptop:w-[276px] desktop:w-[310px] wide:w-[320px]"
               aria-label={product.name}
             >
-              <div className="relative flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[290px]">
+              <div className="relative flex h-[228px] items-center justify-center bg-[#f5f5f5] md:h-[260px] lg:h-[264px] laptop:h-[276px] desktop:h-[288px] wide:h-[290px]">
                 <ProductBadgeStack badges={product.badges || []} />
                 <ProductPackshot imageUrl={product.imageUrl} name={product.name} />
               </div>
-              <h3 className="mt-3 min-h-[44px] text-[13px] font-bold uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[54px] lg:text-[18px] lg:font-normal lg:leading-6">
+              <h3 className="mt-3 min-h-[44px] text-[13px] font-bold uppercase leading-[1.25] tracking-[-0.03em] text-[#2f2f2f] lg:mt-4 lg:min-h-[48px] lg:text-[15px] lg:font-normal lg:leading-[1.45] laptop:min-h-[50px] laptop:text-[16px] desktop:min-h-[54px] desktop:text-[18px] desktop:leading-6">
                 {product.name}
               </h3>
               <span className="relative z-[2] mt-3 inline-flex h-[42px] w-full items-center justify-center border border-black/40 text-[11px] uppercase tracking-[0.18em] text-black/72 lg:h-[46px] lg:text-[12px]">

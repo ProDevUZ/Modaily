@@ -522,10 +522,10 @@ export function ContentManager({ section, galleryMode }: { section: AdminContent
       );
       setEditingReviewHeadingId(null);
       setReviewHeadingForm(emptyReviewHeadingForm);
-      setMessage(editingReviewHeadingId ? "РўРµРєСЃС‚ Reviews РѕР±РЅРѕРІР»РµРЅ." : "РўРµРєСЃС‚ Reviews РґРѕР±Р°РІР»РµРЅ.");
+      setMessage(editingReviewHeadingId ? "Текст Reviews обновлен." : "Текст Reviews добавлен.");
       await loadData();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ С‚РµРєСЃС‚ Reviews.");
+      setError(submitError instanceof Error ? submitError.message : "Не удалось сохранить текст Reviews.");
     }
   }
 

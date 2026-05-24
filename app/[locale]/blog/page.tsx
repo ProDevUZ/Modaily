@@ -6,6 +6,7 @@ import { BlogListingControls } from "@/components/blog/blog-listing-controls";
 import { getBlogPageCopy } from "@/lib/blog-page-copy";
 import type { StorefrontBlogPostCard } from "@/lib/blog-post-types";
 import { isLocale, type Locale } from "@/lib/i18n";
+import { localizedAlternates, localizedOpenGraph, metadataDescription, metadataTitle, noIndexRobots } from "@/lib/seo";
 import { getStorefrontBlogPosts } from "@/lib/blog-posts";
 
 export const dynamic = "force-dynamic";
@@ -34,21 +35,35 @@ function sortPosts<T extends { publishDate: string; cardTitle: string }>(posts: 
   return nextPosts.sort((left, right) => new Date(right.publishDate).getTime() - new Date(left.publishDate).getTime());
 }
 
-export async function generateMetadata({ params }: Omit<PageProps, "searchParams">): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { locale } = await params;
+  const resolvedSearchParams = await searchParams;
 
   if (!isLocale(locale)) {
     return {};
   }
 
   const copy = getBlogPageCopy(locale);
+  const title = metadataTitle(copy.meta.listingTitle);
+  const description = metadataDescription(copy.meta.listingDescription, "Modaily blog.");
+
+  const hasIndexableDuplicateQuery = Boolean(
+    readQueryParam(resolvedSearchParams.category) ||
+      readQueryParam(resolvedSearchParams.sort) ||
+      readQueryParam(resolvedSearchParams.view)
+  );
 
   return {
-    title: copy.meta.listingTitle,
-    description: copy.meta.listingDescription,
-    alternates: {
-      canonical: `/${locale}/blog`
-    }
+    title,
+    description,
+    robots: hasIndexableDuplicateQuery ? noIndexRobots : undefined,
+    alternates: localizedAlternates(locale, "/blog"),
+    openGraph: localizedOpenGraph({
+      locale,
+      path: "/blog",
+      title,
+      description
+    })
   };
 }
 

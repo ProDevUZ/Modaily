@@ -57,6 +57,10 @@ export function BlogCard({
               src={post.coverImage}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={post.cardTitle}
+              sizes="(max-width: 1023px) 100vw, 62vw"
+              width={1200}
+              height={750}
+              quality={86}
               className="aspect-[16/10] h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
             />
           </div>
@@ -91,6 +95,10 @@ export function BlogCard({
               src={post.coverImage}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={post.cardTitle}
+              sizes="(max-width: 1023px) 100vw, 50vw"
+              width={840}
+              height={720}
+              quality={84}
               className="aspect-[7/6] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
             />
           </div>
@@ -119,6 +127,10 @@ export function BlogCard({
                 src={post.coverImage}
                 fallbackSrc="/images/home/mainpage.jpg"
                 alt={post.cardTitle}
+                sizes="(max-width: 767px) 100vw, 420px"
+                width={420}
+                height={350}
+                quality={84}
                 className="aspect-[6/5] h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
               />
             </div>
@@ -145,6 +157,10 @@ export function BlogCard({
             src={post.coverImage}
             fallbackSrc="/images/home/mainpage.jpg"
             alt={post.cardTitle}
+            sizes="(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 33vw"
+            width={560}
+            height={560}
+            quality={84}
             className="aspect-square w-full object-cover transition duration-500 group-hover:scale-[1.02]"
           />
         </div>

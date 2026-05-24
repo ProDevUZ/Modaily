@@ -38,7 +38,7 @@ async function seedCatalog() {
         nameRu: product.category.ru,
         nameEn: product.category.en,
         descriptionUz: `${product.category.uz} uchun Modaily assortimenti`,
-        descriptionRu: `РђСЃСЃРѕСЂС‚РёРјРµРЅС‚ Modaily РґР»СЏ РєР°С‚РµРіРѕСЂРёРё ${product.category.ru}`,
+        descriptionRu: `Ассортимент Modaily для категории ${product.category.ru}`,
         descriptionEn: `Modaily assortment for ${product.category.en}`
       }
     });

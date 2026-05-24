@@ -67,11 +67,6 @@ function getPhoneHref(phone: string) {
   return normalized ? `tel:${normalized}` : "";
 }
 
-function getWhatsAppHref(phone: string) {
-  const normalized = phone.trim().replace(/[^\d]/g, "");
-  return normalized ? `https://wa.me/${normalized}` : "";
-}
-
 function getEmailHref(email: string) {
   const normalized = email.trim();
   return normalized ? `mailto:${normalized}` : "";
@@ -222,11 +217,9 @@ function FooterIconOnlyLink({
 export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps) {
   const labels = footerLabels[locale];
   const phoneHref = getPhoneHref(siteSettings.footerPhone);
-  const whatsappHref = getWhatsAppHref(siteSettings.footerPhone);
   const emailHref = getEmailHref(siteSettings.footerEmail);
   const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
   const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
-  const whatsappText = siteSettings.footerTelegram || siteSettings.footerPhone;
 
   return (
     <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="text-white">
@@ -263,7 +256,6 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
               {instagramHref ? <FooterIconOnlyLink href={instagramHref} iconSrc="/icons/INSTAsvg.svg" iconAlt="Instagram" /> : null}
               {emailHref ? <FooterIconOnlyLink href={emailHref} iconSrc="/icons/mail.svg" iconAlt="Email" /> : null}
               {telegramHref ? <FooterIconOnlyLink href={telegramHref} iconSrc="/icons/TGsvg.svg" iconAlt="Telegram" /> : null}
-              {whatsappHref ? <FooterIconOnlyLink href={whatsappHref} iconSrc="/icons/WAsvg.svg" iconAlt="WhatsApp" /> : null}
             </div>
 
             <p className="mt-[44px] text-center text-[15px] leading-5 text-white/88">
@@ -300,8 +292,8 @@ export function SiteFooter({ locale, dictionary, siteSettings }: SiteFooterProps
                   </div>
 
                   <div className="mt-[17px] flex items-center gap-[29px]">
-                    {whatsappHref ? (
-                      <FooterSocialLink href={whatsappHref} iconSrc="/icons/WAsvg.svg" iconAlt="WhatsApp" text={whatsappText} />
+                    {instagramHref ? (
+                      <FooterSocialLink href={instagramHref} iconSrc="/icons/INSTAsvg.svg" iconAlt="Instagram" text={siteSettings.footerInstagram} />
                     ) : null}
 
                     {telegramHref ? (

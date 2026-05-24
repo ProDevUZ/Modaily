@@ -24,6 +24,8 @@ type AboutPageViewProps = {
     footerTelegramLink: string;
     footerInstagram: string;
     footerInstagramLink: string;
+    footerYoutube: string;
+    footerYoutubeLink: string;
     storeMapLink: string;
     footerAddress: string;
   };
@@ -36,7 +38,7 @@ const copy = {
     store: "Do'konlarimiz",
     phone: "Telefon raqami",
     email: "Bizning pochta",
-    whatsapp: "WhatsApp",
+    youtube: "YouTube",
     telegram: "Telegram",
     instagram: "Instagram",
     namePlaceholder: "Ismingiz",
@@ -54,7 +56,7 @@ const copy = {
     store: "Наши магазины",
     phone: "Номер телефона",
     email: "Наша почта",
-    whatsapp: "WhatsApp",
+    youtube: "YouTube",
     telegram: "Telegram",
     instagram: "Instagram",
     namePlaceholder: "Ваше имя",
@@ -72,7 +74,7 @@ const copy = {
     store: "Our stores",
     phone: "Phone number",
     email: "Our email",
-    whatsapp: "WhatsApp",
+    youtube: "YouTube",
     telegram: "Telegram",
     instagram: "Instagram",
     namePlaceholder: "Your name",
@@ -109,11 +111,6 @@ function getPhoneHref(phone: string) {
   return normalized ? `tel:${normalized}` : "";
 }
 
-function getWhatsAppHref(phone: string) {
-  const normalized = phone.trim().replace(/[^\d]/g, "");
-  return normalized ? `https://wa.me/${normalized}` : "";
-}
-
 function getEmailHref(email: string) {
   const normalized = email.trim();
   return normalized ? `mailto:${normalized}` : "";
@@ -139,6 +136,17 @@ function getTelegramHref(handle: string, link: string) {
 
   const normalizedHandle = normalizeHandle(handle);
   return normalizedHandle ? `https://t.me/${normalizedHandle}` : "";
+}
+
+function getYoutubeHref(handle: string, link: string) {
+  const directLink = normalizeExternalHref(link);
+
+  if (directLink) {
+    return directLink;
+  }
+
+  const normalizedHandle = normalizeHandle(handle);
+  return normalizedHandle ? `https://www.youtube.com/${normalizedHandle.startsWith("@") ? normalizedHandle : `@${normalizedHandle}`}` : "";
 }
 
 function buildMapEmbedSrc(mapLink: string) {
@@ -236,10 +244,10 @@ export function AboutPageView({
   const labels = copy[locale];
   const storeHref = normalizeExternalHref(siteSettings.storeMapLink);
   const phoneHref = getPhoneHref(siteSettings.footerPhone);
-  const whatsappHref = getWhatsAppHref(siteSettings.footerPhone);
   const emailHref = getEmailHref(siteSettings.footerEmail);
   const telegramHref = getTelegramHref(siteSettings.footerTelegram, siteSettings.footerTelegramLink);
   const instagramHref = getInstagramHref(siteSettings.footerInstagram, siteSettings.footerInstagramLink);
+  const youtubeHref = getYoutubeHref(siteSettings.footerYoutube, siteSettings.footerYoutubeLink);
   const mapEmbedSrc = buildMapEmbedSrc(siteSettings.storeMapLink);
   const secondaryPanelText = content.secondaryDescription || content.bottomDescription || content.description;
   return (
@@ -270,6 +278,8 @@ export function AboutPageView({
               src={content.imageUrl || "/images/Galary/about1.png"}
               fallbackSrc="/images/Galary/about1.png"
               alt={content.title || brandName}
+              sizes="(max-width: 1023px) 100vw, 54vw"
+              quality={86}
               className="h-full min-h-[260px] w-full object-cover"
             />
           </div>
@@ -324,10 +334,10 @@ export function AboutPageView({
             href={emailHref}
           />
           <ContactCard
-            icon={<SocialCardIcon src="/icons/WAsvg.svg" alt="WhatsApp" />}
-            title={labels.whatsapp}
-            value={siteSettings.footerPhone}
-            href={whatsappHref}
+            icon={<SocialCardIcon src="/icons/YTsvg.svg" alt="YouTube" />}
+            title={labels.youtube}
+            value={siteSettings.footerYoutube}
+            href={youtubeHref}
           />
           <ContactCard
             icon={<SocialCardIcon src="/icons/TGsvg.svg" alt="Telegram" />}

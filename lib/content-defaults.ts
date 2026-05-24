@@ -14,6 +14,8 @@ export const defaultSiteSettings = {
   footerTelegramLink: "https://t.me/modaily_cis",
   footerInstagram: "@modaily_cis",
   footerInstagramLink: "https://instagram.com/modaily_cis",
+  footerYoutube: "@MODAILY_CIS",
+  footerYoutubeLink: "https://www.youtube.com/@MODAILY_CIS",
   storeAddress: "Yunusobod, Tashkent",
   storeMapLink: "",
   footerAddressUz: "Toshkent shahri, Yashnobod tumani, Umrbod ko'chasi 5",

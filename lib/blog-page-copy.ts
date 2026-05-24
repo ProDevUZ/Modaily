@@ -1,3 +1,4 @@
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { Locale } from "@/lib/i18n";
 
 export type BlogPageCopy = {
@@ -113,5 +114,21 @@ const copy: Record<Locale, BlogPageCopy> = {
 };
 
 export function getBlogPageCopy(locale: Locale) {
-  return copy[locale];
+  return normalizeCopy(copy[locale]);
+}
+
+function normalizeCopy<T>(value: T): T {
+  if (typeof value === "string") {
+    return normalizeDisplayText(value) as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeCopy(entry)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, normalizeCopy(entry)])) as T;
+  }
+
+  return value;
 }

@@ -3,12 +3,11 @@ import type { Metadata } from "next";
 import { noIndexRobots } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Панель управления",
-  description: "Отдельная панель управления Modaily.",
+  title: "Admin",
   robots: noIndexRobots
 };
 
-export default function AdminLayout({
+export default function LocalizedAdminLayout({
   children
 }: Readonly<{
   children: React.ReactNode;

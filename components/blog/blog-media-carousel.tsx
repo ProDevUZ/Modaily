@@ -38,7 +38,6 @@ function BlogMediaSlide({
   alt: string;
   onOpen: () => void;
 }) {
-  const [isBuffering, setIsBuffering] = useState(false);
   const showVideo = item.type === "VIDEO" && item.videoUrl;
   const imageClassName = "aspect-[16/9] w-full rounded-[1.25rem] object-cover object-center";
   const videoPreviewClassName = "h-full w-full object-cover object-center";
@@ -56,27 +55,24 @@ function BlogMediaSlide({
               src={item.imageUrl}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={`${alt} ${index + 1}`}
+              sizes="(max-width: 767px) 100vw, (max-width: 1179px) 86vw, 760px"
+              width={1200}
+              height={675}
+              quality={84}
               className={videoPreviewClassName}
             />
           ) : (
-            <HlsVideo
-              mp4Url={item.videoUrl || undefined}
-              poster={item.videoPosterUrl || item.imageUrl || undefined}
-              preload="metadata"
-              playsInline
-              muted
-              className={`pointer-events-none ${videoPreviewClassName}`}
-              aria-label={`${alt} ${index + 1}`}
-              onHlsStateChange={(state) => {
-                setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
-              }}
-              onWaiting={() => setIsBuffering(true)}
-              onCanPlay={() => setIsBuffering(false)}
-              onPlaying={() => setIsBuffering(false)}
+            <FallbackImage
+              src={item.videoPosterUrl || undefined}
+              fallbackSrc="/images/home/mainpage.jpg"
+              alt={`${alt} ${index + 1}`}
+              sizes="(max-width: 767px) 100vw, (max-width: 1179px) 86vw, 760px"
+              width={1200}
+              height={675}
+              quality={84}
+              className={videoPreviewClassName}
             />
           )}
-
-          {isBuffering ? <VideoLoadingSpinner /> : null}
 
           <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
@@ -94,6 +90,10 @@ function BlogMediaSlide({
             src={item.imageUrl || undefined}
             fallbackSrc="/images/home/mainpage.jpg"
             alt={`${alt} ${index + 1}`}
+            sizes="(max-width: 767px) 100vw, (max-width: 1179px) 86vw, 760px"
+            width={1200}
+            height={675}
+            quality={84}
             className={imageClassName}
           />
         </button>
@@ -321,7 +321,7 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
                       <HlsVideo
                         ref={videoRef}
                         mp4Url={activeItem?.videoUrl || undefined}
-                        poster={activeItem?.videoPosterUrl || activeItem?.imageUrl || undefined}
+                        poster={activeItem?.videoPosterUrl || undefined}
                         preload="metadata"
                         playsInline
                         loop
@@ -415,10 +415,23 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
                         src={item.videoPosterUrl || item.imageUrl || undefined}
                         fallbackSrc="/images/home/mainpage.jpg"
                         alt={`${alt} thumbnail ${index + 1}`}
+                        sizes="74px"
+                        width={148}
+                        height={148}
+                        quality={72}
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <HlsVideo mp4Url={item.videoUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                      <FallbackImage
+                        src={undefined}
+                        fallbackSrc="/images/home/mainpage.jpg"
+                        alt={`${alt} thumbnail ${index + 1}`}
+                        sizes="74px"
+                        width={148}
+                        height={148}
+                        quality={72}
+                        className="h-full w-full object-cover"
+                      />
                     )}
                     <span className="absolute inset-0 flex items-center justify-center bg-black/18 text-white">
                       <VideoPlaybackIndicator kind="play" />
@@ -429,6 +442,10 @@ function BlogMediaLightbox({ items, alt, initialIndex, onClose }: BlogMediaLight
                     src={item.imageUrl || undefined}
                     fallbackSrc="/images/home/mainpage.jpg"
                     alt={`${alt} thumbnail ${index + 1}`}
+                    sizes="74px"
+                    width={148}
+                    height={148}
+                    quality={72}
                     className="h-full w-full object-cover"
                   />
                 )}

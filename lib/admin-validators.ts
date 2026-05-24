@@ -108,6 +108,8 @@ export type SiteSettingsPayload = {
   footerTelegramLink: string | null;
   footerInstagram: string | null;
   footerInstagramLink: string | null;
+  footerYoutube: string | null;
+  footerYoutubeLink: string | null;
   storeAddress: string | null;
   storeMapLink: string | null;
   footerAddressUz: string | null;
@@ -638,6 +640,8 @@ export function validateSiteSettingsPayload(body: unknown): ValidationResult<Sit
       footerTelegramLink: asOptionalString(payload.footerTelegramLink),
       footerInstagram: asOptionalString(payload.footerInstagram),
       footerInstagramLink: asOptionalString(payload.footerInstagramLink),
+      footerYoutube: asOptionalString(payload.footerYoutube),
+      footerYoutubeLink: asOptionalString(payload.footerYoutubeLink),
       storeAddress: asOptionalString(payload.storeAddress),
       storeMapLink: asOptionalString(payload.storeMapLink),
       footerAddressUz: asOptionalString(payload.footerAddressUz),

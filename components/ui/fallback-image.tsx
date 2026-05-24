@@ -9,6 +9,10 @@ type FallbackImageProps = {
   alt: string;
   className?: string;
   priority?: boolean;
+  loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
+  decoding?: "async" | "sync" | "auto";
+  quality?: number;
   sizes?: string;
   width?: number;
   height?: number;
@@ -20,6 +24,10 @@ export function FallbackImage({
   alt,
   className,
   priority = false,
+  loading,
+  fetchPriority,
+  decoding = "async",
+  quality,
   sizes = "(max-width: 768px) 100vw, 50vw",
   width = 1200,
   height = 1540
@@ -56,6 +64,10 @@ export function FallbackImage({
       height={height}
       sizes={sizes}
       priority={priority}
+      loading={loading}
+      fetchPriority={fetchPriority}
+      decoding={decoding}
+      quality={quality}
       className={className}
       unoptimized={currentSrc.startsWith("data:")}
       onError={() => {

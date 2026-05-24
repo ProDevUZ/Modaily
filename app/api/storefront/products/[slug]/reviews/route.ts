@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { notifyTelegramAboutReview } from "@/lib/telegram-notifications";
 
 type RouteProps = {
   params: Promise<{ slug: string }>;
@@ -101,7 +102,11 @@ export async function POST(request: Request, { params }: RouteProps) {
       active: true
     },
     select: {
-      id: true
+      id: true,
+      slug: true,
+      nameUz: true,
+      nameRu: true,
+      nameEn: true
     }
   });
 
@@ -129,6 +134,17 @@ export async function POST(request: Request, { params }: RouteProps) {
       createdAt: true
     }
   })) as StorefrontReviewRow;
+
+  await notifyTelegramAboutReview({
+    authorName: review.authorName,
+    phoneNumber: review.phoneNumber,
+    body: review.body,
+    rating: review.rating,
+    imageUrl: review.imageUrl,
+    productName: product.nameRu || product.nameUz || product.nameEn,
+    productSlug: product.slug,
+    createdAt: review.createdAt
+  });
 
   return NextResponse.json(
     {

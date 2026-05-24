@@ -2,8 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { BlogDetailView } from "@/components/blog/blog-detail-view";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getBlogPageCopy } from "@/lib/blog-page-copy";
 import { isLocale, locales } from "@/lib/i18n";
+import { localizedAlternates, localizedOpenGraph, metadataDescription, metadataTitle } from "@/lib/seo";
+import {
+  buildBlogPostingSchema,
+  buildBlogVideoSchemas,
+  buildBreadcrumbSchema,
+  buildGraphSchema
+} from "@/lib/structured-data";
 import {
   getStorefrontBlogPost,
   getStorefrontBlogPostSlugs
@@ -41,19 +49,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {};
   }
 
+  const path = `/blog/${slug}`;
+  const title = metadataTitle(post.seoTitle);
+  const description = metadataDescription(post.metaDescription, post.introDescription);
+
   return {
-    title: post.seoTitle,
-    description: post.metaDescription,
-    alternates: {
-      canonical: `/${locale}/blog/${slug}`
-    },
-    openGraph: {
-      title: post.seoTitle,
-      description: post.metaDescription,
-      url: `https://modaily.com/${locale}/blog/${slug}`,
+    title,
+    description,
+    alternates: localizedAlternates(locale, path),
+    openGraph: localizedOpenGraph({
+      locale,
+      path,
+      title,
+      description,
       type: "article",
       images: post.coverImage ? [{ url: post.coverImage }] : undefined
-    }
+    })
   };
 }
 
@@ -71,6 +82,18 @@ export default async function BlogDetailPage({ params }: PageProps) {
   }
 
   const copy = getBlogPageCopy(locale);
+  const breadcrumbSchema = buildBreadcrumbSchema(locale, [
+    { name: "Modaily", path: "" },
+    { name: copy.listing.title, path: "/blog" },
+    { name: post.cardTitle, path: `/blog/${slug}` }
+  ]);
+  const blogPostingSchema = buildBlogPostingSchema({ locale, post });
+  const videoSchemas = buildBlogVideoSchemas(locale, post);
 
-  return <BlogDetailView locale={locale} post={post} labels={copy.detail} />;
+  return (
+    <>
+      <JsonLd data={buildGraphSchema([breadcrumbSchema, blogPostingSchema, ...videoSchemas].filter(Boolean))} />
+      <BlogDetailView locale={locale} post={post} labels={copy.detail} />
+    </>
+  );
 }

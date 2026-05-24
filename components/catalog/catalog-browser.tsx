@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ProductCard } from "@/components/product-card";
 import type { Locale } from "@/lib/i18n";
@@ -14,6 +15,11 @@ type CatalogBrowserProps = {
   hideCommerce?: boolean;
   initialCategorySlugs?: string[];
 };
+
+const ProductCardCommerceAction = dynamic(
+  () => import("@/components/product-card-commerce-action").then((module) => module.ProductCardCommerceAction),
+  { ssr: false }
+);
 
 type FilterSectionProps = {
   title: string;
@@ -57,6 +63,24 @@ const copyByLocale = {
     combination: "Combination",
     oily: "Oily",
     sensitive: "Sensitive"
+  }
+} as const;
+
+const productCardLabelsByLocale = {
+  uz: {
+    details: "Batafsil",
+    addToCart: "Savatga qo'shish",
+    currencySymbol: "сум"
+  },
+  ru: {
+    details: "Подробнее",
+    addToCart: "Добавить в корзину",
+    currencySymbol: "сум"
+  },
+  en: {
+    details: "Learn more",
+    addToCart: "Add to cart",
+    currencySymbol: "$"
   }
 } as const;
 
@@ -114,7 +138,9 @@ export function CatalogBrowser({
   initialCategorySlugs = []
 }: CatalogBrowserProps) {
   const copy = copyByLocale[locale];
+  const productCardCopy = productCardLabelsByLocale[locale];
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategorySlugs);
   const [selectedSkinTypes, setSelectedSkinTypes] = useState<string[]>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -170,7 +196,7 @@ export function CatalogBrowser({
   }, [locale, products, skinTypeOptions]);
 
   const filteredProducts = useMemo(() => {
-    const normalizedQuery = search.trim().toLowerCase();
+    const normalizedQuery = deferredSearch.trim().toLowerCase();
 
     return products.filter((product) => {
       const matchesSearch =
@@ -199,7 +225,7 @@ export function CatalogBrowser({
 
       return matchesSearch && matchesCategory && matchesSkinType && matchesPrice;
     });
-  }, [hideCommerce, priceRange.max, priceRange.min, products, search, selectedCategories, selectedSkinTypes]);
+  }, [deferredSearch, hideCommerce, priceRange.max, priceRange.min, products, selectedCategories, selectedSkinTypes]);
 
   const rangePercentStart =
     priceBounds.max === priceBounds.min ? 0 : ((priceRange.min - priceBounds.min) / (priceBounds.max - priceBounds.min)) * 100;
@@ -327,9 +353,9 @@ export function CatalogBrowser({
   );
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[228px_minmax(0,1fr)] xl:gap-7">
+    <div className="grid gap-5 laptop:grid-cols-[210px_minmax(0,1fr)] laptop:gap-6 desktop:grid-cols-[228px_minmax(0,1fr)] desktop:gap-7">
       {hideCommerce ? (
-        <div className="space-y-4 xl:hidden">
+        <div className="space-y-4 laptop:hidden">
           <div className="grid grid-cols-[auto_1fr] gap-3">
             <button
               type="button"
@@ -367,7 +393,7 @@ export function CatalogBrowser({
         </div>
       ) : null}
 
-      <aside className={`xl:pr-2 ${hideCommerce ? "hidden xl:block" : ""}`}>
+      <aside className={`laptop:pr-1 desktop:pr-2 ${hideCommerce ? "hidden laptop:block" : ""}`}>
         <div className="rounded-[12px] bg-[#f6f6f4] px-[16px] py-[12px]">
           <div className="flex items-center gap-2.5">
             <svg viewBox="0 0 24 24" className="h-5 w-5 text-[#ba0c2f]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -393,8 +419,8 @@ export function CatalogBrowser({
           <div
             className={
               hideCommerce
-                ? "grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3 xl:gap-y-[20px]"
-                : "grid gap-x-4 gap-y-7 md:grid-cols-2 xl:grid-cols-4 xl:gap-x-3 xl:gap-y-8"
+                ? "grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-2 laptop:grid-cols-3 laptop:gap-x-4 laptop:gap-y-6 desktop:grid-cols-4 desktop:gap-x-3 desktop:gap-y-[20px]"
+                : "grid gap-x-4 gap-y-7 md:grid-cols-2 laptop:grid-cols-3 laptop:gap-x-4 laptop:gap-y-8 desktop:grid-cols-4 desktop:gap-x-3"
             }
           >
             {filteredProducts.map((product, index) => (
@@ -406,6 +432,20 @@ export function CatalogBrowser({
                 hideCommerce={hideCommerce}
                 compactMobile={hideCommerce}
                 imagePriority={index === 0}
+                labels={{
+                  details: productCardCopy.details,
+                  currencySymbol: productCardCopy.currencySymbol
+                }}
+                commerceAction={
+                  hideCommerce ? undefined : (
+                    <ProductCardCommerceAction
+                      locale={locale}
+                      product={product}
+                      label={productCardCopy.addToCart}
+                      className="relative z-[2] inline-flex h-[37px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[10px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
+                    />
+                  )
+                }
               />
             ))}
           </div>

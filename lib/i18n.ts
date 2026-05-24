@@ -1,3 +1,5 @@
+import { normalizeDisplayText } from "@/lib/display-text";
+
 export const locales = ["uz", "ru", "en"] as const;
 export type Locale = (typeof locales)[number];
 
@@ -426,6 +428,24 @@ export function isLocale(value: string): value is Locale {
   return locales.includes(value as Locale);
 }
 
+function normalizeDictionaryValue<T>(value: T): T {
+  if (typeof value === "string") {
+    return normalizeDisplayText(value) as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeDictionaryValue(entry)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, normalizeDictionaryValue(entry)])
+    ) as T;
+  }
+
+  return value;
+}
+
 export function getDictionary(locale: Locale) {
-  return dictionaries[locale];
+  return normalizeDictionaryValue(dictionaries[locale]);
 }

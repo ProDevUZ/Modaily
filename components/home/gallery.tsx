@@ -28,10 +28,10 @@ type GalleryLightboxProps = {
 };
 
 const rowWidths = [
-  "w-[260px] sm:w-[300px] lg:w-[472px]",
-  "w-[210px] sm:w-[230px] lg:w-[268px]",
-  "w-[250px] sm:w-[300px] lg:w-[436px]",
-  "w-[250px] sm:w-[300px] lg:w-[436px]"
+  "w-[260px] sm:w-[300px] laptop:w-[360px] desktop:w-[440px] wide:w-[472px]",
+  "w-[210px] sm:w-[230px] laptop:w-[232px] desktop:w-[256px] wide:w-[268px]",
+  "w-[250px] sm:w-[300px] laptop:w-[340px] desktop:w-[408px] wide:w-[436px]",
+  "w-[250px] sm:w-[300px] laptop:w-[340px] desktop:w-[408px] wide:w-[436px]"
 ] as const;
 
 function buildRows(items: GalleryItem[]) {
@@ -197,6 +197,8 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
                   src={activeItem?.imageUrl || ""}
                   fallbackSrc="https://placehold.co/1200x900/f4f4f2/bb102b?text=Gallery"
                   alt={activeItem?.title || `${title} image ${currentIndex + 1}`}
+                  sizes="100vw"
+                  quality={88}
                   className="max-h-[78vh] w-auto max-w-full object-contain"
                 />
               </div>
@@ -228,6 +230,10 @@ function GalleryLightbox({ items, title, initialIndex, onClose }: GalleryLightbo
                   src={item.imageUrl}
                   fallbackSrc="https://placehold.co/200x200/f4f4f2/bb102b?text=Gallery"
                   alt={item.title || `${title} thumbnail ${index + 1}`}
+                  sizes="74px"
+                  width={200}
+                  height={200}
+                  quality={76}
                   className="h-full w-full object-cover"
                 />
                 {index === currentIndex ? <span className="absolute inset-0 ring-1 ring-white/80" /> : null}
@@ -281,7 +287,11 @@ function GalleryRow({
                 src={item.imageUrl}
                 fallbackSrc="https://placehold.co/472x326/f4f4f2/bb102b?text=Gallery"
                 alt={item.title || `Gallery item ${index + 1}`}
-                className="h-[220px] w-full object-cover sm:h-[250px] lg:h-[326px]"
+                sizes="(max-width: 639px) 78vw, (max-width: 1179px) 44vw, (max-width: 1439px) 31vw, 28vw"
+                width={472}
+                height={326}
+                quality={84}
+                className="h-[220px] w-full object-cover sm:h-[250px] laptop:h-[270px] desktop:h-[306px] wide:h-[326px]"
               />
             </button>
           );
@@ -298,7 +308,7 @@ export function Gallery({ title, headings, items }: GalleryProps) {
   return (
     <>
       <section className="space-y-8">
-        <div className="px-8 md:px-10 lg:px-12">
+        <div className="section-x">
           <RotatingSectionHeading
             fallback={title}
             texts={headings}

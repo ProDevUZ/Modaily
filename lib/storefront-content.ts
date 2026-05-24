@@ -1,5 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { normalizeDisplayText } from "@/lib/display-text";
 import type { Locale } from "@/lib/i18n";
 import { defaultHomeAbout, defaultHomeHero, defaultSiteSettings } from "@/lib/content-defaults";
 import { buildProductBadges } from "@/lib/product-badges";
@@ -42,11 +43,13 @@ function localizedValue(entry: Record<string, unknown>, base: string, locale: Lo
   const localized = entry[localizedKey];
   const fallback = entry[fallbackKey];
 
-  return typeof localized === "string" && localized.length > 0
+  const value = typeof localized === "string" && localized.length > 0
     ? localized
     : typeof fallback === "string"
       ? fallback
       : "";
+
+  return normalizeDisplayText(value);
 }
 
 function localizedFlexibleValue(entry: Record<string, unknown>, base: string, locale: Locale) {
@@ -76,6 +79,8 @@ export async function getLocalizedSiteSettings(locale: Locale) {
     footerTelegramLink: settings.footerTelegramLink || "",
     footerInstagram: settings.footerInstagram || "",
     footerInstagramLink: settings.footerInstagramLink || "",
+    footerYoutube: settings.footerYoutube || defaultSiteSettings.footerYoutube || "",
+    footerYoutubeLink: settings.footerYoutubeLink || defaultSiteSettings.footerYoutubeLink || "",
     storeAddress: settings.storeAddress || "",
     storeMapLink: settings.storeMapLink || "",
     footerAddress: localizedValue(settings, "footerAddress", locale),
@@ -172,7 +177,9 @@ export async function getHomePageContent(locale: Locale) {
         titleRu: true,
         titleEn: true,
         imageUrl: true,
-        videoUrl: true
+        videoUrl: true,
+        createdAt: true,
+        updatedAt: true
       },
       orderBy: [{ type: "asc" }, { sortOrder: "asc" }, { createdAt: "asc" }]
     }),
@@ -260,18 +267,21 @@ export async function getHomePageContent(locale: Locale) {
     bestsellers: bestsellers.map((product) => ({
       id: product.id,
       slug: product.slug,
-      name:
+      name: normalizeDisplayText(
         locale === "uz"
           ? product.nameUz
           : locale === "ru"
             ? product.nameRu || product.nameEn
-            : product.nameEn,
+            : product.nameEn
+      ),
       shortDescription:
-        locale === "uz"
-          ? product.shortDescriptionUz || product.shortDescriptionEn || ""
-          : locale === "ru"
-            ? product.shortDescriptionRu || product.shortDescriptionEn || ""
-            : product.shortDescriptionEn || "",
+        normalizeDisplayText(
+          locale === "uz"
+            ? product.shortDescriptionUz || product.shortDescriptionEn || ""
+            : locale === "ru"
+              ? product.shortDescriptionRu || product.shortDescriptionEn || ""
+              : product.shortDescriptionEn || ""
+        ),
       price: product.price,
       badges: buildProductBadges(product, locale),
       imageUrl: product.imageUrl || ""
@@ -280,7 +290,7 @@ export async function getHomePageContent(locale: Locale) {
       id: row.id,
       title: localizedValue(row, "title", locale),
       description: localizedValue(row, "description", locale),
-      buttonLabel: promoButtonLabels[locale],
+      buttonLabel: normalizeDisplayText(promoButtonLabels[locale]),
       buttonLink:
         row.promoProduct?.active && row.promoProduct.slug
           ? `/${locale}/catalog/${row.promoProduct.slug}`
@@ -304,7 +314,9 @@ export async function getHomePageContent(locale: Locale) {
         id: row.id,
         title: localizedValue(row, "title", locale),
         imageUrl: row.imageUrl,
-        videoUrl: row.videoUrl || ""
+        videoUrl: row.videoUrl || "",
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString()
       })),
     galleryVideoHeadings: galleryHeadingRows
       .filter((row) => row.type === "VIDEO")

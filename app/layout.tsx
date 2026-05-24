@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import "./globals.css";
+
+import { isLocale } from "@/lib/i18n";
+import { DEFAULT_LOCALE, SEO_LOCALE_HEADER, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const avenirBody = localFont({
   src: [
@@ -47,6 +51,7 @@ const artegraHeroTitle = localFont({
     }
   ],
   variable: "--font-hero-title",
+  preload: false,
   display: "swap",
   fallback: ["Arial", "sans-serif"]
 });
@@ -60,6 +65,7 @@ const artegraBrand = localFont({
     }
   ],
   variable: "--font-brand",
+  preload: false,
   display: "swap",
   fallback: ["Arial", "sans-serif"]
 });
@@ -73,12 +79,13 @@ const artegraProductTitle = localFont({
     }
   ],
   variable: "--font-product-title",
+  preload: false,
   display: "swap",
   fallback: ["Arial", "sans-serif"]
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://modaily.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Modaily | Formulated in UK Skincare",
     template: "%s | Modaily"
@@ -88,9 +95,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Modaily",
     description: "UK-formulated skincare for everyday rituals.",
-    url: "https://modaily.com",
-    siteName: "Modaily",
-    locale: "uz_UZ",
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website"
   }
 };
@@ -103,13 +109,17 @@ export const viewport: Viewport = {
   viewportFit: "cover"
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const localeHeader = requestHeaders.get(SEO_LOCALE_HEADER) || DEFAULT_LOCALE;
+  const htmlLang = isLocale(localeHeader) ? localeHeader : DEFAULT_LOCALE;
+
   return (
-    <html lang="en">
+    <html lang={htmlLang}>
       <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable} ${artegraBrand.variable} ${artegraProductTitle.variable}`}>{children}</body>
     </html>
   );

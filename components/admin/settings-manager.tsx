@@ -201,6 +201,20 @@ export function SettingsManager() {
             placeholder="https://instagram.com/modaily_cis"
           />
           <Field
+            label="YouTube"
+            value={settings?.footerYoutube || ""}
+            onChange={(value) => setSettings((current) => (current ? { ...current, footerYoutube: value } : current))}
+            placeholder="@MODAILY_CIS"
+          />
+          <Field
+            label="YouTube link"
+            value={settings?.footerYoutubeLink || ""}
+            onChange={(value) =>
+              setSettings((current) => (current ? { ...current, footerYoutubeLink: value } : current))
+            }
+            placeholder="https://www.youtube.com/@MODAILY_CIS"
+          />
+          <Field
             label="Ссылка на карту"
             value={settings?.storeMapLink || ""}
             onChange={(value) => setSettings((current) => (current ? { ...current, storeMapLink: value } : current))}

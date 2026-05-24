@@ -4,6 +4,11 @@ const config: Config = {
   content: ["./app/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}", "./lib/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      screens: {
+        laptop: "1180px",
+        desktop: "1440px",
+        wide: "1680px"
+      },
       colors: {
         sand: "#f5ecdc",
         ink: "#1f1a17",

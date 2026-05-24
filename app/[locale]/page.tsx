@@ -3,12 +3,16 @@ import Link from "next/link";
 
 import { BestsellerMarquee } from "@/components/home/bestseller-marquee";
 import { Gallery } from "@/components/home/gallery";
+import { HomeHeroImage } from "@/components/home/hero-image";
 import { ProductCard } from "@/components/home/product-card";
 import { Reviews } from "@/components/home/reviews";
 import { VideoGallery } from "@/components/home/video-gallery";
 import { FooterGradientBackground } from "@/components/footer-gradient-background";
+import { JsonLd } from "@/components/seo/json-ld";
 import { FallbackImage } from "@/components/ui/fallback-image";
 import { getDictionary, isLocale, locales } from "@/lib/i18n";
+import { absoluteUrl, localizedAlternates, localizedOpenGraph, localizedPath, metadataDescription, metadataTitle } from "@/lib/seo";
+import { buildGraphSchema, buildVideoObjectSchema } from "@/lib/structured-data";
 import { getStorefrontProducts, type StorefrontProduct } from "@/lib/storefront-products";
 import { getHomePageContent } from "@/lib/storefront-content";
 
@@ -27,6 +31,8 @@ type HomeGalleryImageItem = {
 
 type HomeGalleryVideoItem = HomeGalleryImageItem & {
   videoUrl: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type HomePromoCardItem = {
@@ -208,18 +214,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const dictionary = getDictionary(locale);
+  const title = metadataTitle(dictionary.meta.home.title);
+  const description = metadataDescription(dictionary.meta.home.description, "Modaily skincare storefront.");
 
   return {
-    title: dictionary.meta.home.title,
-    description: dictionary.meta.home.description,
-    alternates: {
-      canonical: `/${locale}`,
-      languages: {
-        uz: "/uz",
-        ru: "/ru",
-        en: "/en"
-      }
-    }
+    title,
+    description,
+    alternates: localizedAlternates(locale),
+    openGraph: localizedOpenGraph({
+      locale,
+      path: "",
+      title,
+      description
+    })
   };
 }
 
@@ -230,6 +237,7 @@ export default async function HomePage({ params }: PageProps) {
     return null;
   }
 
+  const dictionary = getDictionary(locale);
   const content: Awaited<ReturnType<typeof getHomePageContent>> = await getHomePageContent(locale);
   const catalogProducts = await getStorefrontProducts(locale);
   const copy = labels[locale];
@@ -272,41 +280,42 @@ export default async function HomePage({ params }: PageProps) {
   const testimonials = repeatToCount(contentTestimonials.length > 0 ? contentTestimonials : getFallbackTestimonials(locale), 6);
   const validVideoItems = contentGalleryVideos.filter((item) => item.videoUrl && !item.videoUrl.includes("example.com"));
   const videoItems = repeatToMinimum(validVideoItems, 3);
+  const videoSchemas = validVideoItems
+    .map((item, index) =>
+      buildVideoObjectSchema({
+        id: `${absoluteUrl(localizedPath(locale))}#home-video-${index + 1}`,
+        title: item.title || `${copy.videos} ${index + 1}`,
+        description: item.title || copy.videos,
+        thumbnailUrl: item.imageUrl,
+        contentUrl: item.videoUrl,
+        uploadDate: item.createdAt || item.updatedAt
+      })
+    )
+    .filter(Boolean);
 
   return (
     <div className="bg-white text-black">
+      {videoSchemas.length > 0 ? <JsonLd data={buildGraphSchema(videoSchemas)} /> : null}
+      <h1 className="sr-only">{dictionary.meta.home.title}</h1>
       <section className="pt-0">
         <Link
           href={content.hero.primaryCtaLink}
           aria-label="Hero product"
-          className="grid h-[696px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:hidden"
+          className="grid aspect-[375/574] max-h-[760px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] sm:max-h-[820px] lg:aspect-[1440/555] lg:max-h-none"
         >
-          <FallbackImage
-            src={content.hero.mobileImageUrl || content.hero.imageUrl || "/images/home/mainpage.jpg"}
+          <HomeHeroImage
+            mobileSrc={content.hero.mobileImageUrl}
+            desktopSrc={content.hero.imageUrl}
             fallbackSrc="/images/home/mainpage.jpg"
             alt="Hero product"
-            className="col-start-1 row-start-1 h-full w-full object-cover object-center"
-          />
-        </Link>
-
-        <Link
-          href={content.hero.primaryCtaLink}
-          aria-label="Hero product"
-          className="hidden min-h-[460px] w-full overflow-hidden border-b border-black/10 bg-[#ecebe8] lg:grid md:min-h-[520px] xl:min-h-[555px]"
-        >
-          <FallbackImage
-            src={content.hero.imageUrl || "/images/home/mainpage.jpg"}
-            fallbackSrc="/images/home/mainpage.jpg"
-            alt="Hero product"
-            className="col-start-1 row-start-1 h-full min-h-[460px] w-full object-cover object-center md:min-h-[520px] xl:min-h-[555px]"
           />
         </Link>
       </section>
 
-      <section className="px-[38px] py-9 lg:px-12 lg:py-12">
-        <div className="mx-auto max-w-[1680px]">
+      <section className="section-x py-9 lg:py-10 desktop:py-12">
+        <div className="layout-container-wide">
           <div className="hidden items-center justify-between lg:flex">
-            <h2 className="text-[40px] tracking-[-0.04em] md:text-[50px]">{copy.bestsellers}</h2>
+            <h2 className="text-[38px] tracking-[-0.04em] laptop:text-[44px] desktop:text-[50px]">{copy.bestsellers}</h2>
             <Link
               href={`/${locale}/catalog`}
               className="inline-flex items-center gap-[10px] border-b-[1.5px] border-[var(--brand)] pb-[4px] text-[18px] leading-none text-[var(--brand)]"
@@ -336,8 +345,8 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="px-8 py-6 lg:px-12">
-        <div className="mx-auto grid max-w-[1680px] gap-8 lg:grid-cols-2">
+      <section className="section-x py-6 laptop:py-8 desktop:py-10">
+        <div className="layout-container-wide grid gap-6 desktop:gap-8 laptop:grid-cols-2">
           {promoCards.map((card, index) => (
             <ProductCard
               key={`${card.id}-${index}`}
@@ -351,20 +360,20 @@ export default async function HomePage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="py-10 desktop:py-12">
         <Gallery title={copy.gallery} headings={content.galleryImageHeadings} items={galleryImages} />
       </section>
 
       {videoItems.length > 0 ? (
-        <section id="video-gallery" className="px-8 py-12 lg:px-12">
-          <div className="mx-auto max-w-[1680px]">
+        <section id="video-gallery" className="section-x py-10 desktop:py-12">
+          <div className="layout-container-wide">
             <VideoGallery title={copy.videos} headings={content.galleryVideoHeadings} items={videoItems} />
           </div>
         </section>
       ) : null}
 
       <FooterGradientBackground imageSrc="/images/home/ModailyBGred.jpg" className="mt-6">
-        <section className="py-12 text-white">
+        <section className="py-10 desktop:py-12 text-white">
           <Reviews
             title={copy.reviews}
             headings={content.reviewHeadings}
@@ -380,8 +389,8 @@ export default async function HomePage({ params }: PageProps) {
         </section>
       </FooterGradientBackground>
 
-      <section id="about" className="px-8 py-16 lg:px-12">
-        <div className="mx-auto max-w-[1180px]">
+      <section id="about" className="section-x py-12 desktop:py-16">
+        <div className="layout-container-content">
           <div>
             <h2 className="text-[42px] uppercase tracking-[-0.04em] text-[var(--brand)] md:text-[56px]">
               {content.about.title}
@@ -391,12 +400,14 @@ export default async function HomePage({ params }: PageProps) {
             </p>
           </div>
 
-          <div className="mt-12 grid overflow-hidden rounded-[4px] lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="mt-12 grid overflow-hidden rounded-[4px] laptop:grid-cols-[1.08fr_0.92fr]">
             <div className="bg-[#f4f1eb]">
               <FallbackImage
                 src={content.about.imageUrl || "/images/Galary/about1.png"}
                 fallbackSrc="/images/Galary/about1.png"
                 alt={content.about.title}
+                sizes="(max-width: 1179px) 100vw, 51vw"
+                quality={86}
                 className="h-full min-h-[260px] w-full object-cover"
               />
             </div>

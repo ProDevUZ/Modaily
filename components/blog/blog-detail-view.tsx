@@ -158,6 +158,15 @@ export function BlogDetailView({ locale, post, labels }: BlogDetailViewProps) {
               </div>
             </div>
           ) : null}
+
+          <div className="mt-10">
+            <Link
+              href={`/${locale}/blog`}
+              className="inline-flex items-center border-b border-black/35 pb-1 text-sm text-black/62 transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+            >
+              {labels.backToBlog}
+            </Link>
+          </div>
         </div>
       </article>
     </section>

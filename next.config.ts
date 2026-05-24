@@ -48,6 +48,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   images: {
     unoptimized: false,
+    qualities: [72, 76, 82, 84, 86, 88, 90],
     remotePatterns
   },
   experimental: {

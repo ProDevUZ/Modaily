@@ -1,9 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { ProductBadgeStack } from "@/components/product-badge-stack";
 import { DisplayText } from "@/components/ui/display-text";
@@ -26,6 +27,16 @@ import type {
   StorefrontProductDetail,
   StorefrontProductReview
 } from "@/lib/storefront-products";
+
+const AddToCartButton = dynamic(
+  () => import("@/components/add-to-cart-button").then((module) => module.AddToCartButton),
+  { ssr: false }
+);
+
+const ProductCardCommerceAction = dynamic(
+  () => import("@/components/product-card-commerce-action").then((module) => module.ProductCardCommerceAction),
+  { ssr: false }
+);
 
 type ProductDetailViewProps = {
   locale: Locale;
@@ -214,12 +225,14 @@ function AccordionSection({ title, defaultOpen = false, children }: AccordionSec
 
   return (
     <div className="border-b border-black/18 py-4">
-      <button type="button" className="flex w-full items-center justify-between gap-4 text-left" onClick={() => setOpen((current) => !current)}>
-        <span className="text-[1.1rem] font-medium text-black/75">{title}</span>
-        <svg viewBox="0 0 20 20" className={`h-5 w-5 text-black/65 transition ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6">
-          <path d="m5 7 5 6 5-6" />
-        </svg>
-      </button>
+      <h2>
+        <button type="button" className="flex w-full items-center justify-between gap-4 text-left" onClick={() => setOpen((current) => !current)}>
+          <span className="text-[1.1rem] font-medium text-black/75">{title}</span>
+          <svg viewBox="0 0 20 20" className={`h-5 w-5 text-black/65 transition ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="m5 7 5 6 5-6" />
+          </svg>
+        </button>
+      </h2>
       {open ? <div className="pt-4 text-sm leading-8 text-black/75">{children}</div> : null}
     </div>
   );
@@ -231,7 +244,6 @@ function ProductMediaFrame({
   className,
   videoClassName,
   controls = false,
-  autoPlay = false,
   interactiveVideo = false,
   imagePriority = false
 }: {
@@ -240,11 +252,11 @@ function ProductMediaFrame({
   className: string;
   videoClassName?: string;
   controls?: boolean;
-  autoPlay?: boolean;
   interactiveVideo?: boolean;
   imagePriority?: boolean;
 }) {
   const [videoActivated, setVideoActivated] = useState(false);
+  const [playbackRequested, setPlaybackRequested] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const {
     videoRef,
@@ -263,17 +275,37 @@ function ProductMediaFrame({
     onActivate: () => setVideoActivated(true)
   });
 
+  function requestVideoPlayback() {
+    setVideoActivated(true);
+    setPlaybackRequested(true);
+  }
+
   useEffect(() => {
     setIsBuffering(false);
+    setPlaybackRequested(false);
 
     if (interactiveVideo && item?.type === "VIDEO" && item.videoUrl) {
       setVideoActivated(true);
-      void startPlayback();
+      setPlaybackRequested(true);
       return;
     }
 
     setVideoActivated(false);
   }, [interactiveVideo, item?.id]);
+
+  useEffect(() => {
+    if (!playbackRequested || !videoActivated || failed || item?.type !== "VIDEO" || !item.videoUrl) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      void startPlayback();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [failed, item?.id, item?.type, item?.videoUrl, playbackRequested, videoActivated]);
 
   if (item?.type === "VIDEO" && item.videoUrl) {
     const playbackEvents = {
@@ -283,9 +315,13 @@ function ProductMediaFrame({
       },
       onCanPlay: () => {
         setIsBuffering(false);
+        if (playbackRequested) {
+          void startPlayback();
+        }
       },
       onPlaying: () => {
         setIsBuffering(false);
+        setPlaybackRequested(false);
       },
       onPlay: () => {
         setIsBuffering(false);
@@ -297,12 +333,14 @@ function ProductMediaFrame({
       },
       onError: () => {
         setIsBuffering(false);
+        setPlaybackRequested(false);
         videoEvents.onError();
       }
     };
 
     if (interactiveVideo) {
       const mediaClassNames = `${videoClassName || className} mx-auto block`;
+      const posterSrc = item.videoPosterUrl || item.imageUrl || "";
 
       return (
         <div
@@ -313,23 +351,25 @@ function ProductMediaFrame({
               return;
             }
 
-            void startPlayback();
+            requestVideoPlayback();
           }}
         >
-          {failed ? (
+          {failed || !videoActivated ? (
             <FallbackImage
-              src={item.imageUrl || ""}
+              src={posterSrc}
               fallbackSrc="/images/home/mainpage.jpg"
               alt={alt}
               priority={imagePriority}
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              fetchPriority={imagePriority ? "high" : undefined}
+              sizes="(max-width: 1179px) 100vw, (max-width: 1439px) 46vw, 45vw"
+              quality={88}
               className={className}
             />
           ) : (
             <HlsVideo
               ref={videoRef}
               mp4Url={item.videoUrl}
-              poster={item.videoPosterUrl || item.imageUrl || undefined}
+              poster={item.videoPosterUrl || undefined}
               preload="metadata"
               playsInline
               loop
@@ -361,7 +401,7 @@ function ProductMediaFrame({
                   return;
                 }
 
-                void startPlayback();
+                requestVideoPlayback();
               }}
               aria-label={videoActivated ? (playing ? "Pause video" : "Play video") : alt}
               className={`interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent transition ${
@@ -404,26 +444,16 @@ function ProductMediaFrame({
 
     return (
       <div className="relative flex h-full w-full items-center justify-center">
-        <HlsVideo
-          mp4Url={item.videoUrl}
-          poster={item.videoPosterUrl || item.imageUrl || undefined}
+        <FallbackImage
+          src={item.videoPosterUrl || item.imageUrl || ""}
+          fallbackSrc="/images/home/mainpage.jpg"
+          alt={alt}
+          priority={imagePriority}
+          fetchPriority={imagePriority ? "high" : undefined}
+          sizes="(max-width: 1179px) 100vw, (max-width: 1439px) 46vw, 45vw"
+          quality={88}
           className={`${videoClassName || className} mx-auto block`}
-          controls={controls}
-          autoPlay={autoPlay}
-          muted={!controls}
-          loop={!controls}
-          playsInline
-          preload="metadata"
-          onHlsStateChange={(state) => {
-            setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
-          }}
-          onWaiting={() => setIsBuffering(true)}
-          onCanPlay={() => setIsBuffering(false)}
-          onPlaying={() => setIsBuffering(false)}
-          onPause={() => setIsBuffering(false)}
-          onError={() => setIsBuffering(false)}
         />
-        {isBuffering ? <VideoLoadingSpinner /> : null}
         {!controls ? (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black/45 text-white shadow-[0_10px_24px_rgba(0,0,0,0.25)]">
@@ -443,7 +473,9 @@ function ProductMediaFrame({
       fallbackSrc="/images/home/mainpage.jpg"
       alt={alt}
       priority={imagePriority}
-      sizes="(max-width: 1024px) 100vw, 50vw"
+      fetchPriority={imagePriority ? "high" : undefined}
+      sizes="(max-width: 1179px) 100vw, (max-width: 1439px) 46vw, 45vw"
+      quality={88}
       className={className}
     />
   );
@@ -911,10 +943,10 @@ export function ProductDetailView({
   const activeMedia = product.media[activeImageIndex] ?? product.media[0];
 
   return (
-    <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-10 md:px-8 lg:px-10">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.85fr)] xl:gap-12">
+    <div className="layout-bleed-container pb-14 pt-8 desktop:pb-16 desktop:pt-10">
+      <div className="grid gap-8 laptop:grid-cols-[minmax(0,0.96fr)_minmax(340px,0.84fr)] desktop:grid-cols-[minmax(0,0.95fr)_minmax(400px,0.85fr)] desktop:gap-12">
         <div>
-          <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] lg:hidden">
+          <div className="relative overflow-hidden rounded-[4px] bg-[#f5f5f2] laptop:hidden">
             {activeMedia?.type === "VIDEO" ? (
               <button
                 type="button"
@@ -951,7 +983,7 @@ export function ProductDetailView({
 
           </div>
 
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 laptop:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {product.media.map((item, index) => (
               <button
                 key={item.id}
@@ -968,7 +1000,7 @@ export function ProductDetailView({
             ))}
           </div>
 
-          <div className="hidden gap-4 sm:grid-cols-2 lg:grid">
+          <div className="hidden gap-4 sm:grid-cols-2 laptop:grid">
             {product.media.map((item, index) => (
               <button
                 key={item.id}
@@ -990,21 +1022,21 @@ export function ProductDetailView({
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-24 lg:self-start">
+        <div className="laptop:sticky laptop:top-20 laptop:self-start desktop:top-24">
           <div>
-          <div className="mt-4 flex items-center gap-3 lg:mt-0">
+          <div className="mt-4 flex items-center gap-3 laptop:mt-0">
             <Stars rating={reviewSummary.average || 5} />
             <p className="text-sm text-black/60">
               {reviewSummary.count} {copy.badges.reviews}
             </p>
           </div>
 
-          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[3.1rem]">
+          <h1 className="mt-5 text-[2.1rem] uppercase leading-[1.02] text-black sm:text-[2.65rem] desktop:text-[3.1rem]">
             <DisplayText value={product.name} normalize={false} />
           </h1>
 
           {product.shortDescription ? (
-            <div className="mt-5 max-w-[42rem] text-[1.02rem] leading-8 text-black/55">
+            <div className="mt-4 max-w-[40rem] text-[0.98rem] leading-7 text-black/55 desktop:mt-5 desktop:max-w-[42rem] desktop:text-[1.02rem] desktop:leading-8">
               {renderRichText(product.shortDescription, {
                 containerClassName: "space-y-3",
                 blockClassName: "whitespace-pre-wrap",
@@ -1014,16 +1046,16 @@ export function ProductDetailView({
             </div>
           ) : null}
 
-          {!hideCommerce ? <div className="mt-6 text-[2.3rem] leading-none text-black">{formatPrice(product.price)} сум</div> : null}
+          {!hideCommerce ? <div className="mt-5 text-[2.05rem] leading-none text-black desktop:mt-6 desktop:text-[2.3rem]">{formatPrice(product.price)} сум</div> : null}
 
           </div>
 
-          <div className={`border-t border-black/12 pt-4 ${hideCommerce ? "mt-6" : "mt-8"}`}>
+          <div className={`border-t border-black/12 pt-4 ${hideCommerce ? "mt-5 desktop:mt-6" : "mt-7 desktop:mt-8"}`}>
             <div className="flex items-center justify-between text-[1.05rem] text-black/55">
               <span>{copy.labels.size}</span>
               <span>&gt;</span>
             </div>
-            <p className="mt-3 text-[1.8rem] text-black">
+            <p className="mt-3 text-[1.55rem] text-black desktop:text-[1.8rem]">
               <DisplayText value={product.size || "-"} normalize={false} />
             </p>
           </div>
@@ -1031,14 +1063,14 @@ export function ProductDetailView({
           <button
             type="button"
             onClick={() => openWhereToBuyLink(whereToBuyLink)}
-            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-[8px] bg-[#ba0c2f] px-6 text-sm font-medium text-white transition hover:opacity-90"
+            className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-[8px] bg-[#ba0c2f] px-6 text-sm font-medium text-white transition hover:opacity-90 desktop:mt-6"
           >
             {copy.actions.whereToBuy}
           </button>
 
           {!hideCommerce ? (
             <>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row desktop:mt-8">
                 <div className="flex h-12 items-center rounded-[8px] bg-[#f5f5f2] px-4">
                   <button type="button" className="px-2 text-xl text-black/70" onClick={() => setQuantity((current) => Math.max(1, current - 1))}>
                     -
@@ -1064,16 +1096,28 @@ export function ProductDetailView({
             </>
           ) : null}
 
-          <div className="mt-7 grid grid-cols-[84px_1fr] gap-y-3 text-sm text-black/55">
+          <div className="mt-6 grid grid-cols-[84px_1fr] gap-y-3 text-sm text-black/55 desktop:mt-7">
             <span>{copy.labels.sku}</span>
             <span className="text-black/75">{product.sku}</span>
             <span>{copy.labels.category}</span>
-            <span className="text-black/75">
-              <DisplayText value={product.category || "-"} normalize={false} />
+            <span className="flex flex-wrap gap-x-2 gap-y-1 text-black/75">
+              {product.categories.length > 0 ? (
+                product.categories.map((category, index) => (
+                  <Link
+                    key={category.slug || category.id}
+                    href={`/${locale}/catalog?category=${encodeURIComponent(category.slug)}`}
+                    className="transition hover:text-[var(--brand)]"
+                  >
+                    <DisplayText value={`${category.name}${index < product.categories.length - 1 ? "," : ""}`} normalize={false} />
+                  </Link>
+                ))
+              ) : (
+                <DisplayText value={product.category || "-"} normalize={false} />
+              )}
             </span>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-7 desktop:mt-8">
             <AccordionSection title={copy.labels.description} defaultOpen>
               <div className="space-y-6">
                 {renderRichText(product.description, {
@@ -1329,11 +1373,11 @@ export function ProductDetailView({
       </div>
 
       {recommendations.length > 0 ? (
-        <section className="mt-20">
-          <h2 className="text-[0.95rem] uppercase text-black md:text-[2.1rem]">{copy.labels.recommended}</h2>
+        <section className="mt-16 desktop:mt-20">
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.85rem] desktop:text-[2.1rem]">{copy.labels.recommended}</h2>
 
           <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 xl:grid-cols-4 xl:gap-x-3">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 laptop:grid-cols-3 laptop:gap-x-4 desktop:grid-cols-4 desktop:gap-x-3">
               {recommendations.map((item) => (
                 <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
                   <ProductCard
@@ -1342,6 +1386,20 @@ export function ProductDetailView({
                     variant="catalog"
                     hideCommerce={hideCommerce}
                     compactMobile
+                    labels={{
+                      details: copy.labels.details,
+                      currencySymbol: locale === "en" ? "$" : "сум"
+                    }}
+                    commerceAction={
+                      hideCommerce ? undefined : (
+                        <ProductCardCommerceAction
+                          locale={locale}
+                          product={item}
+                          label={copy.actions.addToCart}
+                          className="relative z-[2] inline-flex h-[37px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[10px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
+                        />
+                      )
+                    }
                   />
                 </div>
               ))}
@@ -1351,11 +1409,11 @@ export function ProductDetailView({
       ) : null}
 
       {viewedProducts.length > 0 ? (
-        <section className="mt-20">
-          <h2 className="text-[0.95rem] uppercase text-black md:text-[2.1rem]">{copy.labels.recentlyViewed}</h2>
+        <section className="mt-16 desktop:mt-20">
+          <h2 className="text-[0.95rem] uppercase text-black md:text-[1.85rem] desktop:text-[2.1rem]">{copy.labels.recentlyViewed}</h2>
 
           <div className="mt-6 -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 xl:grid-cols-4 xl:gap-x-3">
+            <div className="flex w-max gap-3 md:grid md:w-auto md:grid-cols-2 md:gap-x-5 md:gap-y-10 laptop:grid-cols-3 laptop:gap-x-4 desktop:grid-cols-4 desktop:gap-x-3">
               {viewedProducts.map((item) => (
                 <div key={item.id} className="w-[130px] shrink-0 md:w-auto">
                   <ProductCard
@@ -1364,6 +1422,20 @@ export function ProductDetailView({
                     variant="catalog"
                     hideCommerce={hideCommerce}
                     compactMobile
+                    labels={{
+                      details: copy.labels.details,
+                      currencySymbol: locale === "en" ? "$" : "сум"
+                    }}
+                    commerceAction={
+                      hideCommerce ? undefined : (
+                        <ProductCardCommerceAction
+                          locale={locale}
+                          product={item}
+                          label={copy.actions.addToCart}
+                          className="relative z-[2] inline-flex h-[37px] w-full items-center justify-center rounded-none border border-black/65 px-4 text-[10px] font-normal uppercase tracking-[0.03em] text-black transition hover:bg-black hover:text-white"
+                        />
+                      )
+                    }
                   />
                 </div>
               ))}

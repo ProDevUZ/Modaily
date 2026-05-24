@@ -24,6 +24,10 @@ export function ProductCard({
           src={imageUrl || ""}
           fallbackSrc="https://placehold.co/584x356/f3f3f1/f3f3f1"
           alt={title}
+          sizes="(max-width: 1179px) 100vw, 50vw"
+          width={584}
+          height={356}
+          quality={86}
           className="col-start-1 row-start-1 h-full w-full object-cover"
         />
       </div>

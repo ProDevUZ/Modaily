@@ -9,6 +9,34 @@
   --line: rgba(31, 26, 23, 0.08);
   --brand: #ba0c2f;
   --brand-rgb: 186, 12, 47;
+  --layout-gutter: 2rem;
+  --layout-max-standard: 1440px;
+  --layout-max-wide: 1680px;
+  --layout-max-content: 1180px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --layout-gutter: 2.5rem;
+  }
+}
+
+@media (min-width: 1180px) {
+  :root {
+    --layout-gutter: 2.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --layout-gutter: 3rem;
+  }
+}
+
+@media (min-width: 1680px) {
+  :root {
+    --layout-gutter: 3.5rem;
+  }
 }
 
 * {
@@ -48,6 +76,32 @@ select {
 
 .shell {
   @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@layer utilities {
+  .section-x {
+    padding-inline: var(--layout-gutter);
+  }
+
+  .layout-container {
+    width: min(100%, var(--layout-max-standard));
+    margin-inline: auto;
+  }
+
+  .layout-container-wide {
+    width: min(100%, var(--layout-max-wide));
+    margin-inline: auto;
+  }
+
+  .layout-container-content {
+    width: min(100%, var(--layout-max-content));
+    margin-inline: auto;
+  }
+
+  .layout-bleed-container {
+    width: min(100% - (var(--layout-gutter) * 2), var(--layout-max-wide));
+    margin-inline: auto;
+  }
 }
 
 .glass {

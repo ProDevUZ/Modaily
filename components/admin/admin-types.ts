@@ -153,6 +153,8 @@ export type AdminSiteSettings = {
   footerTelegramLink: string | null;
   footerInstagram: string | null;
   footerInstagramLink: string | null;
+  footerYoutube: string | null;
+  footerYoutubeLink: string | null;
   storeAddress: string | null;
   storeMapLink: string | null;
   footerAddressUz: string | null;

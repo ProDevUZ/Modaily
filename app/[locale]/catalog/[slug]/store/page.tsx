@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FallbackImage } from "@/components/ui/fallback-image";
-import type { Locale } from "@/lib/i18n";
+import { normalizeDisplayText } from "@/lib/display-text";
+import { isLocale, type Locale } from "@/lib/i18n";
 import { getProductPageCopy } from "@/lib/product-page-copy";
+import { noIndexRobots } from "@/lib/seo";
 import { getLocalizedSiteSettings } from "@/lib/storefront-content";
 import { getStorefrontProductDetail } from "@/lib/storefront-products";
 
@@ -45,6 +48,32 @@ function storePageMeta(locale: Locale) {
     openMap: "Xaritada ochish",
     noLocation: "Manzil tez orada qo'shiladi",
     noContacts: "Kontaktlar tez orada qo'shiladi"
+  };
+}
+
+function normalizeStorePageMeta(meta: ReturnType<typeof storePageMeta>) {
+  return {
+    title: normalizeDisplayText(meta.title),
+    openMap: normalizeDisplayText(meta.openMap),
+    noLocation: normalizeDisplayText(meta.noLocation),
+    noContacts: normalizeDisplayText(meta.noContacts)
+  };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale, slug } = await params;
+
+  if (!isLocale(locale)) {
+    return {
+      robots: noIndexRobots
+    };
+  }
+
+  const product = await getStorefrontProductDetail(locale, slug);
+
+  return {
+    title: product ? `${product.name} store` : "Store",
+    robots: noIndexRobots
   };
 }
 
@@ -91,7 +120,7 @@ export default async function ProductStorePage({ params }: PageProps) {
   }
 
   const copy = getProductPageCopy(locale);
-  const meta = storePageMeta(locale);
+  const meta = normalizeStorePageMeta(storePageMeta(locale));
   const store = product.store ?? {
     imageUrl: "",
     location: "",

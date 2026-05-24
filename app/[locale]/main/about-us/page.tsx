@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AboutPageView } from "@/components/about/about-page-view";
 import { defaultHomeAbout } from "@/lib/content-defaults";
 import { getDictionary, isLocale } from "@/lib/i18n";
+import { localizedAlternates, localizedOpenGraph, metadataDescription, metadataTitle } from "@/lib/seo";
 import { getHomePageContent, getLocalizedSiteSettings } from "@/lib/storefront-content";
 
 type PageProps = {
@@ -21,15 +22,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const homeContent = await getHomePageContent(locale);
-  const title = homeContent.about?.title || defaultHomeAbout.titleRu;
-  const description = homeContent.about?.description || defaultHomeAbout.descriptionRu;
+  const title = metadataTitle(homeContent.about?.title || defaultHomeAbout.titleRu);
+  const description = metadataDescription(
+    homeContent.about?.description || defaultHomeAbout.descriptionRu,
+    "About Modaily."
+  );
 
   return {
-    title: `${title} | Modaily`,
+    title,
     description,
-    alternates: {
-      canonical: `/${locale}/main/about-us`
-    }
+    alternates: localizedAlternates(locale, "/main/about-us"),
+    openGraph: localizedOpenGraph({
+      locale,
+      path: "/main/about-us",
+      title,
+      description
+    })
   };
 }
 

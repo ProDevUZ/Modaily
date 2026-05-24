@@ -140,6 +140,7 @@ export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function Hls
 ) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const onHlsStateChangeRef = useRef(onHlsStateChange);
   const resumeWhenVisibleRef = useRef(false);
   const [lookup, setLookup] = useState<HlsPlaybackLookup>({
     status: "idle",
@@ -154,6 +155,10 @@ export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function Hls
   const usingHls = Boolean(hlsUrl && effectiveUrl === hlsUrl);
 
   useImperativeHandle(forwardedRef, () => videoRef.current as HTMLVideoElement, []);
+
+  useEffect(() => {
+    onHlsStateChangeRef.current = onHlsStateChange;
+  }, [onHlsStateChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -216,13 +221,13 @@ export const HlsVideo = forwardRef<HTMLVideoElement, HlsVideoProps>(function Hls
   }, [enableHls, mp4Url]);
 
   useEffect(() => {
-    onHlsStateChange?.({
+    onHlsStateChangeRef.current?.({
       status: fallbackToMp4 ? "fallback" : lookup.status,
       usingHls,
       effectiveUrl,
       posterUrl: effectivePoster || null
     });
-  }, [effectivePoster, effectiveUrl, fallbackToMp4, lookup.status, onHlsStateChange, usingHls]);
+  }, [effectivePoster, effectiveUrl, fallbackToMp4, lookup.status, usingHls]);
 
   useEffect(() => {
     const video = videoRef.current;

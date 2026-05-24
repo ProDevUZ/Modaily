@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { validateContactMessagePayload } from "@/lib/admin-validators";
+import { notifyTelegramAboutContactMessage } from "@/lib/telegram-notifications";
 
 export async function GET() {
   const messages = await prisma.contactMessage.findMany({
@@ -24,6 +25,13 @@ export async function POST(request: Request) {
   try {
     const message = await prisma.contactMessage.create({
       data: parsed.data
+    });
+
+    await notifyTelegramAboutContactMessage({
+      fullName: message.fullName,
+      phone: message.phone,
+      message: message.message,
+      createdAt: message.createdAt
     });
 
     return NextResponse.json(message, { status: 201 });

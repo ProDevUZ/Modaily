@@ -1,5 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 
+import { normalizeDisplayText } from "@/lib/display-text";
 import { prisma } from "@/lib/prisma";
 import type {
   BlogPostDynamicSection,
@@ -134,14 +135,14 @@ function resolveLocalizedValue(
   const normalizedLegacy = legacy || null;
 
   if (locale === "uz") {
-    return values.uz || normalizedLegacy || values.ru || values.en || "";
+    return normalizeDisplayText(values.uz || normalizedLegacy || values.ru || values.en || "");
   }
 
   if (locale === "en") {
-    return values.en || normalizedLegacy || values.ru || values.uz || "";
+    return normalizeDisplayText(values.en || normalizedLegacy || values.ru || values.uz || "");
   }
 
-  return values.ru || normalizedLegacy || values.en || values.uz || "";
+  return normalizeDisplayText(values.ru || normalizedLegacy || values.en || values.uz || "");
 }
 
 function serializeMediaItem(item: BlogPostMediaRow): BlogPostMediaItem {
@@ -299,8 +300,8 @@ export function serializeBlogPost(post: BlogPostRow, locale: Locale = "ru"): Blo
     introDescriptionEn: post.introDescriptionEn,
     media: serializedMedia,
     dynamicSections: post.dynamicSections.map((section) => serializeDynamicSection(section, locale)),
-    seoTitle: post.seoTitle,
-    metaDescription: post.metaDescription,
+    seoTitle: normalizeDisplayText(post.seoTitle),
+    metaDescription: normalizeDisplayText(post.metaDescription),
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString()
   };
@@ -436,4 +437,25 @@ export async function getStorefrontBlogPostSlugs() {
   })) as BlogPostSlugRow[];
 
   return rows.map((row) => row.slug);
+}
+
+export async function getStorefrontBlogPostSitemapEntries() {
+  noStore();
+
+  const rows = await prisma.blogPost.findMany({
+    where: {
+      publishDate: publishedAtOrBeforeNow()
+    },
+    select: {
+      slug: true,
+      updatedAt: true,
+      publishDate: true
+    },
+    orderBy: [{ publishDate: "desc" }, { createdAt: "desc" }]
+  });
+
+  return rows.map((row) => ({
+    slug: row.slug,
+    lastModified: row.updatedAt || row.publishDate
+  }));
 }

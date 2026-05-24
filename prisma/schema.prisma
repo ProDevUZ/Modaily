@@ -208,6 +208,8 @@ model SiteSettings {
   footerTelegramLink               String?
   footerInstagram                  String?
   footerInstagramLink              String?
+  footerYoutube                    String?
+  footerYoutubeLink                String?
   storeAddress                     String?
   storeMapLink                     String?
   footerAddressUz                  String?

@@ -151,6 +151,10 @@ function VideoCard({
           src={item.imageUrl || "https://placehold.co/375x667"}
           fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
           alt={item.title || `Video ${index + 1}`}
+          sizes="(max-width: 767px) 72vw, (max-width: 1179px) 34vw, (max-width: 1439px) 248px, 280px"
+          width={375}
+          height={667}
+          quality={84}
           className="h-full w-full object-cover object-center"
         />
 
@@ -197,6 +201,8 @@ function MobileVideoLightboxReel({
   const swipeHintHideTimeoutRef = useRef<number | null>(null);
   const swipeHintDismissedRef = useRef(false);
   const centerIconTimeoutRef = useRef<number | null>(null);
+  const activeVirtualIndexRef = useRef(items.length > 1 ? initialIndex + 1 : initialIndex);
+  const preferAudiblePlaybackRef = useRef(true);
   const [activeVirtualIndex, setActiveVirtualIndex] = useState(items.length > 1 ? initialIndex + 1 : initialIndex);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isActivePlaying, setIsActivePlaying] = useState(false);
@@ -270,21 +276,51 @@ function MobileVideoLightboxReel({
       return;
     }
 
-    pauseOtherPageVideos(activeVideo);
+    const playableVideo = activeVideo;
+
+    pauseOtherPageVideos(playableVideo);
+    setIsBuffering(true);
     if (options.restart) {
-      activeVideo.currentTime = 0;
+      playableVideo.currentTime = 0;
     }
-    activeVideo.muted = false;
-    void activeVideo
+    playableVideo.muted = false;
+
+    function markPlaybackStarted() {
+      if (activeVirtualIndexRef.current !== index) {
+        return;
+      }
+
+      if (preferAudiblePlaybackRef.current) {
+        playableVideo.muted = false;
+      }
+
+      setIsBuffering(false);
+      setIsActivePlaying(true);
+      if (options.showIndicator) {
+        showCenterIcon("play", true);
+      }
+    }
+
+    void playableVideo
       .play()
-      .then(() => {
-        setIsActivePlaying(true);
-        if (options.showIndicator) {
-          showCenterIcon("play", true);
-        }
-      })
-      .catch(() => setIsActivePlaying(false));
+      .then(markPlaybackStarted)
+      .catch(() => {
+        playableVideo.muted = true;
+        void playableVideo
+          .play()
+          .then(markPlaybackStarted)
+          .catch(() => {
+            if (activeVirtualIndexRef.current === index) {
+              setIsBuffering(false);
+              setIsActivePlaying(false);
+            }
+          });
+      });
   }
+
+  useEffect(() => {
+    activeVirtualIndexRef.current = activeVirtualIndex;
+  }, [activeVirtualIndex]);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -304,10 +340,10 @@ function MobileVideoLightboxReel({
 
   useEffect(() => {
     playVideoAt(activeVirtualIndex, { restart: true });
-    setIsBuffering(false);
+    setIsBuffering(Boolean(loopItems[activeVirtualIndex]?.item.videoUrl));
     setActiveCurrentTime(0);
     setActiveDuration(0);
-  }, [activeVirtualIndex]);
+  }, [activeVirtualIndex, loopItems]);
 
   useEffect(
     () => () => {
@@ -375,6 +411,7 @@ function MobileVideoLightboxReel({
   }, [activeVirtualIndex, isActivePlaying, items.length]);
 
   function dismissSwipeHint() {
+    preferAudiblePlaybackRef.current = true;
     swipeHintDismissedRef.current = true;
     setShowSwipeHint(false);
 
@@ -439,10 +476,12 @@ function MobileVideoLightboxReel({
     }
 
     if (activeVideo.paused) {
+      preferAudiblePlaybackRef.current = true;
       playVideoAt(activeVirtualIndex, { showIndicator: true });
       return;
     }
 
+    preferAudiblePlaybackRef.current = false;
     pauseAllVideos({ showIndicator: true });
   }
 
@@ -490,111 +529,148 @@ function MobileVideoLightboxReel({
         onScroll={normalizeMobileScroll}
         onTouchStart={dismissSwipeHint}
       >
-        {loopItems.map(({ item, itemIndex }, virtualIndex) => (
-          <section
-            key={`${item.id}-${virtualIndex}`}
-            className="relative h-[100dvh] snap-center snap-always overflow-hidden bg-transparent"
-          >
-            {item.videoUrl ? (
-              <div className="main-video-gallery-lightbox-media">
-                <FallbackImage
-                  src={item.imageUrl || "https://placehold.co/375x667"}
-                  fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover object-center"
-                />
-                <HlsVideo
-                  ref={(element) => {
-                    videoRefs.current[virtualIndex] = element;
-                  }}
-                  mp4Url={item.videoUrl}
-                  poster={item.imageUrl || undefined}
-                  playsInline
-                  muted
-                  loop
-                  preload="metadata"
-                  className="main-mobile-reel-video absolute inset-0 block h-full w-full object-cover object-center"
-                  onLoadedMetadata={(event) => updateActiveTime(event.currentTarget, virtualIndex)}
-                  onTimeUpdate={(event) => updateActiveTime(event.currentTarget, virtualIndex)}
-                  onWaiting={() => {
-                    if (virtualIndex === activeVirtualIndex) {
-                      setIsBuffering(true);
-                    }
-                  }}
-                  onCanPlay={() => setIsBuffering(false)}
-                  onHlsStateChange={(state) => {
-                    if (virtualIndex === activeVirtualIndex) {
-                      setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
-                    }
-                  }}
-                  onPlaying={() => {
-                    if (virtualIndex !== activeVirtualIndex) {
-                      const video = videoRefs.current[virtualIndex];
-                      video?.pause();
-                      if (video) {
-                        video.muted = true;
-                      }
-                      return;
-                    }
+        {loopItems.map(({ item, itemIndex }, virtualIndex) => {
+          const isNearActiveSlide = Math.abs(virtualIndex - activeVirtualIndex) <= 1;
 
-                    setIsBuffering(false);
-                    setIsActivePlaying(true);
-                  }}
-                  onPause={() => {
-                    if (virtualIndex === activeVirtualIndex) {
-                      setIsActivePlaying(false);
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="main-video-gallery-lightbox-media">
-                <FallbackImage
-                  src={item.imageUrl || "https://placehold.co/375x667"}
-                  fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
-                  alt={item.title || `Video ${itemIndex + 1}`}
-                  className="h-full w-full object-cover object-center"
-                />
-              </div>
-            )}
+          return (
+            <section
+              key={`${item.id}-${virtualIndex}`}
+              className="relative h-[100dvh] snap-center snap-always overflow-hidden bg-transparent"
+            >
+              {item.videoUrl ? (
+                <div className="main-video-gallery-lightbox-media">
+                  <FallbackImage
+                    src={item.imageUrl || "https://placehold.co/375x667"}
+                    fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
+                    alt=""
+                    sizes="100vw"
+                    width={375}
+                    height={667}
+                    loading={isNearActiveSlide ? "eager" : "lazy"}
+                    fetchPriority={isNearActiveSlide ? "high" : "low"}
+                    quality={84}
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                  />
+                  {virtualIndex === activeVirtualIndex ? (
+                    <HlsVideo
+                      ref={(element) => {
+                        videoRefs.current[virtualIndex] = element;
+                      }}
+                      mp4Url={item.videoUrl}
+                      poster={undefined}
+                      playsInline
+                      muted
+                      loop
+                      preload="metadata"
+                      className="main-mobile-reel-video absolute inset-0 block h-full w-full object-cover object-center"
+                      onLoadedMetadata={(event) => updateActiveTime(event.currentTarget, virtualIndex)}
+                      onTimeUpdate={(event) => updateActiveTime(event.currentTarget, virtualIndex)}
+                      onWaiting={() => {
+                        if (virtualIndex === activeVirtualIndex) {
+                          setIsBuffering(true);
+                        }
+                      }}
+                      onCanPlay={(event) => {
+                        if (virtualIndex !== activeVirtualIndex) {
+                          return;
+                        }
 
-            <VideoPreviewSurface item={item} index={itemIndex} />
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-            {isBuffering && virtualIndex === activeVirtualIndex ? <VideoLoadingSpinner /> : null}
-            {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
-            {item.videoUrl && virtualIndex === activeVirtualIndex ? (
-              <div
-                className="absolute bottom-[calc(env(safe-area-inset-bottom)+38px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <span className="shrink-0">
-                  {formatInteractiveVideoTime(activeCurrentTime)} / {formatInteractiveVideoTime(activeDuration)}
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={activeDuration || 0}
-                  step="0.1"
-                  value={Math.min(activeCurrentTime, activeDuration || 0)}
-                  onChange={(event) => seekActiveVideo(Number(event.target.value))}
-                  className="main-video-gallery-lightbox-range h-5 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent"
-                  aria-label="Video progress"
-                />
-              </div>
-            ) : null}
-            {item.videoUrl && virtualIndex === activeVirtualIndex ? (
-              <button
-                type="button"
-                onClick={toggleActiveVideo}
-                aria-label={isActivePlaying ? "Pause video" : "Play video"}
-                className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
-              >
-                {!isActivePlaying && !centerIcon ? <VideoPlaybackIndicator kind="play" /> : null}
-                {centerIcon ? <VideoPlaybackIndicator kind={centerIcon} /> : null}
-              </button>
-            ) : null}
-          </section>
-        ))}
+                        updateActiveTime(event.currentTarget, virtualIndex);
+                        if (event.currentTarget.paused) {
+                          playVideoAt(virtualIndex);
+                          return;
+                        }
+
+                        setIsBuffering(false);
+                      }}
+                      onHlsStateChange={(state) => {
+                        if (virtualIndex === activeVirtualIndex) {
+                          if (state.status === "loading" || state.status === "pending" || state.status === "processing") {
+                            setIsBuffering(true);
+                            return;
+                          }
+
+                          if (!state.effectiveUrl && (state.status === "failed" || state.status === "mp4_only")) {
+                            setIsBuffering(false);
+                          }
+                        }
+                      }}
+                      onPlaying={() => {
+                        if (virtualIndex !== activeVirtualIndex) {
+                          const video = videoRefs.current[virtualIndex];
+                          video?.pause();
+                          if (video) {
+                            video.muted = true;
+                          }
+                          return;
+                        }
+
+                        setIsBuffering(false);
+                        setIsActivePlaying(true);
+                      }}
+                      onPause={() => {
+                        if (virtualIndex === activeVirtualIndex) {
+                          setIsActivePlaying(false);
+                        }
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="main-video-gallery-lightbox-media">
+                  <FallbackImage
+                    src={item.imageUrl || "https://placehold.co/375x667"}
+                    fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
+                    alt={item.title || `Video ${itemIndex + 1}`}
+                    sizes="100vw"
+                    width={375}
+                    height={667}
+                    loading={isNearActiveSlide ? "eager" : "lazy"}
+                    fetchPriority={isNearActiveSlide ? "high" : "low"}
+                    quality={84}
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
+              )}
+
+              <VideoPreviewSurface item={item} index={itemIndex} />
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+              {isBuffering && virtualIndex === activeVirtualIndex ? <VideoLoadingSpinner /> : null}
+              {showSwipeHint && virtualIndex === activeVirtualIndex ? <MobileSwipeHint /> : null}
+              {item.videoUrl && virtualIndex === activeVirtualIndex ? (
+                <div
+                  className="absolute bottom-[calc(env(safe-area-inset-bottom)+38px)] left-4 right-4 z-20 flex items-center gap-3 text-[12px] font-medium tracking-[0.02em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="shrink-0">
+                    {formatInteractiveVideoTime(activeCurrentTime)} / {formatInteractiveVideoTime(activeDuration)}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={activeDuration || 0}
+                    step="0.1"
+                    value={Math.min(activeCurrentTime, activeDuration || 0)}
+                    onChange={(event) => seekActiveVideo(Number(event.target.value))}
+                    className="main-video-gallery-lightbox-range h-5 min-w-0 flex-1 cursor-pointer appearance-none bg-transparent"
+                    aria-label="Video progress"
+                  />
+                </div>
+              ) : null}
+              {item.videoUrl && virtualIndex === activeVirtualIndex ? (
+                <button
+                  type="button"
+                  onClick={toggleActiveVideo}
+                  aria-label={isActivePlaying ? "Pause video" : "Play video"}
+                  className="interactive-glass-press !absolute inset-0 z-[2] flex items-center justify-center bg-transparent"
+                >
+                  {!isActivePlaying && !centerIcon ? <VideoPlaybackIndicator kind="play" /> : null}
+                  {centerIcon ? <VideoPlaybackIndicator kind={centerIcon} /> : null}
+                </button>
+              ) : null}
+            </section>
+          );
+        })}
       </div>
     </div>
   );
@@ -689,7 +765,7 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
       pauseOtherPageVideos(videoRef.current);
       void startPlayback();
     }
-    setIsBuffering(false);
+    setIsBuffering(Boolean(isDesktopLightbox && activeItem?.videoUrl));
   }, [activeItem?.id, activeItem?.videoUrl, isDesktopLightbox]);
 
   function showPreviousVideo() {
@@ -738,7 +814,14 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
   const playbackEvents = {
     ...videoEvents,
     onWaiting: () => setIsBuffering(true),
-    onCanPlay: () => setIsBuffering(false),
+    onCanPlay: (event: React.SyntheticEvent<HTMLVideoElement>) => {
+      if (isDesktopLightbox && activeItem?.videoUrl && event.currentTarget.paused) {
+        void startPlayback();
+        return;
+      }
+
+      setIsBuffering(false);
+    },
     onPlaying: () => {
       pauseOtherPageVideos(videoRef.current);
       setIsBuffering(false);
@@ -791,17 +874,34 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
 
               <div className="relative w-[min(72vw,280px)] overflow-hidden rounded-[18px] bg-black shadow-[0_24px_60px_rgba(0,0,0,0.35)] md:w-[min(62vw,360px)]">
                 <div className="relative aspect-[9/16] w-full">
+                  <FallbackImage
+                    src={activeItem?.imageUrl || "https://placehold.co/375x667"}
+                    fallbackSrc="https://placehold.co/375x667/f1efeb/bb102b?text=Video"
+                    alt=""
+                    sizes="(max-width: 767px) 72vw, 360px"
+                    width={375}
+                    height={667}
+                    quality={84}
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                  />
                   <HlsVideo
                     ref={videoRef}
                     mp4Url={activeItem?.videoUrl || undefined}
-                    poster={activeItem?.imageUrl || undefined}
+                    poster={undefined}
                     preload="metadata"
                     playsInline
                     loop
                     muted
-                    className="pointer-events-none h-full w-full object-cover object-center"
+                    className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
                     onHlsStateChange={(state) => {
-                      setIsBuffering(state.status === "loading" || state.status === "pending" || state.status === "processing");
+                      if (state.status === "loading" || state.status === "pending" || state.status === "processing") {
+                        setIsBuffering(true);
+                        return;
+                      }
+
+                      if (!state.effectiveUrl && (state.status === "failed" || state.status === "mp4_only")) {
+                        setIsBuffering(false);
+                      }
                     }}
                     {...playbackEvents}
                   />
@@ -871,6 +971,10 @@ function VideoGalleryLightbox({ items, title, initialIndex, onClose }: VideoGall
                   src={item.imageUrl || "https://placehold.co/120x214"}
                   fallbackSrc="https://placehold.co/120x214/f4f4f2/bb102b?text=Video"
                   alt={item.title || `${title} thumbnail ${index + 1}`}
+                  sizes="48px"
+                  width={120}
+                  height={214}
+                  quality={72}
                   className="h-full w-full object-cover"
                 />
                 {index === currentIndex ? <span className="absolute inset-0 ring-1 ring-white/80" /> : null}
@@ -1070,7 +1174,7 @@ export function VideoGallery({ title, headings, items }: VideoGalleryProps) {
           onScroll={normalizeDesktopScrollPosition}
           onClickCapture={handleDesktopClickCapture}
         >
-          <div className="grid min-w-full grid-flow-col auto-cols-[220px] gap-6 pr-6 lg:auto-cols-[260px] xl:auto-cols-[280px]">
+          <div className="grid min-w-full grid-flow-col auto-cols-[220px] gap-5 pr-6 lg:auto-cols-[232px] laptop:auto-cols-[248px] desktop:auto-cols-[268px] wide:auto-cols-[280px]">
             {desktopLoopItems.map((item, index) => (
               <div key={`${item.id}-${index}`} data-video-gallery-card="true" className="min-w-0 shrink-0">
                 <VideoCard item={item} index={index % items.length} onOpen={() => setLightboxIndex(index % items.length)} />
