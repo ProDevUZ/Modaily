@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
+import { Suspense } from "react";
 import "./globals.css";
 
+import { YandexMetrica } from "@/components/analytics/yandex-metrica";
 import { isLocale } from "@/lib/i18n";
 import { DEFAULT_LOCALE, SEO_LOCALE_HEADER, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -124,6 +126,9 @@ export default async function RootLayout({
   return (
     <html lang={htmlLang}>
       <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable} ${artegraBrand.variable} ${artegraProductTitle.variable}`}>{children}</body>
+      <Suspense fallback={null}>
+        <YandexMetrica />
+      </Suspense>
       <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
     </html>
   );
