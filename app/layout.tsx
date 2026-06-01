@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
 import "./globals.css";
 
 import { isLocale } from "@/lib/i18n";
 import { DEFAULT_LOCALE, SEO_LOCALE_HEADER, SITE_NAME, SITE_URL } from "@/lib/seo";
+
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "G-KTCV6MF6JE";
 
 const avenirBody = localFont({
   src: [
@@ -121,6 +124,7 @@ export default async function RootLayout({
   return (
     <html lang={htmlLang}>
       <body className={`${avenirBody.variable} ${artegraDisplay.variable} ${artegraHeroTitle.variable} ${artegraBrand.variable} ${artegraProductTitle.variable}`}>{children}</body>
+      <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
     </html>
   );
 }
