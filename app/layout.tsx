@@ -7,7 +7,7 @@ import "./globals.css";
 import { isLocale } from "@/lib/i18n";
 import { DEFAULT_LOCALE, SEO_LOCALE_HEADER, SITE_NAME, SITE_URL } from "@/lib/seo";
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "G-KTCV6MF6JE";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim() || "G-STHS16KXCK";
 
 const avenirBody = localFont({
   src: [
