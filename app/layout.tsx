@@ -97,6 +97,11 @@ export const metadata: Metadata = {
   },
   description:
     "Modaily is a multilingual skincare storefront for women seeking UK-formulated daily rituals, barrier repair, glow and hydration.",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png"
+  },
   openGraph: {
     title: "Modaily",
     description: "UK-formulated skincare for everyday rituals.",
