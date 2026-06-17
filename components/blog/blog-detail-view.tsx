@@ -131,11 +131,13 @@ export function BlogDetailView({ locale, post, labels }: BlogDetailViewProps) {
           {post.linkedProduct ? (
             <div className="mt-12 rounded-[1.6rem] border border-[#e8e1d7] bg-[#faf7f2] p-5 lg:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="h-[98px] w-[98px] shrink-0 overflow-hidden rounded-[1rem] bg-white">
+                <div className="aspect-[1200/1540] h-[98px] shrink-0 overflow-hidden rounded-[1rem] bg-[#f5f5f2]">
                   <FallbackImage
                     src={post.linkedProduct.imageUrl || ""}
                     fallbackSrc="/images/home/mainpage.jpg"
                     alt={linkedProductName}
+                    sizes="76px"
+                    quality={86}
                     className="h-full w-full object-cover"
                   />
                 </div>
